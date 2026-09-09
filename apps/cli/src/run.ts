@@ -1,4 +1,4 @@
-import { isKeelError } from '@keel/core';
+import { isKleeError } from '@klee/core';
 
 import { createProgram } from './program.js';
 import { reportError } from './ui/output.js';
@@ -16,7 +16,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     // Une commande qui délègue à un sous-processus propage son code de sortie.
     return typeof process.exitCode === 'number' ? process.exitCode : 0;
   } catch (error) {
-    if (isKeelError(error)) {
+    if (isKleeError(error)) {
       reportError(error.message, error.hint);
       return 1;
     }

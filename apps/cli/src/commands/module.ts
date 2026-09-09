@@ -1,5 +1,5 @@
 import {
-  KeelError,
+  KleeError,
   MODULES,
   MODULE_IDS,
   OPTIONAL_MODULE_IDS,
@@ -11,7 +11,7 @@ import {
   writeProjectConfig,
   type ModuleId,
   type ProjectConfig,
-} from '@keel/core';
+} from '@klee/core';
 
 import { loadProject } from '../project.js';
 import { field, heading, info, reportApply, success, warn, write } from '../ui/output.js';
@@ -183,13 +183,13 @@ function workspaceInstallCommand(config: ProjectConfig): readonly string[] {
 
 function parseOptionalModuleId(value: string): ModuleId {
   if (!isModuleId(value)) {
-    throw new KeelError(`Module inconnu : "${value}".`, {
+    throw new KleeError(`Module inconnu : "${value}".`, {
       code: 'MODULE_UNKNOWN',
       hint: `Modules optionnels : ${OPTIONAL_MODULE_IDS.join(', ')}.`,
     });
   }
   if (MODULES[value].core) {
-    throw new KeelError(
+    throw new KleeError(
       `« ${value} » est un module socle : il ne peut pas être ajouté ni retiré.`,
       {
         code: 'MODULE_CORE',

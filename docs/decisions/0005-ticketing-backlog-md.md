@@ -136,7 +136,7 @@ lecture et changement de statut, mono-utilisateur local, fichier comme seule vé
 pour la fraîcheur. L'édition concurrente relève de la phase 4.
 
 **4. L'allocation des identifiants n'est couverte nulle part.** Deux agents qui créent un ticket
-en parallèle prennent tous les deux `KEEL-042` ; sur des branches distinctes, git ne signalera
+en parallèle prennent tous les deux `KLEE-042` ; sur des branches distinctes, git ne signalera
 même pas de conflit. Une stratégie doit être décidée en phase 2 (scan `max+1`, réservation,
 suffixe de branche…). C'est le point où étudier la solution cross-branch de Backlog.md
 rapportera le plus.

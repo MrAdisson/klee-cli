@@ -1,7 +1,7 @@
 /**
- * @keel/core — domaine de Keel.
+ * @klee/core — domaine de Klee.
  *
- * Ce package ne parle ni de terminal ni de prompts : il décrit ce qu'*est* un projet Keel
+ * Ce package ne parle ni de terminal ni de prompts : il décrit ce qu'*est* un projet Klee
  * (modules, providers, configuration, arborescence générée). La CLI `klee` et, plus tard,
  * le cockpit local en sont deux consommateurs interchangeables.
  */
@@ -46,10 +46,10 @@ export {
 
 export {
   ConfigError,
-  KeelError,
+  KleeError,
   ScaffoldConflictError,
   UnknownProviderError,
-  isKeelError,
+  isKleeError,
 } from './errors.js';
 
 export {

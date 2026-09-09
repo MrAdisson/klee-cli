@@ -1,6 +1,6 @@
 # AGENTS.md — docs/
 
-> Documentation de keel. Deux natures à ne jamais confondre : _authored_ (l'intention, le
+> Documentation de klee. Deux natures à ne jamais confondre : _authored_ (l'intention, le
 > pourquoi) et _générée_ (l'état réel du code à l'instant T).
 
 ## Organisation

@@ -1,8 +1,8 @@
 {
-  "name": "@keel/cli",
+  "name": "@klee/cli",
   "version": "0.1.0",
   "private": true,
-  "description": "klee — la CLI de Keel : scaffolding, modules et providers d'un projet Keel.",
+  "description": "klee — la CLI de Klee : scaffolding, modules et providers d'un projet Klee.",
   "type": "module",
   "bin": {
     "klee": "./dist/bin/klee.js"
@@ -14,14 +14,14 @@
     }
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && node -e \"require('node:fs').chmodSync('dist/bin/klee.js', 0o755)\"",
     "typecheck": "tsc --build --force && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@clack/prompts": "1.8.0",
-    "@keel/core": "workspace:*",
+    "@klee/core": "workspace:*",
     "commander": "15.0.0",
     "picocolors": "1.1.1"
   },

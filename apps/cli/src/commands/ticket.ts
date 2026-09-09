@@ -1,12 +1,12 @@
 import {
-  KeelError,
+  KleeError,
   TICKET_STATUSES,
   createTicket,
   isTicketStatus,
   moveTicket,
   type Ticket,
   type TicketStatus,
-} from '@keel/core';
+} from '@klee/core';
 
 import { loadProject, openTicketIndex } from '../project.js';
 import { field, heading, info, success, ticketRow, warn, write } from '../ui/output.js';
@@ -127,7 +127,7 @@ export async function runTicketShow(id: string): Promise<void> {
   try {
     const ticket = await index.get(id.toUpperCase());
     if (ticket === null) {
-      throw new KeelError(`Ticket introuvable : ${id}.`, {
+      throw new KleeError(`Ticket introuvable : ${id}.`, {
         code: 'TICKET_NOT_FOUND',
         hint: 'Listez les tickets avec `klee ticket list`.',
       });
@@ -178,8 +178,8 @@ function parseStatus(value: string | undefined): TicketStatus | null {
   return value;
 }
 
-function unknownStatus(value: string): KeelError {
-  return new KeelError(`Statut inconnu : "${value}".`, {
+function unknownStatus(value: string): KleeError {
+  return new KleeError(`Statut inconnu : "${value}".`, {
     code: 'TICKET_STATUS_UNKNOWN',
     hint: `Statuts disponibles : ${TICKET_STATUSES.join(', ')}.`,
   });

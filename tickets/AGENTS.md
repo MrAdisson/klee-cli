@@ -1,16 +1,16 @@
 # AGENTS.md — tickets/
 
-> Ticketing in-repo de keel. Un ticket = un fichier markdown versionné, préfixe `KEEL-`.
+> Ticketing in-repo de klee. Un ticket = un fichier markdown versionné, préfixe `KLEE-`.
 
 Le format est arrêté depuis la phase 2 et documenté dans
 [`docs/decisions/0008-format-des-tickets.md`](../docs/decisions/0008-format-des-tickets.md).
-Il est partagé par tous les projets Keel : le modifier ici change la convention de tout le monde.
+Il est partagé par tous les projets Klee : le modifier ici change la convention de tout le monde.
 
 ## Format
 
 ```markdown
 ---
-id: KEEL-001
+id: KLEE-001
 title: Titre court et actionnable
 status: backlog
 assignee: null
@@ -66,8 +66,8 @@ Scénario: ...
 ```bash
 klee ticket create "Titre"   # --status --assignee --depends-on --mockup --doc --agent
 klee ticket list             # --status --assignee --json
-klee ticket move KEEL-001 in-progress
-klee ticket show KEEL-001
+klee ticket move KLEE-001 in-progress
+klee ticket show KLEE-001
 klee board                   # kanban local, sans terminal
 ```
 

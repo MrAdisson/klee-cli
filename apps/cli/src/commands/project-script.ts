@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 
-import { KeelError, MODULES, providerRegistry, type ModuleId } from '@keel/core';
+import { KleeError, MODULES, providerRegistry, type ModuleId } from '@klee/core';
 
 import { info, write } from '../ui/output.js';
 import { directoryExists, fileExists } from '../fs.js';
@@ -11,7 +11,7 @@ import { spawnInherit } from '../spawn.js';
  * Lance un script du projet généré, avec le gestionnaire de paquets que son provider
  * `workspace` a déclaré.
  *
- * Keel n'embarque ni Style Dictionary ni Eleventy : c'est le projet qui possède son
+ * Klee n'embarque ni Style Dictionary ni Eleventy : c'est le projet qui possède son
  * outillage. `klee tokens build` est un raccourci, jamais un passage obligé — le projet
  * reste entièrement utilisable sans klee installé.
  */
@@ -35,7 +35,7 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
   const { root, config } = await loadProject();
 
   if (!config.modules[options.requiresModule]) {
-    throw new KeelError(
+    throw new KleeError(
       `Le module « ${MODULES[options.requiresModule].label} » n'est pas retenu dans ce projet.`,
       {
         code: 'MODULE_ABSENT',
@@ -46,7 +46,7 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
 
   const workspace = providerRegistry.resolve('workspace', config.providers.workspace);
   if (workspace.workspace === undefined) {
-    throw new KeelError(
+    throw new KleeError(
       `Le provider workspace « ${workspace.label} » ne déclare pas de commande d'exécution.`,
       { code: 'PROVIDER_NO_COMMANDS' },
     );
@@ -54,7 +54,7 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
 
   const cwd = join(root, options.directory);
   if (!(await directoryExists(cwd))) {
-    throw new KeelError(`${options.directory}/ est absent de ce projet.`, {
+    throw new KleeError(`${options.directory}/ est absent de ce projet.`, {
       code: 'DIRECTORY_MISSING',
       hint: 'Le module est déclaré mais ses fichiers ne sont pas générés — `klee module add --refresh-root` ?',
     });
@@ -68,7 +68,7 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
       write();
       const code = await spawnInherit(runner, [...runPrefix, 'build'], join(root, 'design-system'));
       if (code !== 0) {
-        throw new KeelError('Le build des tokens a échoué : les maquettes seraient sans style.', {
+        throw new KleeError('Le build des tokens a échoué : les maquettes seraient sans style.', {
           code: 'TOKENS_BUILD_FAILED',
           hint: 'Vérifiez `design-system/` — les dépendances sont-elles installées ?',
         });
@@ -79,7 +79,7 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
 
   const [command, ...prefix] = workspace.workspace.run;
   if (command === undefined) {
-    throw new KeelError('Commande d’exécution vide déclarée par le provider workspace.', {
+    throw new KleeError('Commande d’exécution vide déclarée par le provider workspace.', {
       code: 'PROVIDER_NO_COMMANDS',
     });
   }

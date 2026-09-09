@@ -5,7 +5,7 @@ import type { Ticket } from './schema.js';
  *
  * Un index n'est **jamais** une source de vérité : les fichiers markdown le restent, et tout
  * index doit pouvoir être supprimé puis reconstruit sans perte. C'est la condition pour que
- * le dépôt reste lisible et modifiable sans passer par Keel.
+ * le dépôt reste lisible et modifiable sans passer par Klee.
  */
 export interface TicketIndex {
   list(): Promise<Ticket[]>;

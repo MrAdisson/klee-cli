@@ -15,7 +15,7 @@ klee [-v | --version] [-h | --help] <commande>
 
 ## `klee init [directory]`
 
-Crée la structure d'un projet Keel dans `directory` (défaut : le dossier courant).
+Crée la structure d'un projet Klee dans `directory` (défaut : le dossier courant).
 
 | Option                 | Effet                                                                                   |
 | ---------------------- | --------------------------------------------------------------------------------------- |
@@ -51,7 +51,7 @@ klee init --yes --dry-run                   # inspecter le plan avant d'écrire
 ### Ce que `init` fait après avoir écrit les fichiers
 
 1. **`git init`**, sauf `--no-git` — et seulement si l'on n'est pas déjà dans un dépôt : ajouter
-   Keel à un projet existant est un cas légitime. La commande s'arrête là : **aucun commit
+   Klee à un projet existant est un cas légitime. La commande s'arrête là : **aucun commit
    automatique**, le premier commit d'un dépôt est une décision.
 2. **Installation des dépendances** — faite d'office avec `--install`, proposée en mode
    interactif, jamais silencieuse en `--yes` : le réseau ne doit pas être sollicité par
@@ -128,9 +128,9 @@ workspace vers `design-system/`, et l'orchestrateur en déduit l'arête. Le `pac
 champ.
 
 Ces trois commandes **ne font que lancer les scripts du projet**, avec le gestionnaire de
-paquets déclaré par son provider `workspace` et le bon répertoire de travail. Keel n'embarque
+paquets déclaré par son provider `workspace` et le bon répertoire de travail. Klee n'embarque
 ni Style Dictionary ni Eleventy : `design-system/` et `mockups/` ont leur propre `package.json`.
-Un projet Keel reste donc utilisable sans klee installé — `pnpm run build` depuis
+Un projet Klee reste donc utilisable sans klee installé — `pnpm run build` depuis
 `design-system/` fait exactement la même chose (cf ADR 0006).
 
 Elles exigent que le module `mockups` soit retenu, et propagent le code de sortie du script.

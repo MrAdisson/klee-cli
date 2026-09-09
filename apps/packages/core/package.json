@@ -1,8 +1,8 @@
 {
-  "name": "@keel/core",
+  "name": "@klee/core",
   "version": "0.1.0",
   "private": true,
-  "description": "Domaine Keel : modules, providers, configuration projet et moteur de scaffolding.",
+  "description": "Domaine Klee : modules, providers, configuration projet et moteur de scaffolding.",
   "type": "module",
   "exports": {
     ".": {

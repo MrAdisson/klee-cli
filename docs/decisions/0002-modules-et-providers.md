@@ -10,7 +10,7 @@ date: 2026-09-08
 
 ## Contexte
 
-Tous les projets n'ont pas besoin de tout Keel. Un service headless n'a pas de maquettes ; une
+Tous les projets n'ont pas besoin de tout Klee. Un service headless n'a pas de maquettes ; une
 librairie interne n'expose pas de contrat d'API. Et parmi les choix techniques qui restent,
 certains n'ont pas de gagnant évident : Docusaurus ou VitePress, Style Dictionary ou Terrazzo.
 

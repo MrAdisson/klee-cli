@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { readProjectConfig } from '@keel/core';
+import { readProjectConfig } from '@klee/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { runCli } from './run.js';
@@ -11,7 +11,7 @@ import { runCli } from './run.js';
 let root: string;
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'keel-cli-'));
+  root = await mkdtemp(join(tmpdir(), 'klee-cli-'));
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
@@ -53,7 +53,7 @@ describe('klee init', () => {
     expect(await cli('init', root, '--yes')).toBe(1);
   });
 
-  it('initialise un dépôt git, puisque Keel repose sur un historique unique', async () => {
+  it('initialise un dépôt git, puisque Klee repose sur un historique unique', async () => {
     expect(await cli('init', root, '--yes')).toBe(0);
     await expect(stat(join(root, '.git'))).resolves.toBeDefined();
   });
@@ -64,7 +64,7 @@ describe('klee init', () => {
   });
 
   it('n’imbrique pas un dépôt dans un dépôt existant', async () => {
-    // Ajouter Keel à un projet en cours est un cas légitime.
+    // Ajouter Klee à un projet en cours est un cas légitime.
     await mkdir(join(root, '.git'), { recursive: true });
     const nested = join(root, 'sous-projet');
     await mkdir(nested, { recursive: true });

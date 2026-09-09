@@ -16,7 +16,7 @@ dans le frontmatter du ticket plutôt qu'en prose libre, pour être exécutables
 trancher : la forme exacte du frontmatter, l'emplacement du Gherkin, le jeu de statuts,
 l'organisation des fichiers et l'allocation des identifiants.
 
-Ce format sera hérité par tout projet Keel. C'est la décision la plus permanente de la phase 2.
+Ce format sera hérité par tout projet Klee. C'est la décision la plus permanente de la phase 2.
 
 ## Décisions
 
@@ -85,7 +85,7 @@ après un `git checkout` qui réécrit tout — un cache horodaté globalement n
   comportement (`Provider.ticketIndex`). Le pattern de §13 s'applique aussi à l'exécution, tant
   que ce comportement reste derrière une interface commune.
 - Les écritures (`create`, `move`) ne passent jamais par l'index : elles écrivent le fichier.
-  Supprimer `.keel/` ne perd donc jamais rien.
+  Supprimer `.klee/` ne perd donc jamais rien.
 - Le board et la CLI lisent par la même interface : aucun des deux ne sait s'il lit du markdown
   ou du SQLite.
 - Un ticket reste éditable à la main dans n'importe quel éditeur, et l'index s'en aperçoit — un

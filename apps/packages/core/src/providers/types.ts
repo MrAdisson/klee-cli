@@ -54,7 +54,7 @@ export interface Provider extends ScaffoldGenerator {
   /**
    * Ce que seul un provider du point `workspace` sait du projet généré : avec quoi il
    * s'installe, comment il lance un script, et sous quelle forme un package en référence un
-   * autre. Keel n'embarque aucun gestionnaire de paquets, il délègue.
+   * autre. Klee n'embarque aucun gestionnaire de paquets, il délègue.
    */
   readonly workspace?: {
     readonly install: readonly string[];

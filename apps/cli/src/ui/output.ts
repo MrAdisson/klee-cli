@@ -1,4 +1,4 @@
-import type { AppliedFile, ApplyScaffoldResult, Ticket } from '@keel/core';
+import type { AppliedFile, ApplyScaffoldResult, Ticket } from '@klee/core';
 import pc from 'picocolors';
 
 /**

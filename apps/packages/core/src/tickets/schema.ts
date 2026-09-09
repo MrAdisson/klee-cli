@@ -68,7 +68,7 @@ export function isTicketStatus(value: string): value is TicketStatus {
   return (TICKET_STATUSES as readonly string[]).includes(value);
 }
 
-/** `KEEL-001-mettre-en-place-le-pipeline.md` — l'identifiant d'abord, pour trier et retrouver. */
+/** `KLEE-001-mettre-en-place-le-pipeline.md` — l'identifiant d'abord, pour trier et retrouver. */
 export function ticketFileName(id: string, title: string): string {
   const slug = title
     .normalize('NFD')

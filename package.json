@@ -1,8 +1,8 @@
 {
-  "name": "keel",
+  "name": "klee",
   "version": "0.1.0",
   "private": true,
-  "description": "Keel — couche de convention et glue tooling qui relie tickets, maquettes, docs et code dans un seul monorepo. CLI: klee.",
+  "description": "Klee — couche de convention et glue tooling qui relie tickets, maquettes, docs et code dans un seul monorepo. CLI: klee.",
   "type": "module",
   "packageManager": "pnpm@12.3.4",
   "engines": {

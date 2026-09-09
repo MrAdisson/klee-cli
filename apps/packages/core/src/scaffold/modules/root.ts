@@ -42,7 +42,7 @@ export const rootGenerator: ScaffoldGenerator = {
         origin,
         contents: textContents(`# ${config.name}
 
-Projet géré avec **Keel** : tickets, maquettes, docs et code vivent dans le même dépôt,
+Projet géré avec **Klee** : tickets, maquettes, docs et code vivent dans le même dépôt,
 versionnés et exploitables directement par un humain comme par un agent.
 
 ## Modules retenus
@@ -135,8 +135,8 @@ coverage/
 .turbo/
 *.tsbuildinfo
 
-# Caches locaux de Keel (index de tickets…) — reconstructibles, jamais versionnés
-.keel/
+# Caches locaux de Klee (index de tickets…) — reconstructibles, jamais versionnés
+.klee/
 
 # Les secrets ne vivent jamais dans le dépôt
 .env

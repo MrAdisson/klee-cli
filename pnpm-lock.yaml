@@ -139,7 +139,7 @@ importers:
       '@clack/prompts':
         specifier: 1.8.0
         version: 1.8.0
-      '@keel/core':
+      '@klee/core':
         specifier: workspace:*
         version: link:../packages/core
       commander:

@@ -15,10 +15,10 @@ import type { TicketIndex, TicketIndexFactory } from './ticket-index.js';
  * systématiquement. C'est ce qui permet à l'index de survivre à un changement de branche sans
  * mentir, contrairement à un cache horodaté globalement.
  *
- * La base vit dans `.keel/` et n'est pas versionnée : la supprimer ne perd rien.
+ * La base vit dans `.klee/` et n'est pas versionnée : la supprimer ne perd rien.
  */
 
-const CACHE_DIRNAME = '.keel';
+const CACHE_DIRNAME = '.klee';
 const DB_FILENAME = 'tickets.db';
 
 const SCHEMA = `

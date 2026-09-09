@@ -7,7 +7,7 @@ import {
   moduleSelectionFromPreset,
   readTickets,
   writeProjectConfig,
-} from '@keel/core';
+} from '@klee/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { startBoardServer, type RunningBoard } from './server.js';
@@ -20,7 +20,7 @@ let board: RunningBoard;
 let base: string;
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'keel-board-'));
+  root = await mkdtemp(join(tmpdir(), 'klee-board-'));
   const config = createProjectConfig({
     name: 'demo',
     idPrefix: 'ACME',

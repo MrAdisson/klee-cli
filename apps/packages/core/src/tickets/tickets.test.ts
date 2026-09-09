@@ -13,7 +13,7 @@ import { createTicket, moveTicket, nextTicketId, readTickets, ticketsDir } from 
 const FIXED_NOW = new Date('2026-09-09T10:00:00.000Z');
 
 const frontmatter: TicketFrontmatter = {
-  id: 'KEEL-001',
+  id: 'KLEE-001',
   title: 'Mettre en place le pipeline',
   status: 'backlog',
   assignee: null,
@@ -28,7 +28,7 @@ const frontmatter: TicketFrontmatter = {
 let root: string;
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'keel-tickets-'));
+  root = await mkdtemp(join(tmpdir(), 'klee-tickets-'));
 });
 
 afterEach(async () => {
@@ -39,7 +39,7 @@ describe('format', () => {
   it('fait un aller-retour sans altérer le fichier', () => {
     const body = 'Description.\n\n## Critères\n\n```gherkin\nScénario: x\n```';
     const serialized = serializeTicket(frontmatter, body);
-    const parsed = parseTicket('tickets/KEEL-001.md', serialized);
+    const parsed = parseTicket('tickets/KLEE-001.md', serialized);
 
     expect(serializeTicket(parsed, parsed.body)).toBe(serialized);
     expect(parsed.title).toBe(frontmatter.title);
@@ -53,7 +53,7 @@ describe('format', () => {
 
   it('accepte un ticket sans critères — tous ne s’y prêtent pas', () => {
     const parsed = parseTicket(
-      'tickets/KEEL-001.md',
+      'tickets/KLEE-001.md',
       serializeTicket(frontmatter, 'Juste du texte.'),
     );
     expect(parsed.acceptance).toBe('');
@@ -61,7 +61,7 @@ describe('format', () => {
 
   it('applique les valeurs par défaut d’un frontmatter minimal', () => {
     const minimal = `---
-id: KEEL-002
+id: KLEE-002
 title: Minimal
 status: todo-inconnu
 created: 2026-09-09
@@ -70,10 +70,10 @@ updated: 2026-09-09
 
 corps
 `;
-    expect(() => parseTicket('tickets/KEEL-002.md', minimal)).toThrow(ConfigError);
+    expect(() => parseTicket('tickets/KLEE-002.md', minimal)).toThrow(ConfigError);
 
     const valid = minimal.replace('todo-inconnu', 'backlog');
-    const parsed = parseTicket('tickets/KEEL-002.md', valid);
+    const parsed = parseTicket('tickets/KLEE-002.md', valid);
     expect(parsed.assignee).toBeNull();
     expect(parsed.depends_on).toEqual([]);
     expect(parsed.authored_by).toBe('human');
@@ -86,26 +86,26 @@ corps
 
 describe('ticketFileName', () => {
   it('préfixe par l’identifiant et translittère le titre', () => {
-    expect(ticketFileName('KEEL-001', 'Créer le pipeline de tokens')).toBe(
-      'KEEL-001-creer-le-pipeline-de-tokens.md',
+    expect(ticketFileName('KLEE-001', 'Créer le pipeline de tokens')).toBe(
+      'KLEE-001-creer-le-pipeline-de-tokens.md',
     );
   });
 
   it('retombe sur l’identifiant seul quand le titre ne donne aucun slug', () => {
-    expect(ticketFileName('KEEL-002', '???')).toBe('KEEL-002.md');
+    expect(ticketFileName('KLEE-002', '???')).toBe('KLEE-002.md');
   });
 });
 
 describe('store', () => {
   it('alloue des identifiants successifs', async () => {
-    expect(await nextTicketId(root, 'KEEL')).toBe('KEEL-001');
+    expect(await nextTicketId(root, 'KLEE')).toBe('KLEE-001');
 
-    await createTicket({ root, prefix: 'KEEL', title: 'Premier', now: FIXED_NOW });
-    expect(await nextTicketId(root, 'KEEL')).toBe('KEEL-002');
+    await createTicket({ root, prefix: 'KLEE', title: 'Premier', now: FIXED_NOW });
+    expect(await nextTicketId(root, 'KLEE')).toBe('KLEE-002');
   });
 
   it('ignore les fichiers qui ne sont pas des tickets', async () => {
-    await createTicket({ root, prefix: 'KEEL', title: 'Premier', now: FIXED_NOW });
+    await createTicket({ root, prefix: 'KLEE', title: 'Premier', now: FIXED_NOW });
     await writeFile(join(ticketsDir(root), 'AGENTS.md'), '# doc\n', 'utf8');
 
     const tickets = await readTickets(root);
@@ -113,7 +113,7 @@ describe('store', () => {
   });
 
   it('change le statut sans renommer le fichier', async () => {
-    const created = await createTicket({ root, prefix: 'KEEL', title: 'Premier', now: FIXED_NOW });
+    const created = await createTicket({ root, prefix: 'KLEE', title: 'Premier', now: FIXED_NOW });
     const moved = await moveTicket(root, created.id, 'in-progress', FIXED_NOW);
 
     expect(moved.status).toBe('in-progress');
@@ -124,20 +124,20 @@ describe('store', () => {
   });
 
   it('échoue explicitement sur un ticket inconnu', async () => {
-    await expect(moveTicket(root, 'KEEL-404', 'done', FIXED_NOW)).rejects.toThrow(/introuvable/);
+    await expect(moveTicket(root, 'KLEE-404', 'done', FIXED_NOW)).rejects.toThrow(/introuvable/);
   });
 
   it('trie les identifiants numériquement, pas alphabétiquement', async () => {
     for (let index = 0; index < 11; index += 1) {
       await createTicket({
         root,
-        prefix: 'KEEL',
+        prefix: 'KLEE',
         title: `Ticket ${String(index)}`,
         now: FIXED_NOW,
       });
     }
     const ids = (await readTickets(root)).map((ticket) => ticket.id);
-    expect(ids.at(-1)).toBe('KEEL-011');
+    expect(ids.at(-1)).toBe('KLEE-011');
   });
 });
 
@@ -146,27 +146,27 @@ describe.each([
   ['markdown-sqlite', sqliteTicketIndexFactory],
 ])('index %s', (_id, factory) => {
   it('rend les mêmes tickets que la lecture directe', async () => {
-    await createTicket({ root, prefix: 'KEEL', title: 'Premier', now: FIXED_NOW });
-    await createTicket({ root, prefix: 'KEEL', title: 'Second', now: FIXED_NOW });
+    await createTicket({ root, prefix: 'KLEE', title: 'Premier', now: FIXED_NOW });
+    await createTicket({ root, prefix: 'KLEE', title: 'Second', now: FIXED_NOW });
 
     const index = factory.create(root);
     try {
-      expect((await index.list()).map((ticket) => ticket.id)).toEqual(['KEEL-001', 'KEEL-002']);
-      expect((await index.get('KEEL-002'))?.title).toBe('Second');
-      expect(await index.get('KEEL-404')).toBeNull();
+      expect((await index.list()).map((ticket) => ticket.id)).toEqual(['KLEE-001', 'KLEE-002']);
+      expect((await index.get('KLEE-002'))?.title).toBe('Second');
+      expect(await index.get('KLEE-404')).toBeNull();
     } finally {
       index.close();
     }
   });
 
   it('voit une modification faite hors de son dos', async () => {
-    const created = await createTicket({ root, prefix: 'KEEL', title: 'Premier', now: FIXED_NOW });
+    const created = await createTicket({ root, prefix: 'KLEE', title: 'Premier', now: FIXED_NOW });
 
     const index = factory.create(root);
     try {
       expect((await index.get(created.id))?.status).toBe('backlog');
 
-      // Édition à la main, sans passer par Keel : le fichier reste la source de vérité.
+      // Édition à la main, sans passer par Klee : le fichier reste la source de vérité.
       const path = join(root, created.path);
       const contents = await readFile(path, 'utf8');
       await writeFile(path, contents.replace('status: backlog', 'status: done'), 'utf8');
@@ -178,7 +178,7 @@ describe.each([
   });
 
   it('voit une suppression', async () => {
-    const created = await createTicket({ root, prefix: 'KEEL', title: 'Premier', now: FIXED_NOW });
+    const created = await createTicket({ root, prefix: 'KLEE', title: 'Premier', now: FIXED_NOW });
 
     const index = factory.create(root);
     try {

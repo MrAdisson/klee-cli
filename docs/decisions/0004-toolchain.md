@@ -6,12 +6,12 @@ status: accepted
 date: 2026-09-08
 ---
 
-# 0004 — Outillage du dépôt keel
+# 0004 — Outillage du dépôt klee
 
 ## Contexte
 
-Keel scaffolde des projets ; il doit donc être exemplaire sur son propre outillage. Les choix
-ci-dessous concernent **le dépôt keel lui-même**, pas les projets qu'il génère — ceux-là
+Klee scaffolde des projets ; il doit donc être exemplaire sur son propre outillage. Les choix
+ci-dessous concernent **le dépôt klee lui-même**, pas les projets qu'il génère — ceux-là
 choisissent leur orchestrateur via le provider `workspace`.
 
 ## Décision
@@ -21,7 +21,7 @@ choisissent leur orchestrateur via le provider `workspace`.
 | Runtime            | Node ≥ 22.12, ESM strict                                       | LTS, `import.meta.dirname` disponible                                                                                              |
 | Langage            | TypeScript, `strict` + `noUncheckedIndexedAccess`              | Un outil de scaffolding manipule des chemins et des enregistrements indexés : c'est exactement là que l'index non vérifié fait mal |
 | Version TypeScript | **6.0.3, volontairement pas 7.x**                              | voir ci-dessous                                                                                                                    |
-| Packages           | pnpm workspaces + Turborepo                                    | Cohérent avec le provider par défaut que keel recommande                                                                           |
+| Packages           | pnpm workspaces + Turborepo                                    | Cohérent avec le provider par défaut que klee recommande                                                                           |
 | Build              | `tsc --build` avec project references                          | Deux packages, une dépendance : un bundler n'apporterait rien                                                                      |
 | Tests              | Vitest, tests colocalisés `src/**/*.test.ts`                   | Pas de configuration de chemins à maintenir                                                                                        |
 | Validation         | Zod                                                            | La configuration est lue depuis un fichier éditable à la main : elle doit être validée, pas supposée                               |

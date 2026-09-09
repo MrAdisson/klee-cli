@@ -1,17 +1,31 @@
-# AGENTS.md — keel (racine)
+# AGENTS.md — klee (racine)
 
 > Point d'entrée pour tout agent ou contributeur qui arrive sur ce dépôt.
 
 ## Ce qu'est ce projet
 
-**Keel** est une couche de convention et de glue tooling qui relie tickets, maquettes, docs et
+**Klee** est une couche de convention et de glue tooling qui relie tickets, maquettes, docs et
 code dans un seul monorepo. Sa CLI s'appelle **`klee`**.
 
-Keel n'est pas un remplaçant de Jira, Figma ou Docusaurus : c'est le **graphe de traçabilité**
+Klee n'est pas un remplaçant de Jira, Figma ou Docusaurus : c'est le **graphe de traçabilité**
 qui manque entre eux, plus le scaffolding qui rend ce graphe possible dès le premier commit.
 
 Principe fondateur : **everything lives in the codebase.** Aucun artefact structurant
 (maquette, ticket, décision, doc produit) ne vit uniquement dans un outil SaaS externe.
+
+## État d'avancement
+
+| Phase | Contenu                                                                    | État          |
+| ----- | -------------------------------------------------------------------------- | ------------- |
+| 0     | Squelette monorepo, schéma d'ID, modules/providers, `klee init`            | ✅            |
+| 1     | `design-system/` (tokens DTCG + pipeline), `mockups/` + serveur local      | ✅            |
+| 2     | `tickets/` : format, CLI, `klee board`, deux index                         | ✅            |
+| 3     | Liens croisés entre identifiants + docs-as-code (Docusaurus)               | ⬅ **suivant** |
+| 4     | Cockpit `klee studio`, recherche transverse, détection de dérive, webhooks |               |
+| 5–7   | Interopérabilité, observabilité, environnements                            |               |
+
+La roadmap complète est en fin de `TECHNICAL.md`. **Chaque phase se lance après validation
+humaine de la précédente** — n'anticipez pas.
 
 ## Documents de cadrage
 
@@ -27,19 +41,19 @@ Ces deux fichiers de racine sont le brief du projet. Ils sont exclus de Prettier
 ## Arborescence
 
 ```
-apps/cli/              # @keel/cli — la CLI `klee` (interaction terminal uniquement)
-apps/packages/core/    # @keel/core — le domaine : modules, providers, config, scaffolding
+apps/cli/              # @klee/cli — la CLI `klee` (interaction terminal uniquement)
+apps/packages/core/    # @klee/core — le domaine : modules, providers, config, scaffolding
 docs/technical/        # documentation technique authored
 docs/decisions/        # ADR numérotés
 tickets/               # tickets markdown (format posé en phase 2)
-project.config.json    # keel se décrit lui-même comme un projet Keel (dogfooding)
+project.config.json    # klee se décrit lui-même comme un projet Klee (dogfooding)
 ```
 
 ## Conventions
 
-- **Identifiants partagés** : `KEEL-xxx` (ticket), `MOCK-xxx` (maquette), `DOC-xxx` (document).
+- **Identifiants partagés** : `KLEE-xxx` (ticket), `MOCK-xxx` (maquette), `DOC-xxx` (document).
   Les référencer exactement : ce sont des arêtes du graphe, pas de la prose.
-- **Séparation domaine / interface** : `@keel/core` ne parle ni de terminal, ni de prompts, ni
+- **Séparation domaine / interface** : `@klee/core` ne parle ni de terminal, ni de prompts, ni
   de couleurs. Toute écriture sur stdout passe par `apps/cli/src/ui/`. C'est ce qui permettra
   au cockpit de la phase 4 de réutiliser le domaine sans le réécrire.
 - **Un provider s'ajoute sans toucher au reste** : implémenter l'interface `Provider`, puis
@@ -76,6 +90,22 @@ pnpm run build        # tsc --build sur les deux packages
 pnpm run verify       # format + lint + typecheck + test — à passer avant toute PR
 node apps/cli/dist/bin/klee.js --help
 ```
+
+## Décisions déjà prises
+
+Neuf ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
+
+| ADR  | Sujet                                                                           |
+| ---- | ------------------------------------------------------------------------------- |
+| 0001 | Monorepo unique, ownership par chemin                                           |
+| 0002 | Deux axes : modules (présence) et providers (implémentation)                    |
+| 0003 | Schéma d'identifiants — `MOCK`/`DOC` fixes, préfixe de tickets propre au projet |
+| 0004 | Outillage du dépôt, et pourquoi TypeScript reste en 6.x                         |
+| 0005 | Ticketing maison plutôt que Backlog.md intégré                                  |
+| 0006 | Les modules déclarent leurs dépendances, ils ne les installent pas              |
+| 0007 | Nunjucks en macros pour les maquettes                                           |
+| 0008 | Format des tickets — Gherkin dans le corps, statuts imposés                     |
+| 0009 | Un seul nom : Klee, projet comme commande                                       |
 
 ## Références
 

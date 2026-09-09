@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
-import { createTicket, isTicketStatus, moveTicket, type TicketStatus } from '@keel/core';
+import { createTicket, isTicketStatus, moveTicket, type TicketStatus } from '@klee/core';
 
 import { openTicketIndex, type Project } from '../project.js';
 import { renderBoard } from './render.js';

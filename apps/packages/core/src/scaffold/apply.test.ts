@@ -19,7 +19,7 @@ const plan: ScaffoldPlan = {
 let root: string;
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'keel-apply-'));
+  root = await mkdtemp(join(tmpdir(), 'klee-apply-'));
 });
 
 afterEach(async () => {

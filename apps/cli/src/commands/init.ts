@@ -4,7 +4,7 @@ import {
   CONFIG_FILENAME,
   DEFAULT_PRESET_ID,
   DEFAULT_TICKET_PREFIX,
-  KeelError,
+  KleeError,
   MODULE_IDS,
   PRESETS,
   PRESET_IDS,
@@ -26,7 +26,7 @@ import {
   type ProviderPoint,
   type ScaffoldPlan,
   type TokenTarget,
-} from '@keel/core';
+} from '@klee/core';
 
 import { field, heading, info, reportApply, success, warn, write } from '../ui/output.js';
 import {
@@ -58,7 +58,7 @@ export async function runInit(directory: string | undefined, options: InitOption
   const interactive = options.yes !== true;
 
   if (interactive && process.stdin.isTTY !== true) {
-    throw new KeelError('Le mode interactif requiert un terminal.', {
+    throw new KleeError('Le mode interactif requiert un terminal.', {
       code: 'NOT_A_TTY',
       hint: 'Utilisez `klee init --yes` (éventuellement avec --preset) pour un usage scriptable.',
     });
@@ -82,7 +82,7 @@ export async function runInit(directory: string | undefined, options: InitOption
   }
 
   if ((await fileExists(configPath(root))) && options.force !== true) {
-    throw new KeelError(`${root} contient déjà un ${CONFIG_FILENAME}.`, {
+    throw new KleeError(`${root} contient déjà un ${CONFIG_FILENAME}.`, {
       code: 'ALREADY_INITIALIZED',
       hint: 'Utilisez `klee module add <module>` pour faire évoluer le projet, ou --force pour régénérer.',
     });
@@ -125,7 +125,7 @@ export async function runInit(directory: string | undefined, options: InitOption
 }
 
 /**
- * `git init` si — et seulement si — on n'est pas déjà dans un dépôt. Keel repose sur un
+ * `git init` si — et seulement si — on n'est pas déjà dans un dépôt. Klee repose sur un
  * historique git unique (§1) ; un projet scaffoldé sans dépôt est incohérent avec sa propre
  * prémisse. On s'arrête là : le premier commit est une décision, pas une commodité.
  */
@@ -230,7 +230,7 @@ function reportNextSteps(config: ProjectConfig, plan: ScaffoldPlan, installed: b
 function resolvePreset(value: string | undefined): PresetId {
   if (value === undefined) return DEFAULT_PRESET_ID;
   if (!isPresetId(value)) {
-    throw new KeelError(`Preset inconnu : "${value}".`, {
+    throw new KleeError(`Preset inconnu : "${value}".`, {
       code: 'PRESET_UNKNOWN',
       hint: `Presets disponibles : ${PRESET_IDS.join(', ')}.`,
     });

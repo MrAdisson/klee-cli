@@ -19,7 +19,7 @@ export async function directoryExists(path: string): Promise<boolean> {
 
 /**
  * Remonte l'arborescence à la recherche d'un `.git`. Scaffolder à l'intérieur d'un dépôt
- * existant est un cas légitime — ajouter Keel à un projet en cours — et `git init` n'aurait
+ * existant est un cas légitime — ajouter Klee à un projet en cours — et `git init` n'aurait
  * alors rien à y faire.
  *
  * `.git` peut être un fichier (worktree, submodule) autant qu'un dossier.

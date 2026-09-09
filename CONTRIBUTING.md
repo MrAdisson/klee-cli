@@ -1,4 +1,4 @@
-# Contribuer à Keel
+# Contribuer à Klee
 
 ## Prérequis
 
@@ -67,12 +67,12 @@ typage (`satisfies Record<ModuleId, …>`), pour qu'un module ajouté à moitié
 
 - Les commentaires expliquent **pourquoi**, jamais **quoi**. Un commentaire qui paraphrase la
   ligne suivante sera supprimé en revue.
-- Une erreur attendue est une `KeelError` avec un `code` et, si possible, un `hint`.
+- Une erreur attendue est une `KleeError` avec un `code` et, si possible, un `hint`.
 - Un générateur de scaffolding retourne des fichiers, il n'en écrit aucun.
 - Les tests portent sur le plan et sur le comportement observable, pas sur les détails
   d'implémentation.
 
 ## Commits
 
-Un commit référence le ticket qui le motive (`KEEL-123`) dès que le ticketing est en place
+Un commit référence le ticket qui le motive (`KLEE-123`) dès que le ticketing est en place
 (phase 2).

@@ -4,32 +4,32 @@
  * configuration n'est pas un bug mais une réponse à corriger.
  */
 
-export interface KeelErrorOptions {
+export interface KleeErrorOptions {
   readonly code: string;
   readonly hint?: string;
   readonly cause?: unknown;
 }
 
-export class KeelError extends Error {
+export class KleeError extends Error {
   readonly code: string;
   readonly hint: string | undefined;
 
-  constructor(message: string, options: KeelErrorOptions) {
+  constructor(message: string, options: KleeErrorOptions) {
     super(message, options.cause === undefined ? undefined : { cause: options.cause });
-    this.name = 'KeelError';
+    this.name = 'KleeError';
     this.code = options.code;
     this.hint = options.hint;
   }
 }
 
-export class ConfigError extends KeelError {
-  constructor(message: string, options: Omit<KeelErrorOptions, 'code'> & { code?: string } = {}) {
+export class ConfigError extends KleeError {
+  constructor(message: string, options: Omit<KleeErrorOptions, 'code'> & { code?: string } = {}) {
     super(message, { ...options, code: options.code ?? 'CONFIG_INVALID' });
     this.name = 'ConfigError';
   }
 }
 
-export class UnknownProviderError extends KeelError {
+export class UnknownProviderError extends KleeError {
   constructor(point: string, id: string, available: readonly string[]) {
     super(`Provider inconnu pour le point « ${point} » : "${id}".`, {
       code: 'PROVIDER_UNKNOWN',
@@ -39,7 +39,7 @@ export class UnknownProviderError extends KeelError {
   }
 }
 
-export class ScaffoldConflictError extends KeelError {
+export class ScaffoldConflictError extends KleeError {
   readonly conflicts: readonly string[];
 
   constructor(conflicts: readonly string[]) {
@@ -55,6 +55,6 @@ export class ScaffoldConflictError extends KeelError {
   }
 }
 
-export function isKeelError(value: unknown): value is KeelError {
-  return value instanceof KeelError;
+export function isKleeError(value: unknown): value is KleeError {
+  return value instanceof KleeError;
 }

@@ -39,7 +39,7 @@ export async function readProjectConfig(root: string): Promise<ProjectConfig> {
   } catch (cause) {
     throw new ConfigError(`Aucun fichier ${CONFIG_FILENAME} lisible dans ${root}.`, {
       code: 'CONFIG_NOT_FOUND',
-      hint: 'Lancez `klee init` pour créer le projet, ou placez-vous dans un projet Keel.',
+      hint: 'Lancez `klee init` pour créer le projet, ou placez-vous dans un projet Klee.',
       cause,
     });
   }

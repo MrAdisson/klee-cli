@@ -1,13 +1,13 @@
 import {
-  KeelError,
+  KleeError,
   findProjectRoot,
   providerRegistry,
   readProjectConfig,
   type ProjectConfig,
   type TicketIndex,
-} from '@keel/core';
+} from '@klee/core';
 
-/** Projet Keel résolu depuis le dossier courant, avec sa configuration validée. */
+/** Projet Klee résolu depuis le dossier courant, avec sa configuration validée. */
 export interface Project {
   readonly root: string;
   readonly config: ProjectConfig;
@@ -16,7 +16,7 @@ export interface Project {
 export async function loadProject(): Promise<Project> {
   const root = await findProjectRoot(process.cwd());
   if (root === null) {
-    throw new KeelError('Aucun projet Keel trouvé depuis le dossier courant.', {
+    throw new KleeError('Aucun projet Klee trouvé depuis le dossier courant.', {
       code: 'PROJECT_NOT_FOUND',
       hint: 'Lancez `klee init` pour en créer un.',
     });
@@ -35,7 +35,7 @@ export function openTicketIndex(project: Project): TicketIndex {
     project.config.providers['tickets-index'],
   );
   if (provider.ticketIndex === undefined) {
-    throw new KeelError(
+    throw new KleeError(
       `Le provider d'indexation « ${provider.label} » ne sait pas lire les tickets.`,
       { code: 'PROVIDER_NO_INDEX' },
     );

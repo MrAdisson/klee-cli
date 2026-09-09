@@ -11,7 +11,7 @@ import {
   type ProviderPoint,
   type ProviderRegistry,
   type TokenTarget,
-} from '@keel/core';
+} from '@klee/core';
 
 /**
  * Mode interactif (TECHNICAL.md §13) : d'abord les modules, puis — pour chaque module

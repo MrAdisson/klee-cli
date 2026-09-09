@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
 
-import { KeelError } from '@keel/core';
+import { KleeError } from '@klee/core';
 
 /**
- * Lance un sous-processus en lui laissant le terminal. Keel délègue au gestionnaire de
+ * Lance un sous-processus en lui laissant le terminal. Klee délègue au gestionnaire de
  * paquets du projet plutôt que d'embarquer le sien : un binaire manquant est donc une erreur
  * d'environnement à expliquer, pas un crash.
  */
@@ -22,7 +22,7 @@ export function spawnInherit(
     child.on('error', (error: NodeJS.ErrnoException) => {
       if (error.code === 'ENOENT') {
         reject(
-          new KeelError(`« ${command} » est introuvable.`, {
+          new KleeError(`« ${command} » est introuvable.`, {
             code: 'PACKAGE_MANAGER_MISSING',
             hint: `Installez-le, ou lancez la commande à la main depuis ${cwd}.`,
             cause: error,

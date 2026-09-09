@@ -6,7 +6,7 @@ related_mockups: []
 
 # `project.config.json` — schéma de configuration
 
-Fichier racine de tout projet Keel. Il porte les deux axes de configuration décrits par
+Fichier racine de tout projet Klee. Il porte les deux axes de configuration décrits par
 `TECHNICAL.md` §13 et l'ADR [0002](../decisions/0002-modules-et-providers.md) : quels modules
 sont présents, et quelle implémentation est retenue pour chaque point configurable.
 

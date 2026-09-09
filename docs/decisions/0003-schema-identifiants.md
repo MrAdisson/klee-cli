@@ -10,7 +10,7 @@ date: 2026-09-08
 
 ## Contexte
 
-Le différenciant de Keel est le graphe qui relie un commit à un ticket, un ticket à une
+Le différenciant de Klee est le graphe qui relie un commit à un ticket, un ticket à une
 maquette, une maquette au composant qui l'implémente. Ce graphe n'existe que si les
 identifiants sont reconnaissables mécaniquement, dans du markdown, du YAML, du HTML et des
 messages de commit — c'est-à-dire dans des formats qui n'ont aucune notion de référence.
@@ -21,7 +21,7 @@ Un identifiant est `<PREFIX>-<numéro>`, avec trois natures d'entité :
 
 | Nature               | Préfixe                       | Exemple              |
 | -------------------- | ----------------------------- | -------------------- |
-| Ticket               | propre au projet (`idPrefix`) | `KEEL-123`, `ACME-7` |
+| Ticket               | propre au projet (`idPrefix`) | `KLEE-123`, `ACME-7` |
 | Maquette / composant | `MOCK` (fixe)                 | `MOCK-042`           |
 | Document             | `DOC` (fixe)                  | `DOC-018`            |
 

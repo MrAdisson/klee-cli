@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { KeelError } from '../errors.js';
+import { KleeError } from '../errors.js';
 import { formatId } from '../ids.js';
 import { parseTicket, serializeTicket, newTicketBody } from './format.js';
 import {
@@ -134,7 +134,7 @@ export async function moveTicket(
 ): Promise<Ticket> {
   const ticket = await readTicket(root, id);
   if (ticket === null) {
-    throw new KeelError(`Ticket introuvable : ${id}.`, {
+    throw new KleeError(`Ticket introuvable : ${id}.`, {
       code: 'TICKET_NOT_FOUND',
       hint: 'Listez les tickets avec `klee ticket list`.',
     });

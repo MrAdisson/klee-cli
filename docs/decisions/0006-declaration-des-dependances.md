@@ -44,12 +44,12 @@ Trois raisons, dans cet ordre :
 `design-system/package.json` porte Style Dictionary et son script `build`,
 `mockups/package.json` porte Eleventy et son script `serve`. Le projet généré possède son
 outillage ; `klee tokens build` et `klee mockups serve` ne font que lancer ces scripts avec le
-bon répertoire de travail. Un projet Keel reste entièrement utilisable **sans klee installé** —
+bon répertoire de travail. Un projet Klee reste entièrement utilisable **sans klee installé** —
 c'est la différence entre une convention et une dépendance.
 
 **Corollaire sur le gestionnaire de paquets.** Seuls les providers du point `workspace`
 déclarent les commandes (`install`, `run`) : ce sont les seuls à savoir si le projet s'installe
-avec pnpm ou npm. Keel n'en embarque aucun.
+avec pnpm ou npm. Klee n'en embarque aucun.
 
 ## Conséquences
 

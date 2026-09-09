@@ -10,9 +10,9 @@ date: 2026-09-08
 
 ## Contexte
 
-Keel relie des artefacts de natures très différentes — code applicatif, maquettes,
+Klee relie des artefacts de natures très différentes — code applicatif, maquettes,
 documentation, tickets, contrats d'API — qui se référencent mutuellement par identifiant
-(`KEEL-123` → `MOCK-042` → `apps/web/.../Button.tsx`). La valeur du dispositif tient
+(`KLEE-123` → `MOCK-042` → `apps/web/.../Button.tsx`). La valeur du dispositif tient
 entièrement à ce que ces références restent résolvables.
 
 Deux topologies étaient envisageables : un dépôt par domaine (code / design / docs), ou un
@@ -30,7 +30,7 @@ prix d'une synchronisation.
 L'ownership par équipe se gère **par chemin** (fichier type `CODEOWNERS`), jamais par dépôt
 séparé.
 
-Cette décision vaut pour keel lui-même comme pour tout projet que `klee init` génère : elle
+Cette décision vaut pour klee lui-même comme pour tout projet que `klee init` génère : elle
 est reproduite dans l'ADR 0001 de chaque projet scaffoldé.
 
 ## Conséquences

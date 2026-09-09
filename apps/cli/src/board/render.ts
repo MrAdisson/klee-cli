@@ -1,4 +1,4 @@
-import { TICKET_STATUSES, type Ticket, type TicketStatus } from '@keel/core';
+import { TICKET_STATUSES, type Ticket, type TicketStatus } from '@klee/core';
 
 /**
  * Rendu du board. Volontairement du HTML serveur, sans framework ni étape de build : le

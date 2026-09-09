@@ -75,7 +75,7 @@ const styleDictionary: Provider = {
       platforms.push(`    tailwind: {
       transformGroup: 'js',
       buildPath: 'dist/tailwind/',
-      files: [{ destination: 'theme.js', format: 'keel/tailwind-theme' }],
+      files: [{ destination: 'theme.js', format: 'klee/tailwind-theme' }],
     },`);
     }
 
@@ -84,7 +84,7 @@ const styleDictionary: Provider = {
 // Style Dictionary n'a pas de format Tailwind natif : on projette les tokens dans la forme
 // attendue par \`theme.extend\`, en conservant les groupes de premier niveau.
 StyleDictionary.registerFormat({
-  name: 'keel/tailwind-theme',
+  name: 'klee/tailwind-theme',
   format({ dictionary }) {
     const theme = {};
     for (const token of dictionary.allTokens) {

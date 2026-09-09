@@ -1,4 +1,4 @@
-import { PRESET_IDS, TICKET_STATUSES } from '@keel/core';
+import { PRESET_IDS, TICKET_STATUSES } from '@klee/core';
 import { Command } from 'commander';
 
 import { runInit, type InitOptions } from './commands/init.js';
@@ -30,14 +30,14 @@ export function createProgram(): Command {
   program
     .name('klee')
     .description(
-      'Keel — everything lives in the codebase. Scaffolde et fait évoluer un projet dont les tickets, maquettes, docs et code partagent un seul dépôt.',
+      'Klee — everything lives in the codebase. Scaffolde et fait évoluer un projet dont les tickets, maquettes, docs et code partagent un seul dépôt.',
     )
     .version(readCliVersion(), '-v, --version')
     .showHelpAfterError();
 
   program
     .command('init')
-    .description('Crée la structure d’un projet Keel (modules et providers).')
+    .description('Crée la structure d’un projet Klee (modules et providers).')
     .argument('[directory]', 'dossier cible (défaut : le dossier courant)')
     .option('--name <name>', 'nom du projet (défaut : nom du dossier)')
     .option('--id-prefix <prefix>', 'préfixe des identifiants de tickets (défaut : PROJ)')
