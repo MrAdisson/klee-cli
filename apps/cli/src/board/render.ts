@@ -351,6 +351,7 @@ export interface TicketViewModel {
   /** Le graphe, pour montrer le voisinage réel plutôt que le seul frontmatter. */
   readonly graph: TraceGraph;
   readonly studioUrl?: string;
+  readonly message?: string;
 }
 
 /**
@@ -384,6 +385,8 @@ export function renderTicket(view: TicketViewModel): string {
   <p class="dim"><a href="/">← Board</a></p>
   <h1><span class="ticket__id">${escapeHtml(ticket.id)}</span> ${escapeHtml(ticket.title)}</h1>
 
+  ${view.message === undefined ? '' : `<p class="flash" role="status">${escapeHtml(view.message)}</p>`}
+
   <dl class="meta">${meta}</dl>
 
   <form method="post" action="/tickets/${encodeURIComponent(ticket.id)}/move" data-auto>
@@ -396,6 +399,19 @@ export function renderTicket(view: TicketViewModel): string {
     </select>
     <button type="submit">Déplacer</button>
   </form>
+
+  <details class="ticket-edit">
+    <summary>Modifier la fiche</summary>
+    <form method="post" action="/tickets/${encodeURIComponent(ticket.id)}/edit">
+      <label for="edit-title">Titre</label>
+      <input id="edit-title" name="title" value="${escapeHtml(ticket.title)}" required maxlength="200">
+      <label for="edit-assignee">Assigné (facultatif)</label>
+      <input id="edit-assignee" name="assignee" value="${escapeHtml(ticket.assignee ?? '')}">
+      <label for="edit-body">Description et critères d’acceptation</label>
+      <textarea id="edit-body" name="body" rows="18">${escapeHtml(ticket.body)}</textarea>
+      <button type="submit">Enregistrer les modifications</button>
+    </form>
+  </details>
 
   <article class="body">${renderTicketBody(ticket.body, idLink)}</article>
 
@@ -551,6 +567,12 @@ a { color: var(--accent); }
 .ticket .body pre { background: var(--raised); border: 1px solid var(--border); border-radius: 6px;
   padding: 0.8rem 1rem; overflow-x: auto; }
 .ticket .body pre code { font-size: 13px; line-height: 1.5; white-space: pre; }
+.ticket-edit { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.ticket-edit summary { cursor: pointer; font-weight: 600; }
+.ticket-edit form { display: grid; gap: 4px; margin-top: 1rem; }
+.ticket-edit label { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.ticket-edit textarea { resize: vertical; font-family: ui-monospace, SFMono-Regular, monospace; }
+.ticket-edit button { justify-self: start; margin-top: 8px; }
 .blocked { color: var(--danger); font-size: 13px; margin: 4px 0; }
 .chips { margin: 6px 0 0; display: flex; gap: 4px; flex-wrap: wrap; }
 .chip { font-size: 11px; padding: 1px 6px; border-radius: 999px;

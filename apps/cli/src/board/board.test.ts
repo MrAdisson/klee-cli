@@ -296,6 +296,28 @@ describe('page d’un ticket', () => {
     expect(html).toContain('action="/tickets/ACME-001/move"');
   });
 
+  it('édite une fiche depuis sa page détail et relit le fichier', async () => {
+    await createWithDescription('Description initiale.');
+    const response = await fetch(
+      `${base}/tickets/ACME-001/edit`,
+      form({
+        title: 'Titre corrigé',
+        assignee: 'po',
+        body: 'Description corrigée.\n\n## Critères d’acceptation\n\nÀ vérifier.',
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get('location')).toBe(
+      '/tickets/ACME-001?message=Fiche%20mise%20%C3%A0%20jour.',
+    );
+
+    const tickets = await readTickets(root);
+    expect(tickets[0]?.title).toBe('Titre corrigé');
+    expect(tickets[0]?.assignee).toBe('po');
+    expect(tickets[0]?.body).toContain('Description corrigée.');
+  });
+
   it('rend les critères d’acceptation en préformaté, indentation comprise', async () => {
     await createWithDescription('Peu importe.');
     const file = join(root, 'tickets', 'ACME-001-ticket-lisible.md');

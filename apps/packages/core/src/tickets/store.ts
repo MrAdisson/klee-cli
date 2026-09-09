@@ -145,6 +145,37 @@ export async function moveTicket(
   return { ...updated, path: ticket.path, body: ticket.body, acceptance: ticket.acceptance };
 }
 
+export interface UpdateTicketInput {
+  readonly title: string;
+  readonly assignee: string | null;
+  readonly body: string;
+}
+
+export async function updateTicket(
+  root: string,
+  id: string,
+  input: UpdateTicketInput,
+  now: Date = new Date(),
+): Promise<Ticket> {
+  const ticket = await readTicket(root, id);
+  if (ticket === null) {
+    throw new KleeError(`Ticket introuvable : ${id}.`, { code: 'TICKET_NOT_FOUND' });
+  }
+  if (input.title.trim() === '') {
+    throw new KleeError('Le titre ne peut pas être vide.', { code: 'TICKET_INVALID' });
+  }
+
+  const updated: TicketFrontmatter = {
+    ...toFrontmatter(ticket),
+    title: input.title.trim(),
+    assignee: input.assignee,
+    updated: isoDate(now),
+  };
+  const path = await renameTicketFile(root, { ...ticket, ...updated });
+  await writeFile(join(root, path), serializeTicket(updated, input.body), 'utf8');
+  return parseTicket(path, serializeTicket(updated, input.body));
+}
+
 /** Renomme le fichier quand le titre change, pour que le nom reste parlant. */
 export async function renameTicketFile(root: string, ticket: Ticket): Promise<string> {
   const expected = `${TICKETS_DIRNAME}/${ticketFileName(ticket.id, ticket.title)}`;

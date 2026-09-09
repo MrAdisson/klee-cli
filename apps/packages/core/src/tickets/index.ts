@@ -22,5 +22,7 @@ export {
   readTickets,
   renameTicketFile,
   ticketsDir,
+  updateTicket,
   type CreateTicketInput,
+  type UpdateTicketInput,
 } from './store.js';

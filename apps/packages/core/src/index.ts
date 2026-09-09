@@ -180,6 +180,7 @@ export {
   readTicket,
   readTickets,
   renameTicketFile,
+  updateTicket,
   serializeTicket,
   ticketFileName,
   ticketFrontmatterSchema,

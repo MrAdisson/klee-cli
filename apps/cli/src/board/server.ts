@@ -7,6 +7,7 @@ import {
   moveTicket,
   MOCKUP_STATUSES,
   updateMockupStatus,
+  updateTicket,
   type A11yFinding,
   type TicketStatus,
 } from '@klee/core';
@@ -136,7 +137,28 @@ async function handle(
 
   const detail = /^\/tickets\/([^/]+)\/?$/.exec(url.pathname);
   if (request.method === 'GET' && detail !== null && detail[1] !== undefined) {
-    await renderTicketPage(response, options, decodeURIComponent(detail[1]).toUpperCase());
+    await renderTicketPage(
+      response,
+      options,
+      decodeURIComponent(detail[1]).toUpperCase(),
+      url.searchParams.get('message') ?? undefined,
+    );
+    return;
+  }
+
+  const edit = /^\/tickets\/([^/]+)\/edit$/.exec(url.pathname);
+  if (request.method === 'POST' && edit !== null && edit[1] !== undefined) {
+    const form = await readForm(request);
+    const id = decodeURIComponent(edit[1]).toUpperCase();
+    await updateTicket(options.project.root, id, {
+      title: form.get('title') ?? '',
+      assignee: (form.get('assignee') ?? '').trim() || null,
+      body: form.get('body') ?? '',
+    });
+    response.writeHead(303, {
+      location: `/tickets/${encodeURIComponent(id)}?message=${encodeURIComponent('Fiche mise à jour.')}`,
+    });
+    response.end();
     return;
   }
 
@@ -226,6 +248,7 @@ async function renderTicketPage(
   response: ServerResponse,
   options: BoardServerOptions,
   id: string,
+  message?: string,
 ): Promise<void> {
   const index = openTicketIndex(options.project);
   try {
@@ -256,6 +279,7 @@ async function renderTicketPage(
           tickets,
         }),
         ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),
+        ...(message === undefined ? {} : { message }),
       }),
     );
   } finally {
