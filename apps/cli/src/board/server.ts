@@ -23,6 +23,12 @@ export interface BoardServerOptions {
   readonly project: Project;
   readonly port: number;
   readonly host?: string;
+  /**
+   * URL du studio, quand celui-ci sert ce board dans un de ses onglets. Le board rend alors
+   * ses identifiants vers `/go/<id>` du studio, pour qu'un clic sur `MOCK-002` montre la
+   * maquette et non sa fiche.
+   */
+  readonly studioUrl?: string;
 }
 
 export interface RunningBoard {
@@ -148,6 +154,7 @@ async function renderPage(
       idPrefix: options.project.config.idPrefix,
       tickets: await index.list(),
       ...(message === undefined ? {} : { message }),
+      ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),
     });
     respond(response, 200, 'text/html; charset=utf-8', html);
   } finally {
@@ -171,7 +178,12 @@ async function renderGraphPage(
       ticketPrefix: options.project.config.idPrefix,
       tickets: await index.list(),
     });
-    const html = renderLinks({ projectName: options.project.config.name, graph, focus });
+    const html = renderLinks({
+      projectName: options.project.config.name,
+      graph,
+      focus,
+      ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),
+    });
     respond(
       response,
       focus !== null && !graph.nodes.some((n) => n.id === focus) ? 404 : 200,

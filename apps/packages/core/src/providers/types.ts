@@ -100,6 +100,35 @@ export interface Provider extends ScaffoldGenerator {
    * inconditionnel survivrait à sa raison d'être et finirait par bloquer une mise à jour.
    */
   readonly dependencyOverrides?: Readonly<Record<string, string>>;
+  /**
+   * Serveur de développement que ce provider apporte, et comment lui imposer un port.
+   *
+   * Le cockpit (`klee studio`, ADR 0014) agrège ces serveurs : il doit pouvoir leur assigner
+   * un port libre, faute de quoi un serveur tiers occupant le port par défaut suffit à faire
+   * tomber un onglet. Docusaurus, en particulier, **abandonne** au lieu de glisser sur le
+   * port suivant quand personne ne peut lui répondre.
+   *
+   * La connaissance vit ici plutôt que dans le studio : c'est le provider qui sait quel
+   * serveur il installe et quel drapeau celui-ci accepte (même règle que `installScripts`,
+   * ADR 0012). Un provider sans serveur — `markdown-only` — ne déclare rien, et n'a donc
+   * pas d'onglet.
+   */
+  readonly devServer?: {
+    /** Script du package à lancer (`pnpm run <script>`). */
+    readonly script: string;
+    /** Drapeau de port, tel qu'il faut le passer au script. */
+    readonly portFlag: string;
+    /** Port sur lequel il se pose quand personne ne lui en impose un. */
+    readonly defaultPort: number;
+    /**
+     * Arguments à ajouter quand ce serveur est **intégré** au studio plutôt que lancé seul.
+     *
+     * Docusaurus ouvre un navigateur au démarrage : c'est le bon geste pour
+     * `klee docs serve`, et le mauvais quand le studio le lance en arrière-plan — l'onglet
+     * qui s'ouvre est alors la documentation, pas le cockpit qu'on a demandé.
+     */
+    readonly embedArgs?: readonly string[];
+  };
 }
 
 export function isProviderPoint(value: string): value is ProviderPoint {

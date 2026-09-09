@@ -9,6 +9,7 @@ import {
   type ModuleCommandOptions,
 } from './commands/module.js';
 import { runBoard, type BoardOptions } from './commands/board.js';
+import { runStudio, type StudioOptions } from './commands/studio.js';
 import {
   runLinksCheck,
   runLinksList,
@@ -17,7 +18,13 @@ import {
   type LinksListOptions,
   type LinksReportOptions,
 } from './commands/links.js';
-import { runDocsBuild, runDocsInit, runDocsServe, type DocsInitOptions } from './commands/docs.js';
+import {
+  runDocsBuild,
+  runDocsInit,
+  runDocsServe,
+  type DocsInitOptions,
+  type DocsServeOptions,
+} from './commands/docs.js';
 import { runProjectScript } from './commands/project-script.js';
 import {
   runTicketCreate,
@@ -104,6 +111,15 @@ export function createProgram(): Command {
     .option('--port <port>', 'port d’écoute (défaut : 4321)')
     .action(async (options: BoardOptions) => {
       await runBoard(options);
+    });
+
+  program
+    .command('studio')
+    .description('Cockpit unifié : board, docs et maquettes derrière une entrée unique.')
+    .option('--port <port>', 'port d’écoute (défaut : 4300)')
+    .option('--no-open', 'n’ouvre pas le navigateur')
+    .action(async (options: StudioOptions) => {
+      await runStudio(options);
     });
 
   const ticketCommand = program
@@ -199,8 +215,9 @@ export function createProgram(): Command {
   docsCommand
     .command('serve')
     .description('Sert la documentation en local, avec rechargement à chaud.')
-    .action(async () => {
-      await runDocsServe();
+    .option('--port <port>', 'port d’écoute (défaut : celui du provider)')
+    .action(async (options: DocsServeOptions) => {
+      await runDocsServe(options);
     });
 
   docsCommand
@@ -232,12 +249,15 @@ export function createProgram(): Command {
   mockupsCommand
     .command('serve')
     .description('Sert les maquettes en local, avec navigation entre les pages.')
-    .action(async () => {
+    .option('--port <port>', 'port d’écoute (défaut : celui du provider)')
+    .action(async (options: { port?: string }) => {
       await runProjectScript({
         directory: 'mockups',
         script: 'dev',
         requiresModule: 'mockups',
         ensureTokens: true,
+        servesFrom: 'mockups-composition',
+        ...(options.port === undefined ? {} : { port: options.port }),
       });
     });
 

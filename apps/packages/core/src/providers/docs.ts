@@ -90,6 +90,9 @@ function activeSections(context: ScaffoldContext): DocsSection[] {
 
 const docusaurus: Provider = {
   id: 'docusaurus',
+  // `docusaurus start` refuse de choisir un autre port : sans terminal pour répondre à sa
+  // question, il s'arrête. Le studio doit donc lui en imposer un.
+  devServer: { script: 'dev', portFlag: '--port', defaultPort: 3000, embedArgs: ['--no-open'] },
   point: 'docs',
   label: 'Docusaurus',
   description: 'Défaut. Le plus complet : versioning, i18n, recherche, écosystème mature.',

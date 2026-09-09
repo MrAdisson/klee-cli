@@ -35,6 +35,10 @@ function docsProvider(project: Project): Provider {
  * produise quoi que ce soit : le point `docs` n'est rattaché à aucun module, donc
  * `klee module add` ne peut pas l'atteindre.
  */
+export interface DocsServeOptions {
+  readonly port?: string;
+}
+
 export interface DocsInitOptions {
   readonly dryRun?: boolean;
   readonly force?: boolean;
@@ -75,8 +79,8 @@ export async function runDocsInit(options: DocsInitOptions): Promise<void> {
   }
 }
 
-export async function runDocsServe(): Promise<void> {
-  await runDocsScript('dev');
+export async function runDocsServe(options: DocsServeOptions = {}): Promise<void> {
+  await runDocsScript('dev', options.port);
 }
 
 export async function runDocsBuild(): Promise<void> {
@@ -88,7 +92,7 @@ export async function runDocsBuild(): Promise<void> {
  * publierait sinon un `docs/_generated/` périmé, c'est-à-dire une page qui affirme un état
  * du graphe que les fichiers ne disent plus.
  */
-async function runDocsScript(script: string): Promise<void> {
+async function runDocsScript(script: string, port?: string): Promise<void> {
   const project = await loadProject();
 
   if (!(await fileExists(join(project.root, MANIFEST)))) {
@@ -117,5 +121,12 @@ async function runDocsScript(script: string): Promise<void> {
   }
 
   await refreshGraphReport(project);
-  await runProjectScript({ directory: 'docs', script });
+  await runProjectScript({
+    directory: 'docs',
+    script,
+    // Seul `dev` sert : une construction n'ouvre aucun port.
+    ...(script === 'dev'
+      ? { servesFrom: 'docs' as const, ...(port === undefined ? {} : { port }) }
+      : {}),
+  });
 }

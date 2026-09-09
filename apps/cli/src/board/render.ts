@@ -43,16 +43,19 @@ export interface BoardViewModel {
   readonly idPrefix: string;
   readonly tickets: readonly Ticket[];
   readonly message?: string;
+  /** URL du studio quand le board y est intégré ; absent quand il est servi seul. */
+  readonly studioUrl?: string;
 }
 
 export function renderBoard(view: BoardViewModel): string {
   const done = new Set(view.tickets.filter((t) => t.status === 'done').map((t) => t.id));
+  const idLink = makeIdLink(view.studioUrl);
 
   const columns = TICKET_STATUSES.map((status) => {
     const tickets = view.tickets.filter((ticket) => ticket.status === status);
     return `<section class="column" aria-labelledby="col-${status}">
       <h2 id="col-${status}">${STATUS_LABELS[status]} <span class="count">${String(tickets.length)}</span></h2>
-      ${tickets.map((ticket) => renderCard(ticket, done)).join('\n') || '<p class="empty">Rien ici.</p>'}
+      ${tickets.map((ticket) => renderCard(ticket, done, idLink)).join('\n') || '<p class="empty">Rien ici.</p>'}
     </section>`;
   }).join('\n');
 
@@ -110,17 +113,35 @@ for (const form of document.querySelectorAll('form[data-auto]')) {
 `;
 }
 
+type IdLinker = (id: string, className?: string) => string;
+
 /**
  * Un identifiant est toujours cliquable, partout où il apparaît (DESIGN.md §5). C'est la
  * seule façon qu'a une PM ou une designer de suivre le graphe sans terminal — et donc la
  * condition d'adoption de l'outil hors de l'équipe de développement.
+ *
+ * Où il mène dépend de l'endroit d'où on clique :
+ *
+ * - **board seul** : sa fiche dans le graphe (`/links/<id>`), le seul endroit que le board
+ *   sache montrer ;
+ * - **board dans le studio** : `/go/<id>`, qui ouvre l'onglet où l'artefact vit vraiment.
+ *   Cliquer sur `MOCK-002` affiche alors **la maquette**, pas une fiche qui la décrit.
+ *
+ * `target="_top"` fait sortir du cadre : sans lui, le studio s'afficherait dans son propre
+ * onglet Board, en poupées russes.
  */
-function idLink(id: string, className = 'chip'): string {
-  const safe = escapeHtml(id);
-  return `<a class="${className}" href="/links/${encodeURIComponent(id)}">${safe}</a>`;
+function makeIdLink(studioUrl: string | undefined): IdLinker {
+  return (id: string, className = 'chip'): string => {
+    const safe = escapeHtml(id);
+    if (studioUrl === undefined) {
+      return `<a class="${className}" href="/links/${encodeURIComponent(id)}">${safe}</a>`;
+    }
+    const target = `${studioUrl.replace(/\/$/, '')}/go/${encodeURIComponent(id)}`;
+    return `<a class="${className}" target="_top" href="${escapeHtml(target)}">${safe}</a>`;
+  };
 }
 
-function renderCard(ticket: Ticket, done: ReadonlySet<string>): string {
+function renderCard(ticket: Ticket, done: ReadonlySet<string>, idLink: IdLinker): string {
   const blockers = ticket.depends_on.filter((id) => !done.has(id));
   const chips = [...ticket.related_mockups, ...ticket.related_docs]
     .map((id) => idLink(id))
@@ -159,6 +180,8 @@ export interface LinksViewModel {
   readonly graph: TraceGraph;
   /** Identifiant demandé. `null` pour la vue d'ensemble. */
   readonly focus: string | null;
+  /** URL du studio quand le board y est intégré ; absent quand il est servi seul. */
+  readonly studioUrl?: string;
 }
 
 /**
@@ -170,6 +193,7 @@ export interface LinksViewModel {
  */
 export function renderLinks(view: LinksViewModel): string {
   const { graph } = view;
+  const idLink = makeIdLink(view.studioUrl);
   const node = view.focus === null ? undefined : graph.nodes.find((n) => n.id === view.focus);
 
   if (view.focus !== null && node === undefined) {
@@ -182,25 +206,28 @@ export function renderLinks(view: LinksViewModel): string {
     );
   }
 
-  const body = node === undefined ? renderGraphOverview(graph) : renderNeighbourhood(graph, node);
+  const body =
+    node === undefined
+      ? renderGraphOverview(graph, idLink)
+      : renderNeighbourhood(graph, node, idLink);
 
   return page(view.projectName, body);
 }
 
-function renderGraphOverview(graph: TraceGraph): string {
+function renderGraphOverview(graph: TraceGraph, idLink: IdLinker): string {
   const sections = ENTITY_KINDS.map((kind) => {
     const nodes = graph.nodes.filter((n) => n.kind === kind);
     if (nodes.length === 0) return '';
     return `<section class="column">
       <h2>${KIND_LABELS[kind]}s <span class="count">${String(nodes.length)}</span></h2>
-      ${nodes.map((n) => renderNodeCard(graph, n)).join('')}
+      ${nodes.map((n) => renderNodeCard(graph, n, idLink)).join('')}
     </section>`;
   }).join('');
 
   return `<main class="board">${sections || '<p class="empty">Aucun artefact identifié.</p>'}</main>`;
 }
 
-function renderNodeCard(graph: TraceGraph, node: GraphNode): string {
+function renderNodeCard(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
   const links = neighbours(graph, node.id)
     .declared.map((edge) => idLink(otherEnd(edge, node.id)))
     .join('');
@@ -213,7 +240,7 @@ function renderNodeCard(graph: TraceGraph, node: GraphNode): string {
   </article>`;
 }
 
-function renderNeighbourhood(graph: TraceGraph, node: GraphNode): string {
+function renderNeighbourhood(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
   const around = neighbours(graph, node.id);
 

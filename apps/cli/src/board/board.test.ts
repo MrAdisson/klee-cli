@@ -11,6 +11,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { startBoardServer, type RunningBoard } from './server.js';
+import { renderBoard, renderLinks } from './render.js';
 import type { Project } from '../project.js';
 
 /** Le board écrit de vrais fichiers markdown : c'est ce que ces tests vérifient. */
@@ -122,7 +123,7 @@ describe('graphe dans le board', () => {
     await createTicket({
       root,
       prefix: 'ACME',
-      title: 'Transcrire la maquette',
+      title: 'Un ticket de démonstration',
       relatedDocs: ['DOC-001'],
     });
     await mkdir(join(root, 'docs', 'technical'), { recursive: true });
@@ -147,12 +148,52 @@ describe('graphe dans le board', () => {
     // La doc ne déclare rien : c'est la résolution de l'arête qui la relie au ticket.
     const fromDoc = await (await fetch(`${base}/links/DOC-001`)).text();
     expect(fromDoc).toContain('ACME-001');
-    expect(fromDoc).toContain('Transcrire la maquette');
+    expect(fromDoc).toContain('Un ticket de démonstration');
   });
 
   it('répond 404 sur un identifiant inconnu, sans planter', async () => {
     const response = await fetch(`${base}/links/DOC-404`);
     expect(response.status).toBe(404);
     expect(await response.text()).toContain('Aucun artefact');
+  });
+});
+
+/**
+ * Ce que devient un identifiant cliqué dépend de l'endroit d'où on le clique. Servi seul, le
+ * board ne sait montrer que sa fiche de graphe ; intégré au studio, il doit envoyer vers
+ * l'onglet où l'artefact vit réellement — sinon les liens croisés restent décoratifs.
+ */
+describe('identifiants cliquables', () => {
+  it('reste interne quand le board est servi seul', () => {
+    const html = renderBoard({ projectName: 'demo', idPrefix: 'ACME', tickets: [] });
+    expect(html).not.toContain('target="_top"');
+  });
+
+  it('sort vers le studio quand il y est intégré', () => {
+    const html = renderLinks({
+      projectName: 'demo',
+      graph: {
+        nodes: [
+          {
+            id: 'MOCK-002',
+            kind: 'mockup',
+            title: 'Connexion',
+            path: 'mockups/pages/login.meta.yml',
+            status: 'draft',
+            implementedIn: null,
+          },
+        ],
+        edges: [],
+        mentions: [],
+        untracked: [],
+      },
+      focus: null,
+      studioUrl: 'http://127.0.0.1:4300/',
+    });
+
+    // `target="_top"` : sans lui, le studio s'afficherait dans son propre onglet Board.
+    expect(html).toContain('target="_top"');
+    expect(html).toContain('href="http://127.0.0.1:4300/go/MOCK-002"');
+    expect(html).not.toContain('href="/links/MOCK-002"');
   });
 });

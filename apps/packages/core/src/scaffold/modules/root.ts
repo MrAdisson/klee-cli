@@ -10,7 +10,8 @@ import type { ScaffoldContext, ScaffoldFile, ScaffoldGenerator } from '../types.
 
 function retainedModuleLines(context: ScaffoldContext): string[] {
   return MODULE_IDS.filter((id) => context.config.modules[id]).map(
-    (id) => `- \`${MODULES[id].paths.join('`, `')}\` — ${MODULES[id].label}`,
+    // Le libellé porte déjà les chemins : les répéter donnait « apps/ — apps/ — … ».
+    (id) => `- ${MODULES[id].label}`,
   );
 }
 

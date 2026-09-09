@@ -1,8 +1,16 @@
 import { join } from 'node:path';
 
-import { KleeError, MODULES, providerRegistry, type ModuleId } from '@klee/core';
+import {
+  KleeError,
+  MODULES,
+  providerRegistry,
+  type ModuleId,
+  type ProjectConfig,
+  type ProviderPoint,
+} from '@klee/core';
 
-import { info, write } from '../ui/output.js';
+import { parsePortOption, resolvePort } from '../ports.js';
+import { info, warn, write } from '../ui/output.js';
 import { directoryExists, fileExists } from '../fs.js';
 import { loadProject } from '../project.js';
 import { spawnInherit } from '../spawn.js';
@@ -31,6 +39,16 @@ export interface RunProjectScriptOptions {
    * prérequis, pas une étape à mémoriser.
    */
   readonly ensureTokens?: boolean;
+  /**
+   * Point de provider dont le serveur de développement est lancé, quand ce script en est un.
+   *
+   * Le port vient alors du provider (`devServer.defaultPort`) et cède s'il est déjà pris —
+   * deux projets Klee ouverts en parallèle est le cas ordinaire. Sans cela, Docusaurus
+   * abandonne et Eleventy annonce l'URL d'un port occupé avant de mourir.
+   */
+  readonly servesFrom?: ProviderPoint;
+  /** Port demandé explicitement : honoré ou refusé, jamais déplacé en silence. */
+  readonly port?: string;
 }
 
 const TOKENS_OUTPUT = 'design-system/dist/css/tokens.css';
@@ -88,7 +106,7 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
       code: 'PROVIDER_NO_COMMANDS',
     });
   }
-  const args = [...prefix, options.script];
+  const args = [...prefix, options.script, ...(await portArgs(config, options))];
 
   info(`${command} ${args.join(' ')} (dans ${options.directory}/)`);
   write();
@@ -97,4 +115,32 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
   if (code !== 0) {
     process.exitCode = code;
   }
+}
+
+/**
+ * Les arguments de port à ajouter au script, quand celui-ci lance un serveur.
+ *
+ * C'est le provider qui déclare le drapeau et le port par défaut : le studio et les
+ * commandes autonomes s'appuient sur la même déclaration (ADR 0016).
+ */
+async function portArgs(
+  config: ProjectConfig,
+  options: RunProjectScriptOptions,
+): Promise<string[]> {
+  const point = options.servesFrom;
+  if (point === undefined) return [];
+
+  const devServer = providerRegistry.resolve(point, config.providers[point]).devServer;
+  if (devServer === undefined) return [];
+
+  const { port, moved } = await resolvePort(
+    parsePortOption(options.port),
+    devServer.defaultPort,
+    'serveur',
+  );
+  if (moved) {
+    warn(`Le port ${String(devServer.defaultPort)} était pris — le serveur prend ${String(port)}.`);
+  }
+  // Sans `--` : pnpm 12 avale le séparateur et le drapeau n'atteint jamais le script.
+  return [devServer.portFlag, String(port)];
 }

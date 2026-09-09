@@ -87,6 +87,26 @@ Ce qu'il faut en retenir, au-delà du cas :
   (ADR 0012). Il est **daté** : à relire à chaque montée de version, et à alléger dès que
   l'amont a repris la correction. Ne jamais y ajouter une ligne sans portée (`paquet@<version`)
   — un override inconditionnel survit à sa raison d'être et bloque une mise à jour.
+- Tester si un port est libre demande **deux** liaisons : `127.0.0.1` et le joker. Un
+  détenteur sur `127.0.0.1` est invisible à la sonde joker, un détenteur sur `*` (Eleventy,
+  Docusaurus) est invisible à la sonde de boucle locale — sur macOS, `SO_REUSEADDR` laisse
+  passer l'autre. Une seule sonde donne un faux « libre » et rouvre le glissement silencieux.
+- Docusaurus ouvre un navigateur à son démarrage. Un serveur lancé pour le compte d'une autre
+  commande doit recevoir `--no-open` (`Provider.devServer.embedArgs`), sinon `klee studio`
+  ouvre la documentation au lieu du studio.
+- `pnpm run <script> -- --flag` : pnpm 12 **avale** le `--`, et le drapeau n'atteint jamais le
+  script. Passer les arguments directement (`pnpm run dev --port 4310`). Invisible à la
+  lecture : les deux formes se ressemblent, une seule marche.
+- Sur un port occupé, Docusaurus **s'arrête** (il pose une question, et sans terminal pour y
+  répondre il abandonne) là où Eleventy **glisse** sur le port suivant sans rien dire. Le
+  studio leur impose donc un port libre, déclaré par `Provider.devServer` (ADR 0016).
+- Tuer `pnpm run dev` ne tue pas le serveur : pnpm n'est qu'un intermédiaire. Lancer les
+  enfants en `detached` et signaler le **groupe** (`process.kill(-pid)`), sinon on laisse
+  exactement le serveur oublié décrit plus haut.
+- Une regex ANSI sans le caractère ESC ampute aussi les crochets légitimes : `[11ty] Server`
+  devient `y] Server`. Le motif commence par `\u001b`, jamais par `\[` seul.
+- Le nœud de graphe d'une maquette porte le chemin de son `.meta.yml`, pas celui de la page.
+  Toute déduction d'URL doit retirer `.meta.yml` en entier.
 - Les fichiers qu'un `klee module add` dépose dans **ce** dépôt ne passent ni `prettier --check`
   ni `eslint` : ils sont écrits pour des projets qui n'ont ni l'un ni l'autre. Après une
   activation de module, lancer `pnpm run format` puis relire ce que le lint signale — une

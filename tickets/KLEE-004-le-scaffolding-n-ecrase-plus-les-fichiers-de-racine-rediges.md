@@ -1,7 +1,7 @@
 ---
 id: KLEE-004
 title: Le scaffolding n'écrase plus les fichiers de racine rédigés
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

@@ -1,5 +1,8 @@
 import { DOC_PREFIX, MOCKUP_PREFIX, formatId } from '../../ids.js';
-import { serializeTicket, newTicketBody } from '../../tickets/format.js';
+import { MODULES, MODULE_IDS } from '../../modules.js';
+import { PROVIDER_POINT_DEFINITIONS } from '../../providers/points.js';
+import { PROVIDER_POINTS } from '../../providers/types.js';
+import { serializeTicket } from '../../tickets/format.js';
 import {
   ACCEPTANCE_HEADING,
   TICKET_STATUSES,
@@ -59,57 +62,89 @@ export const ticketsGenerator: ScaffoldGenerator = {
 };
 
 /**
- * Premier ticket du projet.
+ * Premier ticket du projet : le **compte rendu de son initialisation**.
  *
- * Il n'est pas là pour faire joli : sans lui, le `.meta.yml` que génère le module `mockups`
- * référencerait un ticket inexistant, et le premier `klee links check` d'un projet neuf
- * échouerait sur la sortie de `klee init` — alors que `tickets/AGENTS.md` interdit
- * précisément d'inventer un lien vers ce qui n'existe pas.
+ * Ce n'est pas une tâche. Un projet neuf dont le board affiche déjà du travail en attente
+ * ment sur son état : personne n'a décidé ce travail, et le lecteur croit hériter d'un
+ * engagement qui n'existe pas. Ce ticket est donc en `done` — un fait consigné, pas une
+ * intention.
  *
- * Il donne aussi la seule chose qu'une convention écrite ne donne jamais : un exemple
- * complet et résolvable, que `klee links` affiche dès la première commande.
+ * Il consigne ce que l'init a réellement retenu (modules, providers, préfixe), ce qu'aucun
+ * autre fichier ne dit sous cette forme : `project.config.json` porte des identifiants,
+ * pas les raisons ni les libellés, et il changera au fil du projet sans garder trace de son
+ * point de départ.
+ *
+ * Il rend enfin le graphe non vide dès la première commande : son arête vers l'ADR de
+ * topologie donne un exemple résolvable que `klee links` affiche immédiatement.
  */
 function seedTicket(context: ScaffoldContext, origin: string): ScaffoldFile {
-  const prefix = context.config.idPrefix;
-  const id = formatId(prefix, 1);
+  const { config } = context;
+  const id = formatId(config.idPrefix, 1);
   const today = context.now.toISOString().slice(0, 10);
-  const withMockups = context.config.modules.mockups;
+  const title = `${config.name} — initialisation du projet`;
 
-  const title = withMockups
-    ? 'Transcrire la maquette de connexion en composant'
-    : 'Décrire le premier lot de travail';
+  const modules = MODULE_IDS.filter((moduleId) => config.modules[moduleId]).map(
+    (moduleId) => `- ${MODULES[moduleId].label}`,
+  );
+
+  const providers = PROVIDER_POINTS.filter((point) => {
+    const requires = PROVIDER_POINT_DEFINITIONS[point].requiresModule;
+    return requires === null || config.modules[requires];
+  }).map((point) => {
+    const provider = context.registry.resolve(point, config.providers[point]);
+    return `| ${PROVIDER_POINT_DEFINITIONS[point].label} | ${provider.label} | \`${point}\` |`;
+  });
 
   const frontmatter: TicketFrontmatter = {
     id,
     title,
-    status: 'backlog',
+    // Un compte rendu, pas une tâche : il appartient à l'historique dès sa création.
+    status: 'done',
     assignee: null,
     created: today,
     updated: today,
     depends_on: [],
-    // MOCK-002 est la page de connexion générée par le provider de composition.
-    related_mockups: withMockups ? [formatId(MOCKUP_PREFIX, 2)] : [],
+    related_mockups: [],
     // DOC-001 est l'ADR de topologie, généré par le module `docs-decisions` du socle.
     related_docs: [formatId(DOC_PREFIX, 1)],
     authored_by: 'human',
   };
 
-  const description = withMockups
-    ? `Ce ticket est l'exemple qu'écrit \`klee init\` : il montre à quoi ressemble une arête du graphe.
+  const description = `Compte rendu de \`klee init\` : ce que ce projet a retenu au départ.
 
-La maquette ${formatId(MOCKUP_PREFIX, 2)} fait foi pour l'UI (DESIGN.md §1) : la transcrire ne doit demander
-aucune décision de design. Une fois le composant écrit, renseignez \`implemented_in\` dans
-\`mockups/pages/login.meta.yml\` et passez la maquette en \`status: implemented\`.
+Ce ticket est **terminé à sa création** — il consigne un fait, il ne demande rien. Le premier
+travail réel du projet est un ticket que vous écrirez.
 
-\`klee links show ${id}\` affiche ses liens ; \`klee links check\` vérifie qu'ils pointent quelque part.`
-    : `Ce ticket est l'exemple qu'écrit \`klee init\` : il montre à quoi ressemble une arête du graphe.
+## Modules retenus
 
-Remplacez-le par le premier lot réel du projet. \`klee links show ${id}\` affiche ses liens ;
-\`klee links check\` vérifie qu'ils pointent quelque part.`;
+${modules.join('\n')}
+
+Un module non retenu ne génère aucun fichier, aucune dépendance, aucune section du cockpit.
+\`klee module add <module>\` en ajoute un après coup.
+
+## Providers
+
+| Point | Provider | Clé de config |
+| --- | --- | --- |
+${providers.join('\n')}
+
+## Identifiants
+
+| Préfixe | Entité |
+| --- | --- |
+| \`${config.idPrefix}-xxx\` | ticket |
+| \`${MOCKUP_PREFIX}-xxx\` | maquette / composant |
+| \`${DOC_PREFIX}-xxx\` | document |
+
+La topologie du dépôt et ses raisons sont dans ${formatId(DOC_PREFIX, 1)}.
+\`klee links show ${id}\` affiche ses liens ; \`klee links check\` vérifie qu'ils pointent
+quelque part.`;
 
   return {
     path: `tickets/${ticketFileName(id, title)}`,
     origin,
-    contents: serializeTicket(frontmatter, newTicketBody(description)),
+    // Pas de bloc Gherkin : on ne pose pas de critères d'acceptation sur un fait déjà
+    // acquis. Le gabarit à compléter appartient aux tickets que l'équipe écrira.
+    contents: serializeTicket(frontmatter, `${description}\n`),
   };
 }

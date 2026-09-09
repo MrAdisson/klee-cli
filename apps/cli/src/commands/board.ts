@@ -1,6 +1,7 @@
 import { startBoardServer } from '../board/server.js';
+import { parsePortOption, resolvePort } from '../ports.js';
 import { loadProject } from '../project.js';
-import { heading, info, success, write } from '../ui/output.js';
+import { heading, info, success, warn, write } from '../ui/output.js';
 
 export interface BoardOptions {
   readonly port?: string;
@@ -17,12 +18,15 @@ const DEFAULT_PORT = 4321;
  */
 export async function runBoard(options: BoardOptions): Promise<void> {
   const project = await loadProject();
-  const port = parsePort(options.port);
+  // Deux projets Klee ouverts en parallèle est le cas ordinaire : le port par défaut cède,
+  // et le dit. Un port nommé explicitement, lui, est honoré ou refusé.
+  const { port, moved } = await resolvePort(parsePortOption(options.port), DEFAULT_PORT, 'board');
 
   const board = await startBoardServer({ project, port });
 
   heading('klee board');
   success(`Board servi sur ${board.url}`);
+  if (moved) warn(`Le port ${String(DEFAULT_PORT)} était pris — le board a pris ${String(port)}.`);
   info('Créer et déplacer un ticket ne demande aucun terminal.');
   info('Les fichiers de `tickets/` restent la source de vérité : éditez-les librement.');
   write();
@@ -36,10 +40,4 @@ export async function runBoard(options: BoardOptions): Promise<void> {
     process.once('SIGINT', stop);
     process.once('SIGTERM', stop);
   });
-}
-
-function parsePort(value: string | undefined): number {
-  if (value === undefined) return DEFAULT_PORT;
-  const port = Number.parseInt(value, 10);
-  return Number.isInteger(port) && port > 0 && port < 65536 ? port : DEFAULT_PORT;
 }

@@ -248,3 +248,53 @@ describe('assets des maquettes', () => {
     }
   });
 });
+
+/**
+ * Le premier ticket d'un projet neuf.
+ *
+ * Un board qui affiche du travail en attente dès l'init ment sur l'état du projet : personne
+ * n'a décidé ce travail. Ce ticket consigne ce que l'init a retenu, et rien d'autre.
+ */
+describe('ticket d’initialisation', () => {
+  function seed(preset: PresetId): string {
+    const plan = buildScaffoldPlan({ config: configFor(preset), now: FIXED_NOW });
+    return (
+      plan.files.find(
+        (file) =>
+          file.path.startsWith('tickets/') &&
+          file.path.endsWith('.md') &&
+          !file.path.endsWith('AGENTS.md'),
+      )?.contents ?? ''
+    );
+  }
+
+  it('est un compte rendu terminé, pas une tâche en attente', () => {
+    const ticket = seed('full-product');
+    expect(ticket).toContain('status: done');
+    expect(ticket).toContain('initialisation du projet');
+    // Aucun gabarit de critères d'acceptation : on ne pose pas de conditions sur un fait acquis.
+    expect(ticket).not.toContain('```gherkin');
+  });
+
+  it('consigne les modules et providers réellement retenus', () => {
+    const complet = seed('full-product');
+    const librairie = seed('internal-lib');
+
+    expect(complet).toContain('Eleventy');
+    // `internal-lib` ne retient pas les maquettes : leur provider n'a pas à figurer.
+    expect(librairie).not.toContain('Eleventy');
+    expect(librairie).toContain('tickets/ — ticketing markdown-native');
+    // Le libellé porte déjà les chemins : les répéter donnait « apps/ — apps/ — … ».
+    expect(librairie).not.toContain('`apps/` — apps/');
+  });
+
+  it('relie le projet à son ADR de topologie, pour un graphe non vide dès l’init', () => {
+    expect(seed('full-product')).toContain('DOC-001');
+  });
+
+  it('ne fabrique aucune arête vers une maquette que personne n’a demandée', () => {
+    const plan = buildScaffoldPlan({ config: configFor('full-product'), now: FIXED_NOW });
+    const meta = plan.files.find((file) => file.path.endsWith('login.meta.yml'))?.contents ?? '';
+    expect(meta).toContain('related_tickets: []');
+  });
+});

@@ -198,15 +198,16 @@ function mockupsManifest(
  */
 function metaYml(options: {
   readonly id: string;
-  readonly ticket: string;
   readonly title: string;
   readonly states?: readonly string[];
 }): string {
+  // `related_tickets` part **vide** : une maquette d'exemple n'est liée à aucun travail
+  // décidé. La remplir d'office fabriquerait une arête que personne n'a voulue, et ferait
+  // croire à un engagement là où il n'y a qu'un gabarit.
   return textContents(`id: ${options.id}
 title: ${options.title}
 status: draft
-related_tickets:
-  - ${options.ticket}
+related_tickets: []
 related_docs: []
 implemented_in: null
 ${options.states === undefined ? '' : `states:\n${options.states.map((state) => `  - ${state}`).join('\n')}`}`);
@@ -214,13 +215,15 @@ ${options.states === undefined ? '' : `states:\n${options.states.map((state) => 
 
 const eleventy: Provider = {
   id: 'eleventy',
+  // Eleventy, lui, glisse silencieusement sur le port suivant : plus insidieux encore, car
+  // on croit alors regarder son propre serveur.
+  devServer: { script: 'dev', portFlag: '--port', defaultPort: 8080 },
   point: 'mockups-composition',
   label: 'Eleventy',
   description:
     'Défaut. Includes résolus au build/serve, sortie HTML/CSS pur, rechargement à chaud.',
   files(context: ScaffoldContext): ScaffoldFile[] {
     const origin = 'provider:mockups-composition/eleventy';
-    const prefix = context.config.idPrefix;
 
     return [
       mockupsManifest(context, origin, {
@@ -440,7 +443,6 @@ id: MOCK-001
         contents: metaYml({
           id: 'MOCK-001',
           title: 'Bouton',
-          ticket: `${prefix}-001`,
           states: ['default', 'hover', 'active', 'disabled', 'loading'],
         }),
       },
@@ -481,7 +483,6 @@ id: MOCK-002
         contents: metaYml({
           id: 'MOCK-002',
           title: 'Connexion',
-          ticket: `${prefix}-001`,
         }),
       },
     ];
@@ -526,7 +527,6 @@ const webComponents: Provider = {
     'Composants réutilisables au runtime, aucune étape de build — mais pas de rechargement à chaud ni de catalogue généré.',
   files(context: ScaffoldContext): ScaffoldFile[] {
     const origin = 'provider:mockups-composition/web-components';
-    const prefix = context.config.idPrefix;
 
     return [
       mockupsManifest(context, origin, {
@@ -656,7 +656,6 @@ customElements.define('ds-button', DsButton);
         contents: metaYml({
           id: 'MOCK-001',
           title: 'Bouton',
-          ticket: `${prefix}-001`,
           states: ['default', 'hover', 'active', 'disabled', 'loading'],
         }),
       },
@@ -743,7 +742,6 @@ customElements.define('ds-button', DsButton);
         contents: metaYml({
           id: 'MOCK-002',
           title: 'Connexion',
-          ticket: `${prefix}-001`,
         }),
       },
     ];

@@ -7,8 +7,9 @@ related_mockups: []
 
 # Référence de la CLI `klee`
 
-État : **phases 0 à 3**. Seules les commandes ci-dessous existent ; `klee studio` — le cockpit
-unifié qui absorbera le board et la vue du graphe — arrive en phase 4 (`TECHNICAL.md`).
+État : **phases 0 à 4** (cockpit). Seules les commandes ci-dessous existent. `klee studio`
+n'absorbe rien : il agrège les serveurs existants, qui restent utilisables seuls (ADR 0014).
+La recherche transverse et les webhooks internes restent à venir dans la phase 4.
 
 ```
 klee [-v | --version] [-h | --help] <commande>
@@ -213,7 +214,62 @@ tourne. `GET /api/tickets` expose la même liste en JSON, pour un agent ou un sc
 Chaque identifiant affiché est cliquable : `/links` montre tout le graphe, `/links/<id>` le
 voisinage d'un artefact avec les fichiers qui déclarent chaque arête.
 
-En phase 4, ce board deviendra l'onglet Board de `klee studio`.
+Le board est aussi l'onglet Board de `klee studio`, et reste utilisable seul.
+
+## `klee studio`
+
+Cockpit unifié, sur `http://127.0.0.1:4300` (`--port` pour en changer) : le board, le site de
+documentation et les maquettes derrière une entrée unique (TECHNICAL.md §9).
+
+**Une seule application, plusieurs serveurs.** Le studio lance les serveurs existants et les
+affiche dans des cadres, chacun sur son port et avec son rechargement à chaud. Il ne les
+remplace pas et ne les reconfigure pas : `klee board`, `klee docs serve` et
+`klee mockups serve` restent de premier rang, pour qui veut publier sa documentation sans
+embarquer le cockpit (ADR 0014, ADR 0016).
+
+**Un onglet n'existe que si son module est retenu.** Un projet sans `mockups` n'a pas
+d'onglet Maquettes ; un projet dont le provider `docs` est `markdown-only` n'a pas d'onglet
+Docs — pas un onglet vide. Un serveur qui ne démarre pas n'empêche pas les autres : son
+onglet affiche la raison.
+
+**Le studio ouvre le navigateur sur lui-même** (`--no-open` pour s'en passer), et fait taire
+celui de Docusaurus : un serveur lancé en arrière-plan n'ouvre jamais de fenêtre.
+
+**Les ports des serveurs agrégés sont assignés par le studio**, jamais laissés au hasard :
+sur un port occupé, Docusaurus s'arrête et Eleventy annonce une URL qu'il n'a pas obtenue.
+
+### `GET /go/<ID>`
+
+Ouvre n'importe quel identifiant dans le bon onglet, à la bonne page :
+
+| Identifiant | Onglet    | Page                                        |
+| ----------- | --------- | ------------------------------------------- |
+| `PROJ-123`  | Board     | le voisinage du ticket dans le graphe       |
+| `DOC-018`   | Docs      | le document, à son emplacement dans le site |
+| `MOCK-004`  | Maquettes | la page de la maquette                      |
+
+La page est **vérifiée avant d'être ouverte** : une URL déduite qui ne répond pas fait
+retomber sur l'accueil de l'onglet, en le disant plutôt qu'en affichant un cadre vide.
+
+## Ports
+
+Quatre commandes ouvrent un port : `board`, `docs serve`, `mockups serve` et `studio`. Toutes
+suivent la même règle, parce que deux projets Klee ouverts en parallèle est le cas ordinaire.
+
+| Cas                    | Comportement                            |
+| ---------------------- | --------------------------------------- |
+| `--port <n>` libre     | klee prend ce port                      |
+| `--port <n>` occupé    | la commande échoue en nommant le port   |
+| port par défaut libre  | klee prend ce port                      |
+| port par défaut occupé | klee en prend un autre **et l'annonce** |
+
+Un port nommé est honoré ou refusé : le déplacer trahirait la raison qu'on avait de le
+nommer. Un port par défaut n'est qu'une préférence. Ce qui est proscrit dans tous les cas,
+c'est de changer de port **sans le dire** — c'est ainsi qu'on finit par regarder le serveur
+d'un autre projet en croyant regarder le sien.
+
+Les ports par défaut des serveurs générés viennent du provider qui les apporte
+(`devServer.defaultPort`), pas de klee : 3000 pour Docusaurus, 8080 pour Eleventy.
 
 ## Codes de sortie et erreurs
 

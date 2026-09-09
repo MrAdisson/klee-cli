@@ -98,13 +98,14 @@ pnpm run build        # tsc --build sur les deux packages, puis le site de docum
 pnpm run verify       # format + lint + typecheck + test — à passer avant toute PR
 node apps/cli/dist/bin/klee.js --help
 
+klee studio           # cockpit unifié : board + docs + maquettes, sur http://localhost:4300
 klee links check      # aucun lien croisé cassé — à passer aussi
 klee docs serve       # la documentation du dépôt, sur http://localhost:3000
 ```
 
 ## Décisions déjà prises
 
-Quinze ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
+Dix-sept ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
 
 | ADR  | Sujet                                                                           |
 | ---- | ------------------------------------------------------------------------------- |
@@ -123,6 +124,8 @@ Quinze ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils cou
 | 0013 | Le scaffolding n'écrase pas ce qui a été rédigé                                 |
 | 0014 | Le studio agrège des serveurs, il ne les remplace pas                           |
 | 0015 | Détection de dérive maquette / composant — hors périmètre                       |
+| 0016 | Le studio encadre les serveurs plutôt que de les proxifier                      |
+| 0017 | Le premier ticket d'un projet est un compte rendu, pas une tâche                |
 
 ## Références
 
