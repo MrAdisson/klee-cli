@@ -32,7 +32,7 @@ export const ticketsGenerator: ScaffoldGenerator = {
           conventions: [
             `Un fichier par ticket, nommé d'après son identifiant : \`${prefix}-001-titre-court.md\`. Le dossier est plat : le statut vit dans le frontmatter, pas dans l'arborescence — déplacer un ticket ne doit pas produire un renommage git.`,
             'Frontmatter structuré : `id`, `title`, `status`, `assignee`, `created`, `updated`, `depends_on`, `related_mockups`, `related_docs`, `authored_by`.',
-            `Statuts : ${TICKET_STATUSES.join(' → ')}. Le workflow n'est pas configurable : \`ready-for-dev\` est la cible du webhook « une maquette passe en validated » (§7).`,
+            `Statuts : ${TICKET_STATUSES.join(' → ')}. Le workflow n'est pas configurable : \`ready-for-dev\` atteste que les critères d'acceptation sont écrits et que le ticket est prenable.`,
             `Critères d'acceptation en Gherkin, dans un bloc \`\`\`gherkin sous le titre « ${ACCEPTANCE_HEADING} » — extractibles donc exécutables, sans contorsionner le YAML (cf \`docs/decisions/0008-format-des-tickets.md\`).`,
             `Les maquettes et docs concernées sont référencées explicitement (\`${MOCKUP_PREFIX}-xxx\`, \`${DOC_PREFIX}-xxx\`), jamais décrites de mémoire.`,
             '`depends_on` porte un vrai graphe, pas seulement un statut : c’est ce qui permet à un agent de savoir s’il risque une collision avec un autre agent.',

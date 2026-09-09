@@ -36,8 +36,8 @@ Scénario: ...
 - **Dossier plat.** Le statut vit dans le frontmatter, jamais dans l'arborescence : déplacer
   un ticket ne doit pas produire un renommage git.
 - **Statuts imposés** : `backlog` → `ready-for-dev` → `in-progress` → `in-review` → `done`.
-  `ready-for-dev` est la cible du webhook « maquette validée » de la phase 4 — ce n'est pas
-  une étiquette décorative.
+  `ready-for-dev` atteste que les critères d'acceptation sont écrits et que le ticket est
+  prenable — ce n'est pas une étiquette décorative (cf. le tableau des transitions ci-dessous).
 - **Critères d'acceptation en Gherkin**, dans un bloc de code du corps. Un ticket peut n'en
   avoir aucun : tous ne s'y prêtent pas, et en exiger produirait des scénarios de façade.
 - **`depends_on` est un vrai graphe**, pas un statut déguisé : c'est ce qui permet à un agent

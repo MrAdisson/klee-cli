@@ -9,7 +9,8 @@ related_mockups: []
 
 État : **phases 0 à 4** (cockpit). Seules les commandes ci-dessous existent. `klee studio`
 n'absorbe rien : il agrège les serveurs existants, qui restent utilisables seuls (ADR 0014).
-La recherche transverse et les webhooks internes restent à venir dans la phase 4.
+La recherche transverse reste à venir ; les webhooks internes et la régression visuelle
+sont sortis du périmètre (ADR 0019), comme la détection de dérive avant eux (ADR 0015).
 
 ```
 klee [-v | --version] [-h | --help] <commande>

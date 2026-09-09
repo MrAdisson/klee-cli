@@ -12,8 +12,9 @@ import { DOC_PREFIX, ID_PREFIX_PATTERN, MOCKUP_PREFIX } from '../ids.js';
 
 /**
  * Workflow imposé, non configurable. `ready-for-dev` en particulier n'est pas décoratif :
- * c'est la cible du webhook « une maquette passe en validated » (§7). Un workflow qui
- * varierait d'un projet à l'autre rendrait ces automatismes inécrivables.
+ * c'est le statut qui atteste que les critères d'acceptation sont écrits et que le ticket
+ * est prenable. Un workflow qui varierait d'un projet à l'autre rendrait cette convention,
+ * et les liens croisés qui s'y appuient, illisibles d'un projet à l'autre.
  */
 export const TICKET_STATUSES = [
   'backlog',
