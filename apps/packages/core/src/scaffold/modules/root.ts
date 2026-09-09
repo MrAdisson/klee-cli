@@ -135,6 +135,9 @@ coverage/
 .turbo/
 *.tsbuildinfo
 
+# Caches locaux de Keel (index de tickets…) — reconstructibles, jamais versionnés
+.keel/
+
 # Les secrets ne vivent jamais dans le dépôt
 .env
 .env.*

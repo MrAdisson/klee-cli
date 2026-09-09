@@ -103,3 +103,31 @@ export type {
   ScaffoldGenerator,
   ScaffoldPlan,
 } from './scaffold/types.js';
+
+export {
+  ACCEPTANCE_HEADING,
+  DEFAULT_TICKET_STATUS,
+  TICKETS_DIRNAME,
+  TICKET_STATUSES,
+  createTicket,
+  extractAcceptance,
+  isTicketStatus,
+  listTicketFiles,
+  moveTicket,
+  newTicketBody,
+  nextTicketId,
+  parseTicket,
+  readTicket,
+  readTickets,
+  renameTicketFile,
+  serializeTicket,
+  ticketFileName,
+  ticketFrontmatterSchema,
+  ticketsDir,
+  type CreateTicketInput,
+  type Ticket,
+  type TicketFrontmatter,
+  type TicketStatus,
+} from './tickets/index.js';
+
+export type { TicketIndex, TicketIndexFactory } from './tickets/ticket-index.js';

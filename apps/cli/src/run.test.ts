@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readProjectConfig } from '@keel/core';
@@ -51,6 +51,32 @@ describe('klee init', () => {
   it('refuse de réinitialiser un projet existant', async () => {
     expect(await cli('init', root, '--yes')).toBe(0);
     expect(await cli('init', root, '--yes')).toBe(1);
+  });
+
+  it('initialise un dépôt git, puisque Keel repose sur un historique unique', async () => {
+    expect(await cli('init', root, '--yes')).toBe(0);
+    await expect(stat(join(root, '.git'))).resolves.toBeDefined();
+  });
+
+  it('respecte --no-git', async () => {
+    expect(await cli('init', root, '--yes', '--no-git')).toBe(0);
+    await expect(stat(join(root, '.git'))).rejects.toThrow();
+  });
+
+  it('n’imbrique pas un dépôt dans un dépôt existant', async () => {
+    // Ajouter Keel à un projet en cours est un cas légitime.
+    await mkdir(join(root, '.git'), { recursive: true });
+    const nested = join(root, 'sous-projet');
+    await mkdir(nested, { recursive: true });
+
+    expect(await cli('init', nested, '--yes')).toBe(0);
+    await expect(stat(join(nested, '.git'))).rejects.toThrow();
+  });
+
+  it('n’installe rien sans --install en mode non interactif', async () => {
+    // Le réseau ne doit jamais être sollicité par surprise (ADR 0006).
+    expect(await cli('init', root, '--yes')).toBe(0);
+    await expect(stat(join(root, 'node_modules'))).rejects.toThrow();
   });
 
   it('échoue proprement sur un preset inconnu', async () => {

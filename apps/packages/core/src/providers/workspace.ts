@@ -88,8 +88,9 @@ const pnpmTurborepo: Provider = {
             build: { dependsOn: ['^build'], outputs: ['dist/**'] },
             test: { dependsOn: ['^build'] },
             lint: {},
-            // Tâche longue : ni cache, ni attente de terminaison.
-            dev: { cache: false, persistent: true },
+            // Tâche longue : ni cache, ni attente de terminaison. `dependsOn` garantit que
+            // les tokens sont construits avant que les maquettes ne soient servies.
+            dev: { cache: false, persistent: true, dependsOn: ['^build'] },
           },
         }),
       },
@@ -144,6 +145,7 @@ const nx: Provider = {
           targetDefaults: {
             build: { dependsOn: ['^build'], outputs: ['{projectRoot}/dist'] },
             test: { dependsOn: ['^build'] },
+            dev: { dependsOn: ['^build'] },
           },
         }),
       },

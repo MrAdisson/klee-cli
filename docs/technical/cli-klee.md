@@ -6,8 +6,8 @@ related_mockups: []
 
 # Référence de la CLI `klee`
 
-État : **phases 0 et 1**. Seules les commandes ci-dessous existent ; `klee ticket` arrive en
-phase 2 et `klee studio` en phase 4 (`TECHNICAL.md`).
+État : **phases 0 à 2**. Seules les commandes ci-dessous existent ; `klee studio` — le cockpit
+unifié qui absorbera le board — arrive en phase 4 (`TECHNICAL.md`).
 
 ```
 klee [-v | --version] [-h | --help] <commande>
@@ -47,6 +47,24 @@ klee init --yes                             # full-product, tous les défauts
 klee init ./mon-api --yes --preset api-service --id-prefix ACME
 klee init --yes --dry-run                   # inspecter le plan avant d'écrire
 ```
+
+### Ce que `init` fait après avoir écrit les fichiers
+
+1. **`git init`**, sauf `--no-git` — et seulement si l'on n'est pas déjà dans un dépôt : ajouter
+   Keel à un projet existant est un cas légitime. La commande s'arrête là : **aucun commit
+   automatique**, le premier commit d'un dépôt est une décision.
+2. **Installation des dépendances** — faite d'office avec `--install`, proposée en mode
+   interactif, jamais silencieuse en `--yes` : le réseau ne doit pas être sollicité par
+   surprise (ADR 0006).
+3. **Premier build des tokens**, si les dépendances viennent d'être installées et que le module
+   `mockups` est retenu. Sans lui, les maquettes se servent sans aucune valeur de token — des
+   pages muettes dont la cause est difficile à relier. Contrairement à l'installation, ce build
+   est local, déterministe et produit un artefact ignoré par git : rien qui justifie de le
+   refuser par défaut.
+
+Si l'installation n'a pas eu lieu, `klee mockups serve` construit les tokens à la volée
+plutôt que de servir des pages sans style. Même garantie côté orchestrateur : la tâche `dev`
+dépend du `build` des packages amont, donc `pnpm dev` à la racine est correct lui aussi.
 
 ### Garanties
 
@@ -116,6 +134,37 @@ Un projet Keel reste donc utilisable sans klee installé — `pnpm run build` de
 `design-system/` fait exactement la même chose (cf ADR 0006).
 
 Elles exigent que le module `mockups` soit retenu, et propagent le code de sortie du script.
+
+## `klee ticket`
+
+| Commande                         | Effet                                                 |
+| -------------------------------- | ----------------------------------------------------- |
+| `klee ticket create <titre>`     | Crée un ticket markdown et lui alloue un identifiant. |
+| `klee ticket list`               | Liste les tickets, groupés par statut.                |
+| `klee ticket move <id> <statut>` | Fait transiter un ticket.                             |
+| `klee ticket show <id>`          | Affiche un ticket, ses liens et son corps.            |
+
+Options de `create` : `--status`, `--assignee`, `--depends-on <ids...>`, `--mockup <ids...>`,
+`--doc <ids...>`, `--description`, et `--agent` pour marquer la provenance (§7).
+Options de `list` : `--status`, `--assignee`, `--json`.
+
+Statuts : `backlog` → `ready-for-dev` → `in-progress` → `in-review` → `done`. Ils ne sont pas
+configurables (cf ADR 0008).
+
+`list` signale les tickets dont une dépendance n'est pas terminée : c'est ce qui évite qu'un
+agent en prenne un en pensant pouvoir avancer.
+
+## `klee board`
+
+Kanban local des tickets, sur `http://127.0.0.1:4321` (`--port` pour en changer).
+
+Créer et déplacer un ticket ne demande **aucun terminal** (DESIGN.md §5), et le board
+fonctionne **sans JavaScript** : chaque action est un formulaire, ce qui le rend accessible au
+clavier par construction. Il n'écoute que sur la boucle locale et n'a aucun état propre —
+les fichiers de `tickets/` restent la source de vérité, éditables à la main pendant qu'il
+tourne. `GET /api/tickets` expose la même liste en JSON, pour un agent ou un script.
+
+En phase 4, ce board deviendra l'onglet Board de `klee studio`.
 
 ## Codes de sortie et erreurs
 

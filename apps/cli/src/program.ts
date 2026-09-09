@@ -1,4 +1,4 @@
-import { PRESET_IDS } from '@keel/core';
+import { PRESET_IDS, TICKET_STATUSES } from '@keel/core';
 import { Command } from 'commander';
 
 import { runInit, type InitOptions } from './commands/init.js';
@@ -8,7 +8,16 @@ import {
   runModuleRemove,
   type ModuleCommandOptions,
 } from './commands/module.js';
+import { runBoard, type BoardOptions } from './commands/board.js';
 import { runProjectScript } from './commands/project-script.js';
+import {
+  runTicketCreate,
+  runTicketList,
+  runTicketMove,
+  runTicketShow,
+  type TicketCreateOptions,
+  type TicketListOptions,
+} from './commands/ticket.js';
 import { readCliVersion } from './version.js';
 
 /**
@@ -37,6 +46,7 @@ export function createProgram(): Command {
     .option('--dry-run', 'affiche le plan sans rien écrire')
     .option('--force', 'écrase les fichiers existants qui diffèrent')
     .option('--install', 'installe les dépendances déclarées après le scaffolding')
+    .option('--no-git', 'n’initialise pas de dépôt git')
     .action(async (directory: string | undefined, options: InitOptions) => {
       await runInit(directory, options);
     });
@@ -73,6 +83,60 @@ export function createProgram(): Command {
       await runModuleRemove(moduleName, options);
     });
 
+  program
+    .command('board')
+    .description('Ouvre le kanban local des tickets (créer et déplacer sans terminal).')
+    .option('--port <port>', 'port d’écoute (défaut : 4321)')
+    .action(async (options: BoardOptions) => {
+      await runBoard(options);
+    });
+
+  const ticketCommand = program
+    .command('ticket')
+    .description('Crée, liste et fait transiter les tickets.');
+
+  ticketCommand
+    .command('create')
+    .description('Crée un ticket markdown et lui alloue un identifiant.')
+    .argument('<title>', 'titre du ticket')
+    .option('--status <status>', `statut initial : ${TICKET_STATUSES.join(' | ')}`)
+    .option('--assignee <who>', 'personne ou agent assigné')
+    .option('--depends-on <ids...>', 'tickets dont celui-ci dépend')
+    .option('--mockup <ids...>', 'maquettes liées (MOCK-xxx)')
+    .option('--doc <ids...>', 'documents liés (DOC-xxx)')
+    .option('--description <text>', 'description initiale')
+    .option('--agent', 'marque le ticket comme produit par un agent')
+    .action(async (title: string, options: TicketCreateOptions) => {
+      await runTicketCreate(title, options);
+    });
+
+  ticketCommand
+    .command('list')
+    .description('Liste les tickets, groupés par statut.')
+    .option('--status <status>', 'ne garder qu’un statut')
+    .option('--assignee <who>', 'ne garder qu’un assigné')
+    .option('--json', 'sortie JSON, pour un agent ou un script')
+    .action(async (options: TicketListOptions) => {
+      await runTicketList(options);
+    });
+
+  ticketCommand
+    .command('move')
+    .description('Fait transiter un ticket vers un autre statut.')
+    .argument('<id>', 'identifiant du ticket')
+    .argument('<status>', `nouveau statut : ${TICKET_STATUSES.join(' | ')}`)
+    .action(async (id: string, status: string) => {
+      await runTicketMove(id, status);
+    });
+
+  ticketCommand
+    .command('show')
+    .description('Affiche un ticket et ses liens.')
+    .argument('<id>', 'identifiant du ticket')
+    .action(async (id: string) => {
+      await runTicketShow(id);
+    });
+
   const tokensCommand = program
     .command('tokens')
     .description('Pipeline des design tokens (design-system/).');
@@ -96,14 +160,24 @@ export function createProgram(): Command {
     .command('serve')
     .description('Sert les maquettes en local, avec navigation entre les pages.')
     .action(async () => {
-      await runProjectScript({ directory: 'mockups', script: 'dev', requiresModule: 'mockups' });
+      await runProjectScript({
+        directory: 'mockups',
+        script: 'dev',
+        requiresModule: 'mockups',
+        ensureTokens: true,
+      });
     });
 
   mockupsCommand
     .command('build')
     .description('Construit la version statique des maquettes.')
     .action(async () => {
-      await runProjectScript({ directory: 'mockups', script: 'build', requiresModule: 'mockups' });
+      await runProjectScript({
+        directory: 'mockups',
+        script: 'build',
+        requiresModule: 'mockups',
+        ensureTokens: true,
+      });
     });
 
   return program;

@@ -2,15 +2,14 @@
 id: DOC-006
 related_tickets: []
 related_mockups: []
-status: proposed
+status: accepted
 date: 2026-09-09
 ---
 
 # 0005 — Ticketing : intégrer Backlog.md, ou système maison ?
 
-> **Statut : proposé.** À trancher au démarrage de la phase 2. Cet ADR consigne l'analyse pour
-> que la décision se prenne sur des faits plutôt que sur une impression, et liste les points du
-> brief qui méritent d'être rediscutés à ce moment-là.
+> **Statut : accepté** au démarrage de la phase 2. Les points du brief listés en fin d'ADR ont
+> été arbitrés à ce moment-là ; les arbitrages retenus sont consignés dans l'ADR 0008.
 
 ## Contexte
 
@@ -114,10 +113,10 @@ leur modèle.
 Chercher la parité serait le mauvais objectif : dépenser la phase 2 à rattraper un outil
 gratuit sur son terrain, au lieu de construire le liant qui n'existe nulle part ailleurs.
 
-## Points du brief à rediscuter au démarrage de la phase 2
+## Points du brief arbitrés au démarrage de la phase 2
 
-Ces points ne remettent pas en cause la décision ci-dessus ; ils demandent un arbitrage
-explicite plutôt qu'une application mécanique.
+Ces points ne remettaient pas en cause la décision ci-dessus ; ils demandaient un arbitrage
+explicite plutôt qu'une application mécanique. **Tous ont été tranchés — voir l'ADR 0008.**
 
 **1. L'index SQLite comme défaut (§6) semble prématuré.** Quelques milliers de tickets markdown
 se parsent en bien moins d'une seconde. L'index apporte en échange une invalidation de cache,

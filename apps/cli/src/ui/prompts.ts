@@ -1,4 +1,4 @@
-import { cancel, isCancel, multiselect, select, text } from '@clack/prompts';
+import { cancel, confirm, isCancel, multiselect, select, text } from '@clack/prompts';
 import {
   MODULES,
   OPTIONAL_MODULE_IDS,
@@ -26,6 +26,15 @@ function ensure<T>(value: T | symbol): T {
   // `isCancel` ne restreint que le cas symbole ; TypeScript ne peut pas soustraire
   // `symbol` d'un générique, d'où l'assertion.
   return value as T;
+}
+
+export async function askInstallDependencies(command: string): Promise<boolean> {
+  return ensure(
+    await confirm({
+      message: `Installer les dépendances maintenant (${command}) ?`,
+      initialValue: true,
+    }),
+  );
 }
 
 export async function askTargetDirectory(): Promise<string> {

@@ -65,3 +65,17 @@ avec pnpm ou npm. Keel n'en embarque aucun.
 - `klee module add` génère aussi les fichiers des providers rattachés au module ajouté. Sans
   cela, ajouter `mockups` produisait un dossier sans le pipeline qui le fait fonctionner —
   bug réel, découvert en testant la phase 1.
+
+## Précision : le build des tokens n'est pas concerné
+
+`klee init` construit les tokens juste après une installation réussie, et `klee mockups serve`
+les construit s'ils manquent. Ce n'est pas une entorse à la décision ci-dessus.
+
+Les trois raisons qui font refuser l'installation implicite — le réseau, la fidélité de
+`--dry-run`, l'irréversibilité — ne s'appliquent à aucune d'elles : un build de tokens est
+local, déterministe, rapide, et son produit est ignoré par git. Ce qui est refusé, c'est de
+solliciter le réseau ou de modifier l'état hors du plan sans qu'on l'ait demandé — pas de
+rendre utilisable ce qui vient d'être généré.
+
+L'inverse a un coût réel et constaté : des maquettes servies sans tokens produisent des pages
+sans style, et un `404` sur une feuille de style que rien ne relie à un build oublié.

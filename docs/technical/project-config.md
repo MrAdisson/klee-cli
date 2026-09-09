@@ -34,7 +34,7 @@ l'ouverture plutôt que de produire un scaffolding surprenant.
     "workspace": "pnpm-turborepo",
     "docs": "docusaurus",
     "contracts": "openapi",
-    "tickets-index": "markdown-sqlite",
+    "tickets-index": "markdown-only",
     "mockups-composition": "eleventy",
     "visual-regression": "playwright",
     "tokens-pipeline": "style-dictionary"
@@ -80,7 +80,7 @@ Un module à `false` ne génère aucun fichier, aucune dépendance, aucune secti
 | `workspace`           | `apps`           | `pnpm-turborepo`, `nx`                 | `pnpm-turborepo`   | ✅ livré   |
 | `docs`                | — (socle)        | `docusaurus`, `vitepress`, `starlight` | `docusaurus`       | phase 3    |
 | `contracts`           | `contracts`      | `openapi`, `graphql`, `protobuf`       | `openapi`          | phase 3    |
-| `tickets-index`       | `tickets`        | `markdown-sqlite`, `markdown-only`     | `markdown-sqlite`  | phase 2    |
+| `tickets-index`       | `tickets`        | `markdown-only`, `markdown-sqlite`     | `markdown-only`    | ✅ livré   |
 | `mockups-composition` | `mockups`        | `eleventy`, `web-components`           | `eleventy`         | ✅ livré   |
 | `visual-regression`   | `mockups`        | `playwright`, `backstopjs`, `percy`    | `playwright`       | phase 1    |
 | `tokens-pipeline`     | `mockups`        | `style-dictionary`, `terrazzo`         | `style-dictionary` | ✅ livré   |

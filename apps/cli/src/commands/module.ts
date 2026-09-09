@@ -5,16 +5,15 @@ import {
   OPTIONAL_MODULE_IDS,
   applyScaffoldPlan,
   buildScaffoldPlan,
-  findProjectRoot,
   isModuleId,
   providerPointsForModule,
   providerRegistry,
-  readProjectConfig,
   writeProjectConfig,
   type ModuleId,
   type ProjectConfig,
 } from '@keel/core';
 
+import { loadProject } from '../project.js';
 import { field, heading, info, reportApply, success, warn, write } from '../ui/output.js';
 import { spawnInherit } from '../spawn.js';
 
@@ -24,22 +23,6 @@ export interface ModuleCommandOptions {
   readonly refreshRoot?: boolean;
   /** Installe les dépendances que le module ajoute. */
   readonly install?: boolean;
-}
-
-interface ProjectHandle {
-  readonly root: string;
-  readonly config: ProjectConfig;
-}
-
-async function loadProject(): Promise<ProjectHandle> {
-  const root = await findProjectRoot(process.cwd());
-  if (root === null) {
-    throw new KeelError('Aucun projet Keel trouvé depuis le dossier courant.', {
-      code: 'PROJECT_NOT_FOUND',
-      hint: 'Lancez `klee init` pour en créer un.',
-    });
-  }
-  return { root, config: await readProjectConfig(root) };
 }
 
 export async function runModuleList(): Promise<void> {

@@ -1,4 +1,4 @@
-import type { AppliedFile, ApplyScaffoldResult } from '@keel/core';
+import type { AppliedFile, ApplyScaffoldResult, Ticket } from '@keel/core';
 import pc from 'picocolors';
 
 /**
@@ -72,4 +72,11 @@ export function reportError(message: string, hint?: string): void {
     console.error(`    ${pc.dim(hint)}`);
   }
   console.error();
+}
+
+export function ticketRow(ticket: Ticket): void {
+  const id = pc.cyan(ticket.id.padEnd(10));
+  const assignee = ticket.assignee === null ? '' : pc.dim(` @${ticket.assignee}`);
+  const blocked = ticket.depends_on.length > 0 ? pc.dim(` ⟵ ${ticket.depends_on.join(', ')}`) : '';
+  write(`    ${id} ${ticket.title}${assignee}${blocked}`);
 }

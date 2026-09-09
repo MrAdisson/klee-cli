@@ -239,6 +239,14 @@ export default function (eleventyConfig) {
     '../design-system/dist/css': 'design-system/css',
   });
 
+  // Eleventy ne publie que ce qu'il sait *rendre* : une feuille de style n'est pas un
+  // template, elle doit être copiée explicitement. Sans ces lignes, les pages sortent sans
+  // style et le navigateur reçoit un 404 sur /base.css.
+  // Ajoutez ici tout nouveau type d'asset (polices, images) au fil des maquettes.
+  eleventyConfig.addPassthroughCopy('base.css');
+  eleventyConfig.addPassthroughCopy('components/**/*.{css,js,svg,png,jpg,jpeg,webp,avif,woff2}');
+  eleventyConfig.addPassthroughCopy('pages/**/*.{css,js,svg,png,jpg,jpeg,webp,avif,woff2}');
+
   eleventyConfig.setServerOptions({ showAllHosts: false });
 
   return {

@@ -2,40 +2,76 @@
 
 > Ticketing in-repo de keel. Un ticket = un fichier markdown versionné, préfixe `KEEL-`.
 
-## État actuel
+Le format est arrêté depuis la phase 2 et documenté dans
+[`docs/decisions/0008-format-des-tickets.md`](../docs/decisions/0008-format-des-tickets.md).
+Il est partagé par tous les projets Keel : le modifier ici change la convention de tout le monde.
 
-Le **format de fichier et la CLI de gestion (`klee ticket create|list|move`) sont livrés en
-phase 2** de la roadmap (`TECHNICAL.md`). Ce dossier est en place et déclaré dans
-`project.config.json`, mais la convention de frontmatter n'est pas encore figée.
+## Format
 
-Ne pas inventer ce format en avance : il sera partagé par tous les projets Keel, et un format
-posé à la hâte ici deviendrait la contrainte de tout le monde. La décision se prendra en
-phase 2, avec un ADR.
+```markdown
+---
+id: KEEL-001
+title: Titre court et actionnable
+status: backlog
+assignee: null
+created: 2026-09-09
+updated: 2026-09-09
+depends_on: []
+related_mockups: []
+related_docs: []
+authored_by: human
+---
 
-## Conventions prévues (cf `TECHNICAL.md` §6 et §11)
+Description libre.
 
-- Un fichier par ticket, nommé d'après son identifiant : `KEEL-001-titre-court.md`.
-- Frontmatter structuré : `id`, `title`, `status`, `assignee`, `depends_on`,
-  `related_mockups`, `related_docs`.
-- Critères d'acceptation en Gherkin **dans le frontmatter**, pas en prose libre : ils doivent
-  rester exécutables.
-- `depends_on` porte un vrai graphe de dépendances, pas seulement un statut — c'est ce qui
-  permet à un agent de savoir s'il risque une collision avec un autre agent.
+## Critères d'acceptation
+
+\`\`\`gherkin
+Scénario: ...
+\`\`\`
+```
+
+## Conventions
+
+- **Dossier plat.** Le statut vit dans le frontmatter, jamais dans l'arborescence : déplacer
+  un ticket ne doit pas produire un renommage git.
+- **Statuts imposés** : `backlog` → `ready-for-dev` → `in-progress` → `in-review` → `done`.
+  `ready-for-dev` est la cible du webhook « maquette validée » de la phase 4 — ce n'est pas
+  une étiquette décorative.
+- **Critères d'acceptation en Gherkin**, dans un bloc de code du corps. Un ticket peut n'en
+  avoir aucun : tous ne s'y prêtent pas, et en exiger produirait des scénarios de façade.
+- **`depends_on` est un vrai graphe**, pas un statut déguisé : c'est ce qui permet à un agent
+  de savoir s'il risque une collision avec un autre agent.
+- **`authored_by: agent`** pour un ticket produit par un agent (`klee ticket create --agent`).
+- Le fichier reste la source de vérité : l'éditer à la main est légitime, et l'index s'en
+  aperçoit.
 
 ## Périmètre d'édition pour un agent
 
 **Autorisé**
 
-- Créer un ticket, mettre à jour son statut, compléter ses critères d'acceptation
-  (une fois le format arrêté en phase 2).
+- Créer un ticket, changer son statut, compléter ses critères d'acceptation.
+- Éditer un ticket à la main.
+- Ajouter un lien vers une maquette ou une doc **existante**.
 
 **Interdit**
 
-- Figer le format de frontmatter avant la phase 2 et son ADR.
-- Supprimer un ticket : le clore, pour préserver l'historique de décision.
+- Modifier `id` après création : c'est l'arête sur laquelle tout le reste pointe.
+- Supprimer un ticket : le passer en `done`, pour préserver l'historique de décision.
 - Écrire une donnée personnelle ou un secret dans un ticket.
+- Inventer un lien vers une maquette ou une doc qui n'existe pas.
+
+## Outils
+
+```bash
+klee ticket create "Titre"   # --status --assignee --depends-on --mockup --doc --agent
+klee ticket list             # --status --assignee --json
+klee ticket move KEEL-001 in-progress
+klee ticket show KEEL-001
+klee board                   # kanban local, sans terminal
+```
 
 ## Références
 
 - `AGENTS.md` (racine) — schéma d'identifiants.
-- `TECHNICAL.md` §6 — ticketing.
+- `docs/technical/cli-klee.md` — référence complète de la CLI.

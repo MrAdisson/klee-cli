@@ -1,16 +1,10 @@
 import { join } from 'node:path';
 
-import {
-  KeelError,
-  MODULES,
-  findProjectRoot,
-  providerRegistry,
-  readProjectConfig,
-  type ModuleId,
-} from '@keel/core';
+import { KeelError, MODULES, providerRegistry, type ModuleId } from '@keel/core';
 
 import { info, write } from '../ui/output.js';
-import { directoryExists } from '../fs.js';
+import { directoryExists, fileExists } from '../fs.js';
+import { loadProject } from '../project.js';
 import { spawnInherit } from '../spawn.js';
 
 /**
@@ -27,18 +21,18 @@ export interface RunProjectScriptOptions {
   readonly script: string;
   /** Module dont dépend ce script : absent, la commande n'a pas de sens. */
   readonly requiresModule: ModuleId;
+  /**
+   * Construit les tokens au préalable s'ils manquent. Servir des maquettes sans tokens
+   * produit des pages sans style et un 404 difficile à relier à sa cause : c'est un
+   * prérequis, pas une étape à mémoriser.
+   */
+  readonly ensureTokens?: boolean;
 }
 
-export async function runProjectScript(options: RunProjectScriptOptions): Promise<void> {
-  const root = await findProjectRoot(process.cwd());
-  if (root === null) {
-    throw new KeelError('Aucun projet Keel trouvé depuis le dossier courant.', {
-      code: 'PROJECT_NOT_FOUND',
-      hint: 'Lancez `klee init` pour en créer un.',
-    });
-  }
+const TOKENS_OUTPUT = 'design-system/dist/css/tokens.css';
 
-  const config = await readProjectConfig(root);
+export async function runProjectScript(options: RunProjectScriptOptions): Promise<void> {
+  const { root, config } = await loadProject();
 
   if (!config.modules[options.requiresModule]) {
     throw new KeelError(
@@ -64,6 +58,23 @@ export async function runProjectScript(options: RunProjectScriptOptions): Promis
       code: 'DIRECTORY_MISSING',
       hint: 'Le module est déclaré mais ses fichiers ne sont pas générés — `klee module add --refresh-root` ?',
     });
+  }
+
+  const [runner, ...runPrefix] = workspace.workspace.run;
+
+  if (options.ensureTokens === true && runner !== undefined) {
+    if (!(await fileExists(join(root, TOKENS_OUTPUT)))) {
+      info(`${TOKENS_OUTPUT} absent — construction des tokens au préalable.`);
+      write();
+      const code = await spawnInherit(runner, [...runPrefix, 'build'], join(root, 'design-system'));
+      if (code !== 0) {
+        throw new KeelError('Le build des tokens a échoué : les maquettes seraient sans style.', {
+          code: 'TOKENS_BUILD_FAILED',
+          hint: 'Vérifiez `design-system/` — les dépendances sont-elles installées ?',
+        });
+      }
+      write();
+    }
   }
 
   const [command, ...prefix] = workspace.workspace.run;

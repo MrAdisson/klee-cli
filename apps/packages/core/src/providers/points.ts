@@ -40,7 +40,7 @@ export const PROVIDER_POINT_DEFINITIONS: Readonly<Record<ProviderPoint, Provider
       label: 'Indexation du dashboard tickets',
       question: 'Comment indexer les tickets pour le dashboard ?',
       requiresModule: 'tickets',
-      defaultProvider: 'markdown-sqlite',
+      defaultProvider: 'markdown-only',
       reference: 'TECHNICAL.md §6',
       scaffoldingPhase: 2,
     },

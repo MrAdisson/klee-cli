@@ -136,3 +136,45 @@ describe('phase 1 — design system et maquettes', () => {
     expect(lib.files.some((file) => file.path.startsWith('design-system/'))).toBe(false);
   });
 });
+
+describe('assets des maquettes', () => {
+  /**
+   * Eleventy ne publie que ce qu'il sait rendre : un asset non déclaré en passthrough
+   * n'atteint jamais le navigateur. Le HTML reste correct, seul le style disparaît — un bug
+   * silencieux qu'aucune vérification de statut HTTP sur la page ne détecte.
+   */
+  function passthroughPatterns(config: string): string[] {
+    return [...config.matchAll(/addPassthroughCopy\('([^']+)'\)/g)].map((match) => match[1] ?? '');
+  }
+
+  function matches(pattern: string, path: string): boolean {
+    const source = pattern
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\{([^}]+)\}/g, (_all, group: string) => `(${group.split(',').join('|')})`)
+      .replace(/\*\*\//g, '(.*/)?')
+      .replace(/(?<!\.)\*/g, '[^/]*');
+    return new RegExp(`^${source}$`).test(path);
+  }
+
+  it('déclare en passthrough chaque asset généré sous mockups/', () => {
+    const plan = buildScaffoldPlan({ config: configFor('full-product'), now: FIXED_NOW });
+    const config = plan.files.find((file) => file.path === 'mockups/eleventy.config.mjs')?.contents;
+    expect(config).toBeDefined();
+
+    const patterns = passthroughPatterns(config ?? '');
+    const assets = plan.files
+      .map((file) => file.path)
+      .filter((path) => path.startsWith('mockups/') && /\.(css|js|svg|png|woff2)$/.test(path))
+      // Les fichiers de configuration et de données ne sont pas publiés.
+      .filter((path) => !path.startsWith('mockups/_') && !path.endsWith('.config.mjs'));
+
+    expect(assets.length).toBeGreaterThan(0);
+    for (const asset of assets) {
+      const relative = asset.slice('mockups/'.length);
+      expect(
+        patterns.some((pattern) => matches(pattern, relative)),
+        `${relative} n'est couvert par aucun addPassthroughCopy : il sortira en 404.`,
+      ).toBe(true);
+    }
+  });
+});

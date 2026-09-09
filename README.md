@@ -22,7 +22,7 @@ ticket       →  document produit (DOC-018)
 
 ## État du projet
 
-**Phases 0 et 1 livrées.**
+**Phases 0 à 2 livrées.**
 
 - **Phase 0** — squelette du monorepo, schéma d'identifiants, architecture modules/providers,
   `klee init` avec mode interactif, `--yes` et presets.
@@ -30,7 +30,10 @@ ticket       →  document produit (DOC-018)
   `mockups/` (un composant, une page, un catalogue auto-généré) avec leur serveur de
   navigation local. Les modules déclarent désormais leurs dépendances.
 
-Les phases suivantes (ticketing, docs-as-code, cockpit unifié, interopérabilité) sont décrites
+- **Phase 2** — `tickets/` : format markdown à frontmatter, CLI `create/list/move/show`,
+  kanban local (`klee board`) utilisable sans terminal, et deux providers d'indexation.
+
+Les phases suivantes (docs-as-code, cockpit unifié, interopérabilité) sont décrites
 dans [`TECHNICAL.md`](TECHNICAL.md) et se lancent dans l'ordre, chacune après validation
 humaine de la précédente.
 
@@ -61,6 +64,14 @@ Puis, dans un projet qui a retenu les maquettes :
 pnpm install          # ou `klee init --install` dès le départ
 klee tokens build     # design-system/tokens.json → dist/css/tokens.css
 klee mockups serve    # navigation locale des maquettes
+```
+
+Et pour les tickets, dans n'importe quel projet :
+
+```bash
+klee ticket create "Mettre en place le pipeline de tokens"
+klee ticket list
+klee board            # kanban local, sans terminal pour créer et déplacer
 ```
 
 Presets disponibles :

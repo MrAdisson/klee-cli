@@ -8,6 +8,7 @@
 
 import type { ModuleId } from '../modules.js';
 import type { ScaffoldGenerator } from '../scaffold/types.js';
+import type { TicketIndexFactory } from '../tickets/ticket-index.js';
 
 export const PROVIDER_POINTS = [
   'workspace',
@@ -68,6 +69,12 @@ export interface Provider extends ScaffoldGenerator {
     /** Valeur du champ `packageManager`, qu'exige Turborepo pour résoudre le workspace. */
     readonly packageManager: string;
   };
+  /**
+   * Lecture des tickets, pour les providers du point `tickets-index`. Un provider n'est donc
+   * pas seulement un générateur de fichiers : il peut porter du comportement, tant que ce
+   * comportement reste derrière une interface commune (§13).
+   */
+  readonly ticketIndex?: TicketIndexFactory;
 }
 
 export function isProviderPoint(value: string): value is ProviderPoint {
