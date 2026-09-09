@@ -430,15 +430,51 @@ export function renderTicket(view: TicketViewModel): string {
  * Les identifiants ne sont liés **que hors des blocs de code** : un ADR qui illustre le schéma
  * avec `KLEE-123` donne un exemple, il ne référence rien (ADR 0010).
  */
+/** Ligne de séparation d'un tableau markdown : `| --- | :---: |`. */
+const TABLE_SEPARATOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/;
+
 function renderTicketBody(markdown: string, idLink: IdLinker): string {
   const out: string[] = [];
   let fence: string[] | null = null;
   let paragraph: string[] = [];
+  let list: string[] = [];
+  let table: string[] = [];
 
   const flush = (): void => {
     if (paragraph.length === 0) return;
-    out.push(`<p>${linkifyIds(escapeHtml(paragraph.join(' ')), idLink)}</p>`);
+    out.push(`<p>${renderInline(paragraph.join(' '), idLink)}</p>`);
     paragraph = [];
+  };
+
+  const flushList = (): void => {
+    if (list.length === 0) return;
+    out.push(`<ul>${list.map((item) => `<li>${renderInline(item, idLink)}</li>`).join('')}</ul>`);
+    list = [];
+  };
+
+  const flushTable = (): void => {
+    const buffered = table;
+    table = [];
+    if (buffered.length < 2) return;
+    const rows = buffered
+      .filter((line) => !TABLE_SEPARATOR.test(line))
+      .map((line) =>
+        line
+          .trim()
+          .replace(/^\|/, '')
+          .replace(/\|$/, '')
+          .split('|')
+          .map((cell) => cell.trim()),
+      );
+    const [head, ...body] = rows;
+    if (head === undefined) return;
+    out.push(
+      `<table><thead><tr>${head.map((cell) => `<th>${renderInline(cell, idLink)}</th>`).join('')}</tr></thead>`,
+    );
+    out.push(
+      `<tbody>${body.map((row) => `<tr>${row.map((cell) => `<td>${renderInline(cell, idLink)}</td>`).join('')}</tr>`).join('')}</tbody></table>`,
+    );
+    table = [];
   };
 
   const closeFence = (): void => {
@@ -446,8 +482,12 @@ function renderTicketBody(markdown: string, idLink: IdLinker): string {
     fence = null;
   };
 
-  for (const line of markdown.split('\n')) {
+  const lines = markdown.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] ?? '';
     if (line.startsWith('```')) {
+      flushList();
+      flushTable();
       if (fence === null) {
         flush();
         fence = [];
@@ -462,14 +502,40 @@ function renderTicketBody(markdown: string, idLink: IdLinker): string {
     const heading = /^(#{1,6})\s+(.*)$/.exec(line);
     if (heading !== null) {
       flush();
-      out.push(`<h2>${linkifyIds(escapeHtml(heading[2] ?? ''), idLink)}</h2>`);
+      flushList();
+      flushTable();
+      out.push(`<h2>${renderInline(heading[2] ?? '', idLink)}</h2>`);
       continue;
     }
-    if (line.trim() === '') flush();
-    else paragraph.push(line.trim());
+    const trimmed = line.trim();
+    if (trimmed === '') {
+      flush();
+      flushList();
+      flushTable();
+    } else if (/^\s*[-*]\s+/.test(line)) {
+      flush();
+      flushTable();
+      list.push(trimmed.replace(/^[-*]\s+/, ''));
+    } else if (
+      trimmed.includes('|') &&
+      // Un tableau ne s'ouvre que si la ligne suivante est sa ligne de séparation : sans ce
+      // regard en avant, une phrase contenant un « | » ouvrait un tableau d'une seule ligne,
+      // que le vidage jetait ensuite en silence. Une ligne de prose ne doit jamais disparaître.
+      (table.length > 0 || TABLE_SEPARATOR.test(lines[index + 1] ?? ''))
+    ) {
+      flush();
+      flushList();
+      table.push(trimmed);
+    } else {
+      flushList();
+      flushTable();
+      paragraph.push(trimmed);
+    }
   }
 
   flush();
+  flushList();
+  flushTable();
   // Un bloc jamais refermé : mieux vaut le montrer que perdre la fin du ticket.
   if (fence !== null) closeFence();
 
@@ -480,6 +546,30 @@ const ID_IN_TEXT = /\b[A-Z][A-Z0-9]{1,9}-\d{1,6}\b/g;
 
 function linkifyIds(escaped: string, idLink: IdLinker): string {
   return escaped.replace(ID_IN_TEXT, (id) => idLink(id, 'chip'));
+}
+
+/**
+ * Markdown en ligne : code, emphases et identifiants.
+ *
+ * Le texte est découpé sur les segments entre accents graves plutôt que remplacé par des
+ * jetons : ce qui est du code ne peut alors ni être emphasé, ni voir ses identifiants
+ * transformés en liens (ADR 0010), et aucune séquence du ticket ne peut entrer en collision
+ * avec un marqueur interne.
+ */
+function renderInline(value: string, idLink: IdLinker): string {
+  return escapeHtml(value)
+    .split(/(`[^`]+`)/g)
+    .map((segment) =>
+      segment.startsWith('`') && segment.endsWith('`') && segment.length > 1
+        ? `<code>${segment.slice(1, -1)}</code>`
+        : linkifyIds(
+            segment
+              .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*([^*]+)\*/g, '<em>$1</em>'),
+            idLink,
+          ),
+    )
+    .join('');
 }
 
 function page(projectName: string, body: string, section = 'graphe'): string {

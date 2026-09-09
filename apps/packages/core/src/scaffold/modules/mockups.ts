@@ -57,7 +57,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
             'Passer une maquette en `status: validated` sans que `klee mockups check` soit au vert — ou en écartant une règle sans écrire pourquoi.',
           ],
           references: [
-            'DESIGN.md — conventions design, produit et UX.',
+            '`docs/technical/index.md` — conventions et décisions propres au projet.',
             '`design-system/AGENTS.md` — tokens consommés par ces maquettes.',
           ],
         }),
@@ -92,7 +92,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
             'Introduire une dépendance de `design-system/` vers `mockups/` ou `apps/`.',
             'Ajouter un token purement descriptif (`--blue-500`) sans token sémantique correspondant.',
           ],
-          references: ['DESIGN.md §2 — design tokens.', '`mockups/AGENTS.md`.'],
+          references: ['`docs/technical/index.md` — design tokens.', '`mockups/AGENTS.md`.'],
         }),
       },
       {
@@ -141,7 +141,7 @@ const A11Y_RUNNER = `// Généré par klee (ADR 0018) — audite les maquettes s
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 
-// WCAG 2.1 AA, le niveau qu'exige DESIGN.md §6 — ni plus strict, ni plus laxiste.
+// WCAG 2.1 AA, le niveau retenu par le projet pour les maquettes validées.
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
 async function readInput() {

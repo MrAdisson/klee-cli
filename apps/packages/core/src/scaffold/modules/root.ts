@@ -26,6 +26,34 @@ function providerLines(context: ScaffoldContext): string[] {
   });
 }
 
+/**
+ * Un guide par module, en clair. Le `Record` est **complet** et non partiel : un module
+ * ajouté sans sa ligne casse la compilation, plutôt que de produire un titre suivi du vide
+ * dans le README de chaque projet scaffoldé.
+ */
+function moduleGuideLines(context: ScaffoldContext): string[] {
+  const guides: Record<(typeof MODULE_IDS)[number], string> = {
+    apps: 'Le code applicatif et les bibliothèques du projet vivent ici.',
+    tickets:
+      'Les tickets Markdown portent le travail à faire et les liens vers les autres artefacts. Utilisez `klee ticket create`, `klee ticket list` et `klee board`.',
+    'docs-technical':
+      'La documentation technique explique les choix propres au projet. Commencez par `docs/technical/index.md`.',
+    'docs-decisions':
+      'Les décisions d’architecture sont conservées dans `docs/decisions/`. Ajoutez un nouvel ADR quand une décision évolue.',
+    mockups:
+      'Les maquettes HTML/CSS décrivent l’interface avant son implémentation. Utilisez `klee studio` pour les voir et `klee mockups check` pour lancer le contrôle WCAG 2.1 AA avec axe-core. Le passage d’une maquette à `validated` ou `implemented` est bloqué si le contrôle échoue ; une dérogation doit indiquer sa raison dans le `.meta.yml`.',
+    contracts: 'Les contrats d’API et le modèle de domaine sont versionnés dans `contracts/`.',
+    'docs-product':
+      'Les personas, parcours et spécifications fonctionnelles vivent dans `docs/product/`.',
+    'docs-i18n-copy':
+      'Le ton, le vocabulaire produit et les traductions vivent dans `docs/i18n-copy/`.',
+  };
+
+  return MODULE_IDS.filter((id) => context.config.modules[id]).map(
+    (id) => `### ${MODULES[id].label}\n\n${guides[id]}`,
+  );
+}
+
 export const rootGenerator: ScaffoldGenerator = {
   files(context: ScaffoldContext): ScaffoldFile[] {
     const origin = 'module:root';
@@ -43,8 +71,22 @@ export const rootGenerator: ScaffoldGenerator = {
         origin,
         contents: textContents(`# ${config.name}
 
-Projet géré avec **Klee** : tickets, maquettes, docs et code vivent dans le même dépôt,
-versionnés et exploitables directement par un humain comme par un agent.
+Ce dépôt est géré avec **Klee**. Il rassemble le code, les tickets et la documentation dans
+un même historique. Les liens entre ces éléments restent traçables dans le dépôt.
+
+## Commencer ici
+
+Après \`klee init\`, utilisez ces premiers repères :
+
+| Action | Commande ou fichier |
+| --- | --- |
+| Comprendre les règles du dépôt | \`AGENTS.md\` puis l’\`AGENTS.md\` du dossier concerné |
+| Décrire l’architecture du projet | \`docs/technical/index.md\` |
+| Voir le travail à faire | \`klee ticket list\` ou \`klee board\` |
+| Vérifier les liens entre artefacts | \`klee links check\` |
+| Ouvrir le cockpit local | \`klee studio\` |
+
+Le site de documentation se lance avec \`klee docs serve\` quand le provider retenu en fournit un.
 
 ## Modules retenus
 
@@ -58,6 +100,10 @@ ${providerLines(context).join('\n')}
 
 Tout est modifiable après coup : \`klee module add <module>\`, ou édition de
 \`project.config.json\`. Rien n'impose de re-scaffolder.
+
+## Ce que contient ce dépôt
+
+${moduleGuideLines(context).join('\n\n')}
 
 ## Identifiants
 
@@ -74,6 +120,13 @@ référence une maquette et une doc, une maquette référence le composant qui l
 
 Chaque dossier principal porte un \`AGENTS.md\` qui décrit son rôle et ce qu'un agent a le
 droit d'y modifier. Lisez celui du dossier avant d'y écrire.
+
+## Documentation Klee
+
+Ce README et les documents de \`docs/\` expliquent **ce projet**. Pour comprendre Klee lui-même,
+consultez la documentation Klee publiée par votre équipe ou ajoutez ici le lien de référence
+quand il sera disponible. La documentation du projet ne doit pas recopier la documentation
+de Klee : elle doit décrire vos propres choix.
 `),
       },
       {

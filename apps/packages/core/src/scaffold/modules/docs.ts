@@ -82,13 +82,23 @@ export const docsTechnicalGenerator: ScaffoldGenerator = {
         origin,
         id: formatId(DOC_PREFIX, 2),
         title: 'Documentation technique',
-        body: `Cette section décrit *comment* le projet est fait : architecture, conventions,
-référence des outils. Elle est **authored** — écrite par des humains et des agents, jamais
-produite par un pipeline (\`TECHNICAL.md\` §5).
+        body: `Cette section explique comment **${context.config.name}** est construit : architecture,
+conventions de développement, dépendances importantes et procédures utiles pour contribuer.
+
+## À documenter en premier
+
+- **Architecture** : principaux modules, services et flux de données.
+- **Développement local** : prérequis, installation et commandes courantes.
+- **Tests et livraison** : vérifications à lancer avant une revue et processus de déploiement.
+- **Intégrations** : services externes, contrats et limites à connaître.
+
+Commencez par remplacer cette liste par les décisions et conventions propres au projet. Cette
+documentation est écrite par l'équipe et reste la référence quand le code ne suffit pas à
+expliquer un choix.
 
 Les identifiants cités dans le texte (\`${context.config.idPrefix}-xxx\`, \`${MOCKUP_PREFIX}-xxx\`,
-\`${DOC_PREFIX}-xxx\`) sont des arêtes du graphe de traçabilité : \`klee links check\` vérifie
-qu'elles pointent vers un artefact existant.`,
+\`${DOC_PREFIX}-xxx\`) peuvent relier cette documentation aux tickets, maquettes et autres
+documents. \`klee links check\` vérifie qu'une arête déclarée pointe vers un artefact existant.`,
       }),
     ];
   },
@@ -110,36 +120,34 @@ export const docsDecisionsGenerator: ScaffoldGenerator = {
           date: isoDate(context.now),
         })}
 
-# 0001 — Topologie du dépôt : monorepo unique
+# 0001 — Structure du dépôt
 
 ## Contexte
 
-Le projet doit relier des artefacts de natures très différentes — code applicatif,
-maquettes, documentation, tickets, contrats d'API. Ces artefacts se référencent
-mutuellement par identifiant, et la valeur du dispositif tient entièrement à ce que ces
-références restent résolvables.
-
-Deux topologies étaient envisageables : un dépôt par domaine (code / design / docs), ou un
-dépôt unique.
+${context.config.name} rassemble son code, sa documentation et ses artefacts de suivi dans
+un même dépôt. Cette décision donne à l'équipe un endroit unique pour comprendre un changement
+et conserver le contexte qui l'accompagne.
 
 ## Décision
 
-**Un seul historique git pour tout le projet** : \`apps/\`, \`design-system/\`, \`mockups/\`,
-\`docs/\`, \`tickets/\`, \`contracts/\`.
+Les éléments suivants vivent dans le dépôt et sont versionnés ensemble :
 
-L'ownership par équipe se gère **par chemin** (fichier type \`CODEOWNERS\`), jamais par dépôt
-séparé.
+- le code applicatif et les bibliothèques dans les dossiers du projet ;
+- la documentation authored dans \`docs/\` ;
+- les tickets dans \`tickets/\` ;
+- ${context.config.modules.mockups ? 'les maquettes dans `mockups/` ;' : 'les artefacts de design lorsqu’ils sont retenus ;'}
+- les fichiers de configuration et les scripts nécessaires pour reproduire les vérifications.
+
+Les conventions d'organisation propres au projet seront ajoutées ici au fil des décisions.
 
 ## Conséquences
 
-- Un changement transverse (un token qui bouge, une maquette validée, le ticket qui la suit)
-  tient dans un seul commit atomique et une seule revue.
-- Un agent dispose du contexte complet sans avoir à cloner ni synchroniser plusieurs dépôts.
-- Les liens croisés par identifiant sont vérifiables mécaniquement, puisque les deux
-  extrémités du lien sont toujours présentes dans l'arbre de travail.
-- En contrepartie, le dépôt grossit et les droits d'accès sont moins cloisonnés : c'est
-  précisément pourquoi chaque dossier déclare son périmètre d'édition dans son \`AGENTS.md\`,
-  et pourquoi aucun secret ne vit dans le dépôt.
+- Un changement transverse peut être relu avec son code, sa documentation et son ticket.
+- L'historique git conserve les décisions et permet de revenir à l'état exact utilisé pour une
+  livraison.
+- Les fichiers du dépôt ne remplacent pas les systèmes d'exécution ou de déploiement : ils en
+  décrivent la configuration reproductible.
+- Les secrets et les données personnelles restent hors du dépôt.
 `),
       },
     ];
@@ -156,7 +164,7 @@ export const docsProductGenerator: ScaffoldGenerator = {
         origin,
         id: formatId(DOC_PREFIX, 3),
         title: 'Documentation produit',
-        body: `Personas, flows utilisateurs et specs fonctionnelles (DESIGN.md §4).
+        body: `Personas, flows utilisateurs et specs fonctionnelles du projet.
 
 Un flow décrit un parcours de bout en bout ; l'écran, lui, est déjà couvert par la maquette.
 Une spec fonctionnelle se rattache au ticket qui la porte et à la maquette qui la montre.`,
@@ -194,7 +202,7 @@ export const docsI18nCopyGenerator: ScaffoldGenerator = {
         origin,
         id: formatId(DOC_PREFIX, 4),
         title: 'UX writing et traductions',
-        body: `Textes d'interface, ton, vocabulaire et règles de traduction (DESIGN.md §4).
+        body: `Textes d'interface, ton, vocabulaire et règles de traduction du projet.
 
 Traité à part du reste du design parce que le copy change indépendamment des tokens et du
 HTML. Une chaîne d'interface est identifiée par une clé stable, jamais par son contenu.`,
@@ -214,7 +222,7 @@ HTML. Une chaîne d'interface est identifiée par une clé stable, jamais par so
           forbidden: [
             'Coder en dur un texte dans une maquette ou un composant alors qu’il devrait vivre ici.',
           ],
-          references: ['`docs/AGENTS.md`.', 'DESIGN.md §4 — UX writing.'],
+          references: ['`docs/AGENTS.md`.', '`docs/technical/index.md` — conventions du projet.'],
         }),
       },
     ];

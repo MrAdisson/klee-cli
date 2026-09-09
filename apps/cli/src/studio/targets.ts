@@ -38,17 +38,20 @@ export function deepLinkFor(node: GraphNode): DeepLink | null {
 }
 
 /**
- * Docusaurus prend le `id:` du frontmatter comme slug du document, et le dossier comme
- * section : `docs/decisions/0013-x.md` porte `id: DOC-016` et se sert en `/decisions/DOC-016/`.
+ * Docusaurus prend l’`id:` du frontmatter comme slug du document, sauf pour un `index.md`
+ * qui est la page d’accueil de sa section : `docs/technical/index.md` se sert en
+ * `/technical/`, tandis que `docs/decisions/0013-x.md` se sert en `/decisions/DOC-016/`.
  */
 function docPath(node: GraphNode): string {
-  const section = node.path
-    .replace(/^docs\//, '')
-    .split('/')
+  const relative = node.path.replace(/^docs\//, '');
+  const parts = relative.split('/');
+  const file = parts.at(-1) ?? '';
+  const section = parts
     .slice(0, -1)
     .filter((part) => part !== '')
     .map((part) => encodeURIComponent(part))
     .join('/');
+  if (file === 'index.md') return section === '' ? '/' : `/${section}/`;
   return section === ''
     ? `/${encodeURIComponent(node.id)}/`
     : `/${section}/${encodeURIComponent(node.id)}/`;

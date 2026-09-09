@@ -340,6 +340,20 @@ describe('page d’un ticket', () => {
     expect(html).toContain('href="/links/MOCK-001"');
   });
 
+  it('rend le Markdown courant du corps du ticket', async () => {
+    const url = await createWithDescription(
+      '**Important** avec `klee board`.\n\n- Première étape\n- Deuxième étape\n\n| Champ | Valeur |\n| --- | --- |\n| Statut | draft |',
+    );
+    const html = await (await fetch(url)).text();
+
+    expect(html).toContain('<strong>Important</strong>');
+    expect(html).toContain('<code>klee board</code>');
+    expect(html).toContain('<ul>');
+    expect(html).toContain('<table>');
+    expect(html).toContain('<th>Champ</th>');
+    expect(html).toContain('<td>draft</td>');
+  });
+
   it('n’affiche aucune section de critères quand le ticket n’en a pas', async () => {
     // Un ticket créé porte toujours le bloc gherkin du gabarit ; le cas visé est celui d'un
     // fichier rédigé à la main, que le format autorise (ADR 0008 : tous ne s'y prêtent pas).
@@ -376,6 +390,34 @@ describe('page d’un ticket', () => {
     const html = await (await fetch(`${base}/tickets/ACME-001`)).text();
     expect(html).not.toContain('action="/mockups/MOCK-001/status"');
     expect(html).toContain('href="/links/MOCK-001"');
+  });
+
+  it('ne perd jamais une ligne de prose contenant une barre verticale', async () => {
+    // Régression : la ligne ouvrait un tableau d'une seule ligne, que le vidage jetait en
+    // silence. Un ticket ne doit pas perdre de texte — c'est ce que KLEE-009 corrigeait.
+    const url = await createWithDescription('Utilisez la commande a | b pour cela.');
+    const html = await (await fetch(url)).text();
+    expect(html).toContain('Utilisez la commande a | b pour cela.');
+    expect(html).not.toContain('<table>');
+  });
+
+  it('rend un vrai tableau markdown, listes et emphases comprises', async () => {
+    await createWithDescription('Peu importe.');
+    const file = join(root, 'tickets', 'ACME-001-ticket-lisible.md');
+    const [, frontmatter = ''] = /^(---\n[\s\S]*?\n---\n)/.exec(await readFile(file, 'utf8')) ?? [];
+    await writeFile(
+      file,
+      `${frontmatter}\nDu **gras** et du \`code MOCK-001\`.\n\n- un point\n\n| Colonne | Effet |\n| --- | --- |\n| a | b |\n`,
+      'utf8',
+    );
+
+    const html = await (await fetch(`${base}/tickets/ACME-001`)).text();
+    expect(html).toContain('<strong>gras</strong>');
+    expect(html).toContain('<ul><li>un point</li></ul>');
+    expect(html).toContain('<th>Colonne</th>');
+    expect(html).toContain('<td>a</td>');
+    // Un identifiant dans du code inline reste un exemple (ADR 0010).
+    expect(html).not.toContain('href="/tickets/MOCK-001"');
   });
 
   it('répond 404 sur un ticket inexistant', async () => {

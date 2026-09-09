@@ -253,7 +253,7 @@ function docusaurusConfig(context: ScaffoldContext): string {
   return textContents(`// @ts-check
 
 /**
- * Site de documentation de ${context.config.name} (TECHNICAL.md §5).
+ * Site de documentation de ${context.config.name}.
  *
  * **Une seule** instance de \`plugin-content-docs\`, enracinée sur \`docs/\`. Docusaurus ne
  * résout les liens relatifs de fichier à fichier qu'à l'intérieur d'une instance : en

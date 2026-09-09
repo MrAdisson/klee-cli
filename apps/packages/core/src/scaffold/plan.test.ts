@@ -302,6 +302,33 @@ describe('ticket d’initialisation', () => {
     expect(librairie).not.toContain('`apps/` — apps/');
   });
 
+  it('génère un README humain adapté aux modules retenus', () => {
+    const full = buildScaffoldPlan({ config: configFor('full-product'), now: FIXED_NOW });
+    const lib = buildScaffoldPlan({ config: configFor('internal-lib'), now: FIXED_NOW });
+    const fullReadme = full.files.find((file) => file.path === 'README.md')?.contents ?? '';
+    const libReadme = lib.files.find((file) => file.path === 'README.md')?.contents ?? '';
+
+    expect(fullReadme).toContain('## Commencer ici');
+    expect(fullReadme).toContain('### mockups/ + design-system/');
+    expect(fullReadme).toContain('contrôle WCAG 2.1 AA avec axe-core');
+    expect(fullReadme).toContain('Le passage d’une maquette à `validated` ou `implemented`');
+    expect(fullReadme).toContain('Documentation Klee');
+    expect(fullReadme).toContain('\nCe dépôt est géré avec **Klee**.');
+    expect(fullReadme).not.toContain('\n      Ce dépôt est géré');
+    expect(libReadme).not.toContain('### mockups/ + design-system/');
+    expect(libReadme).not.toContain('### contracts/');
+
+    const technicalDoc =
+      full.files.find((file) => file.path === 'docs/technical/index.md')?.contents ?? '';
+    const mockupsAgents =
+      full.files.find((file) => file.path === 'mockups/AGENTS.md')?.contents ?? '';
+    const generatedContents = full.files.map((file) => file.contents).join('\n');
+    expect(technicalDoc).toContain('\nCette section explique comment **demo**');
+    expect(technicalDoc).not.toContain('\n      conventions de développement');
+    expect(mockupsAgents).not.toContain('DESIGN.md');
+    expect(generatedContents).not.toContain('DESIGN.md');
+  });
+
   it('relie le projet à son ADR de topologie, pour un graphe non vide dès l’init', () => {
     expect(seed('full-product')).toContain('DOC-001');
   });

@@ -19,7 +19,7 @@ const MANIFEST_PATH = 'mockups/package.json';
 
 const BASE_CSS = textContents(`/*
  * Feuille de style des maquettes. Aucune valeur brute : tout passe par les tokens générés
- * dans design-system/dist/css/tokens.css (DESIGN.md §2). Une couleur en dur ici est un bug.
+ * dans design-system/dist/css/tokens.css. Une couleur en dur ici est un bug.
  */
 
 body {
@@ -299,7 +299,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 
 /**
- * Catalogue auto-généré (DESIGN.md §3) : la liste des composants et de leurs états déclarés
+ * Catalogue auto-généré : la liste des composants et de leurs états déclarés
  * est dérivée des \`.meta.yml\`, jamais maintenue à la main. Une liste écrite à la main finit
  * toujours par mentir sur le contenu réel du dossier.
  */

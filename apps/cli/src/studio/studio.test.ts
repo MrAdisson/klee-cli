@@ -47,6 +47,15 @@ describe('deepLinkFor', () => {
       deepLinkFor(node({ id: 'MOCK-002', kind: 'mockup', path: 'mockups/pages/login.meta.yml' })),
     ).toEqual({ tab: 'mockups', path: '/pages/login/' });
   });
+
+  it('ouvre les documents index à la racine de leur section', () => {
+    expect(
+      deepLinkFor(node({ id: 'DOC-002', kind: 'doc', path: 'docs/technical/index.md' })),
+    ).toEqual({ tab: 'docs', path: '/technical/' });
+    expect(
+      deepLinkFor(node({ id: 'DOC-003', kind: 'doc', path: 'docs/product/index.md' })),
+    ).toEqual({ tab: 'docs', path: '/product/' });
+  });
 });
 
 describe('safeInnerPath', () => {
