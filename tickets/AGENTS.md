@@ -49,18 +49,39 @@ Scénario: ...
 - Le fichier reste la source de vérité : l'éditer à la main est légitime, et l'index s'en
   aperçoit.
 
+## Quand faire transiter un ticket
+
+Les statuts décrivent un cycle, mais un cycle ne dit pas **à quel moment** on avance dedans.
+Sans ce point-là, un agent implémente une fonctionnalité, la vérifie, rend la main — et laisse
+le ticket là où il l'a trouvé. Le code avance, le board ment.
+
+Chaque transition est donc adossée à un fait vérifiable, jamais à une intention :
+
+| Transition                      | Le fait qui l'autorise                                                                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backlog` → `ready-for-dev`     | Les critères d'acceptation sont écrits. Un `Scénario: à écrire` n'en est pas un : le ticket n'est pas prenable tant qu'on ne sait pas le finir.     |
+| `ready-for-dev` → `in-progress` | **Avant** la première ligne de code, pas après. C'est le seul signal qui permet à un autre agent de voir la collision venir plutôt que de la subir. |
+| `in-progress` → `in-review`     | Le code est écrit, `pnpm run verify` et `klee links check` passent. C'est l'état dans lequel un agent rend la main.                                 |
+| `in-review` → `done`            | **Un humain a revu.** Un agent ne pose jamais `done` lui-même : à ce stade la seule information qui compte est celle qu'il n'a pas.                 |
+
+Corollaire : `in-review` n'est pas un statut d'attente à rattraper. C'est la fin normale du
+travail d'un agent sur un ticket, et un ticket qui y séjourne ne signale aucun oubli.
+
 ## Périmètre d'édition pour un agent
 
 **Autorisé**
 
-- Créer un ticket, changer son statut, compléter ses critères d'acceptation.
+- Créer un ticket, le faire transiter selon le tableau ci-dessus, compléter ses critères
+  d'acceptation.
 - Éditer un ticket à la main.
 - Ajouter un lien vers une maquette ou une doc **existante**.
 
 **Interdit**
 
+- Poser `done` : ce statut atteste d'une revue humaine, qu'un agent ne peut pas constater.
 - Modifier `id` après création : c'est l'arête sur laquelle tout le reste pointe.
-- Supprimer un ticket : le passer en `done`, pour préserver l'historique de décision.
+- Supprimer un ticket : un ticket abandonné se porte en revue avec la raison, et c'est la revue
+  qui le clôt — l'historique de décision se perd autrement.
 - Écrire une donnée personnelle ou un secret dans un ticket.
 - Inventer un lien vers une maquette ou une doc qui n'existe pas — `klee links check` le
   refuse désormais mécaniquement, avec un code de sortie non nul.

@@ -25,6 +25,12 @@ import {
   type DocsInitOptions,
   type DocsServeOptions,
 } from './commands/docs.js';
+import {
+  runCompletion,
+  runCompletionInstall,
+  type CompletionInstallOptions,
+} from './commands/completion.js';
+import { SHELL_IDS } from './completion/candidates.js';
 import { runProjectScript } from './commands/project-script.js';
 import {
   runTicketCreate,
@@ -271,6 +277,23 @@ export function createProgram(): Command {
         requiresModule: 'mockups',
         ensureTokens: true,
       });
+    });
+
+  const completionCommand = program
+    .command('completion')
+    .description('Émet le script de complétion du shell, à charger via eval.')
+    .argument('[shell]', `shell cible : ${SHELL_IDS.join(' | ')}`)
+    .action((shell: string | undefined) => {
+      runCompletion(shell);
+    });
+
+  completionCommand
+    .command('install')
+    .description('Installe le script là où le shell le charge de lui-même.')
+    .argument('[shell]', 'shell cible (défaut : celui de $SHELL)')
+    .option('--dry-run', 'affiche l’emplacement sans rien écrire')
+    .action(async (shell: string | undefined, options: CompletionInstallOptions) => {
+      await runCompletionInstall(shell, options);
     });
 
   return program;

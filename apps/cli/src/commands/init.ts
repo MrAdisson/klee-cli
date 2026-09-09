@@ -261,7 +261,10 @@ function reportNextSteps(config: ProjectConfig, plan: ScaffoldPlan, installed: b
     );
   }
   info('  • lire AGENTS.md à la racine, puis celui du dossier où vous travaillez ;');
-  info('  • `klee ticket create "…"` et `klee board` pour le suivi.');
+  info('  • `klee ticket create "…"` et `klee board` pour le suivi ;');
+  // Mentionnée, jamais exécutée : la complétion vit dans le shell de la personne, pas dans
+  // le projet, et `init` ne doit rien écrire hors de sa racine.
+  info('  • `klee completion install` pour compléter commandes et identifiants au TAB.');
   write();
 }
 

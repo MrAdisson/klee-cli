@@ -5,7 +5,8 @@ status: backlog
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09
-depends_on: []
+depends_on:
+  - KLEE-008
 related_mockups: []
 related_docs: []
 authored_by: human

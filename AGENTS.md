@@ -24,6 +24,15 @@ Principe fondateur : **everything lives in the codebase.** Aucun artefact struct
 | 4     | Cockpit `klee studio`, recherche transverse, webhooks internes        | ⬅ **en cours** |
 | 5–7   | Interopérabilité, observabilité, environnements                       |                |
 
+Détail de la phase 4, pour ne pas la croire finie :
+
+| Chantier              | Ticket   | État                                              |
+| --------------------- | -------- | ------------------------------------------------- |
+| Cockpit `klee studio` | KLEE-005 | implémenté, en revue — ADR 0014, 0016             |
+| Recherche transverse  | KLEE-006 | à faire — rien n'est écrit                        |
+| Webhooks internes     | KLEE-007 | à faire — `ready-for-dev` en est la cible, à vide |
+| Détection de dérive   | —        | écartée du périmètre — ADR 0015                   |
+
 La roadmap complète est en fin de `TECHNICAL.md`. **Chaque phase se lance après validation
 humaine de la précédente** — n'anticipez pas.
 
@@ -101,6 +110,8 @@ node apps/cli/dist/bin/klee.js --help
 klee studio           # cockpit unifié : board + docs + maquettes, sur http://localhost:4300
 klee links check      # aucun lien croisé cassé — à passer aussi
 klee docs serve       # la documentation du dépôt, sur http://localhost:3000
+
+eval "$(klee completion zsh)"   # complétion : commandes, options, et identifiants du graphe
 ```
 
 ## Décisions déjà prises

@@ -251,6 +251,67 @@ Ouvre n'importe quel identifiant dans le bon onglet, à la bonne page :
 La page est **vérifiée avant d'être ouverte** : une URL déduite qui ne répond pas fait
 retomber sur l'accueil de l'onglet, en le disant plutôt qu'en affichant un cadre vide.
 
+## `klee completion`
+
+| Commande                          | Effet                                                             |
+| --------------------------------- | ----------------------------------------------------------------- |
+| `klee completion [shell]`         | Émet le script sur stdout, à charger par `eval`.                  |
+| `klee completion install [shell]` | Écrit le script là où le shell le charge seul. `--dry-run` aussi. |
+
+Sans argument, le shell est déduit de `$SHELL`.
+
+```bash
+klee completion install                # le plus simple : une fois, puis on oublie
+eval "$(klee completion zsh)"          # pour la session en cours
+klee completion bash >> ~/.bashrc      # si l'on préfère gérer sa configuration
+```
+
+### `install` : où le fichier atterrit
+
+| Shell  | Emplacement                                       | Reste à faire                    |
+| ------ | ------------------------------------------------- | -------------------------------- |
+| `zsh`  | premier `site-functions` inscriptible de `$fpath` | rien — zsh l'autoload            |
+| `zsh`  | sinon `~/.zsh/completions/_klee`                  | ajouter ce dossier à `$fpath`    |
+| `bash` | `~/.local/share/bash-completion/completions/klee` | avoir `bash-completion` installé |
+| `fish` | `~/.config/fish/completions/klee.fish`            | rien                             |
+
+Seuls les dossiers `site-functions` sont retenus en zsh : `$fpath` contient aussi ceux
+d'autres outils, où déposer notre fichier serait s'inviter chez quelqu'un. La commande
+affiche toujours le chemin écrit — c'est aussi ce qui rend la désinstallation évidente.
+
+**Pourquoi une commande explicite, et pas un `postinstall`.** npm n'a aucun mécanisme de
+distribution de complétion : rien n'est déposé à l'installation dans un dossier que le shell
+lirait. Un `postinstall` qui écrirait dans la configuration de l'utilisateur serait à la fois
+peu fiable (`--ignore-scripts`) et intrusif. `klee init` ne la déclenche pas non plus : elle
+écrit hors du projet, ce que `init` s'interdit — il se contente de la mentionner.
+
+La complétion ne fonctionne pas derrière `npx klee` : le shell complète `npx`, pas `klee`.
+
+Le script ne contient **aucune liste de commandes** : il rappelle `klee __complete` à chaque
+tabulation. Une commande ajoutée à la CLI se complète donc sans réinstaller le script.
+
+### Ce qui se complète
+
+| Position                       | Candidats                                       |
+| ------------------------------ | ----------------------------------------------- |
+| commande et sous-commande      | lues dans l'arbre de la CLI                     |
+| `ticket move` / `ticket show`  | les identifiants de tickets **du projet**       |
+| `ticket move <id> <…>`         | les statuts du workflow                         |
+| `links show`                   | tout le graphe : tickets, `MOCK-`, `DOC-`       |
+| `module add` / `module remove` | les modules absents / retenus, jamais l'inverse |
+| `--status`, `--preset`         | les valeurs que l'option accepte                |
+
+Compléter les identifiants n'est pas un confort : `KLEE-xxx`, `MOCK-xxx` et `DOC-xxx` sont les
+arêtes du graphe. Les proposer supprime la faute de frappe que `klee links check` ne peut que
+constater après coup, une fois le fichier écrit.
+
+### `klee __complete <mots…>`
+
+Point d'entrée machine, appelé par les scripts ci-dessus — une ligne par candidat, le dernier
+mot étant celui en cours de frappe. Il ne diagnostique jamais : hors d'un projet Klee, ou sur
+un dépôt illisible, il rend une liste vide et le code `0`. Une tabulation ne doit pas écrire
+une erreur en travers de la ligne que l'utilisateur est en train de taper.
+
 ## Ports
 
 Quatre commandes ouvrent un port : `board`, `docs serve`, `mockups serve` et `studio`. Toutes
@@ -291,3 +352,4 @@ n'est pas un bug, c'est une réponse à corriger. Une erreur inattendue affiche 
 | `NODE_NOT_FOUND`                                           | `klee links show` sur un identifiant inconnu          |
 | `DOCS_SITE_MISSING`                                        | `klee docs serve` sans site généré                    |
 | `DOC_INVALID` / `MOCKUP_INVALID`                           | Frontmatter de doc ou `.meta.yml` mal formé           |
+| `UNKNOWN_SHELL`                                            | `klee completion` sur un shell non reconnu            |

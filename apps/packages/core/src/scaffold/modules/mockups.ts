@@ -40,7 +40,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
               : []),
             'JS uniquement pour illustrer un comportement UI local (menu, onglet) — jamais de logique métier, jamais d’appel réseau.',
             'Navigation entre pages par de simples liens `<a>`, pour simuler le parcours sans framework.',
-            `Accessibilité WCAG 2.1 AA vérifiée au stade maquette ; la régression visuelle est assurée par ${regression.label}.`,
+            `Accessibilité WCAG 2.1 AA exigée au stade maquette — la vérification est manuelle : Klee ne l'outille pas encore. Idem pour la régression visuelle, dont ${regression.label} est le provider retenu mais pas encore branché.`,
           ],
           allowed: [
             'Créer et modifier des pages et composants HTML/CSS.',
@@ -49,7 +49,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
           forbidden: [
             'Écrire une valeur de couleur, d’espacement ou de typographie en dur.',
             'Dupliquer le markup d’un composant existant.',
-            'Passer une maquette en `status: validated` sans que les vérifications d’accessibilité soient au vert.',
+            'Passer une maquette en `status: validated` sans avoir vérifié son accessibilité — aucun outil ne s’y oppose aujourd’hui, l’exigence tient quand même.',
           ],
           references: [
             'DESIGN.md — conventions design, produit et UX.',
@@ -76,7 +76,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
             `\`dist/\` est **généré** par ${pipeline.label} et n'est jamais édité à la main. Cibles actives : ${targets.join(', ')}.`,
             'Sens de la dépendance imposé : `mockups/` et `apps/` importent `design-system/dist/`, jamais l’inverse.',
             'Nommage sémantique avant tout (`--color-text-primary`, pas `--color-gray-900`) : changer une valeur ne doit pas casser la signification.',
-            'Un changement de token est un ticket, jamais une édition silencieuse — il déclenche une régression visuelle sur les pages qui l’utilisent.',
+            'Un changement de token est un ticket, jamais une édition silencieuse : il touche toutes les pages qui l’utilisent, et rien ne le rattrape encore automatiquement.',
           ],
           allowed: [
             'Ajouter ou modifier un token dans `tokens.json`, avec sa `$description`.',

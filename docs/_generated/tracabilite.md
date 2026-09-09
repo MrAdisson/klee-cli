@@ -19,7 +19,8 @@ sidebar_label: Traçabilité
 | KLEE-004 | Le scaffolding n'écrase plus les fichiers de racine rédigés | done | DOC-016 | `tickets/KLEE-004-le-scaffolding-n-ecrase-plus-les-fichiers-de-racine-rediges.md` |
 | KLEE-005 | Cockpit klee studio : une app unique par-dessus des serveurs indépendants | in-review | DOC-017, DOC-019 | `tickets/KLEE-005-cockpit-klee-studio-une-app-unique-par-dessus-des-serveurs-i.md` |
 | KLEE-006 | Recherche transverse sur tickets, docs et maquettes | backlog | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
-| KLEE-007 | Webhooks internes : réactions locales aux transitions | backlog | — | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
+| KLEE-007 | Webhooks internes : réactions locales aux transitions | backlog | KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
+| KLEE-008 | Gate d'accessibilité : axe-core avant qu'une maquette passe validated | ready-for-dev | KLEE-007 | `tickets/KLEE-008-gate-d-accessibilite-axe-core-avant-qu-une-maquette-passe-va.md` |
 
 ## Maquettes
 
@@ -56,7 +57,6 @@ sidebar_label: Traçabilité
 
 ## Sans lien déclaré
 
-- KLEE-007 — Webhooks internes : réactions locales aux transitions
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé
