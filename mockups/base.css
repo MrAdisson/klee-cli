@@ -1,0 +1,151 @@
+/*
+ * Feuille de style des maquettes. Aucune valeur brute : tout passe par les tokens générés
+ * dans design-system/dist/css/tokens.css (DESIGN.md §2). Une couleur en dur ici est un bug.
+ */
+
+body {
+  margin: 0;
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+}
+
+.mockup-bar {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface-raised);
+  border-bottom: 1px solid var(--color-border-default);
+  font-size: var(--font-size-sm);
+}
+
+.mockup-bar__id {
+  margin-left: auto;
+  font-family: var(--font-family-mono);
+  color: var(--color-text-muted);
+}
+
+.mockup-main {
+  padding: var(--space-xl);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+h2 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+/* --- Bouton ------------------------------------------------------------- */
+
+.btn {
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:focus-visible {
+  /* L'anneau de focus ne se supprime jamais : navigation clavier, WCAG 2.1 AA. */
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.btn--primary {
+  background: var(--color-primary-default);
+  color: var(--color-text-inverse);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn--primary:active:not(:disabled) {
+  background: var(--color-primary-active);
+}
+
+.btn--secondary {
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.btn:disabled {
+  background: var(--color-primary-disabled);
+  color: var(--color-text-inverse);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn[aria-busy='true'] {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* --- Catalogue ---------------------------------------------------------- */
+
+.catalogue {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-md);
+}
+
+.catalogue li {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.states {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding: 0;
+  margin: var(--space-sm) 0 0;
+  list-style: none;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.demo-row {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+}
+
+/* --- Formulaire --------------------------------------------------------- */
+
+.field {
+  display: grid;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.field input {
+  font: inherit;
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+}
+
+.field input:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}

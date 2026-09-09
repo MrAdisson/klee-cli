@@ -7,7 +7,7 @@
     "tickets": true,
     "docs-technical": true,
     "docs-decisions": true,
-    "mockups": false,
+    "mockups": true,
     "contracts": false,
     "docs-product": false,
     "docs-i18n-copy": false
@@ -20,5 +20,8 @@
     "mockups-composition": "eleventy",
     "visual-regression": "playwright",
     "tokens-pipeline": "style-dictionary"
+  },
+  "designSystem": {
+    "targets": ["css"]
   }
 }

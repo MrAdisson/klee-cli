@@ -1,0 +1,16 @@
+{
+  "name": "@klee/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./css": "./dist/css/tokens.css"
+  },
+  "scripts": {
+    "build": "style-dictionary build --config style-dictionary.config.mjs",
+    "tokens:build": "style-dictionary build --config style-dictionary.config.mjs"
+  },
+  "devDependencies": {
+    "style-dictionary": "^5.5.3"
+  }
+}

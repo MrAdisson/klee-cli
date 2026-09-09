@@ -79,7 +79,12 @@ const styleDictionary: Provider = {
     },`);
     }
 
-    const tailwindFormat = active.includes('tailwind')
+    // L'import ne sert qu'à `registerFormat` : l'émettre sans la cible Tailwind laisse une
+    // liaison morte, que le lint du projet généré refuse à juste titre.
+    const needsRuntime = active.includes('tailwind');
+    const runtimeImport = needsRuntime ? "import StyleDictionary from 'style-dictionary';\n" : '';
+
+    const tailwindFormat = needsRuntime
       ? `
 // Style Dictionary n'a pas de format Tailwind natif : on projette les tokens dans la forme
 // attendue par \`theme.extend\`, en conservant les groupes de premier niveau.
@@ -103,8 +108,7 @@ StyleDictionary.registerFormat({
       {
         path: 'design-system/style-dictionary.config.mjs',
         origin,
-        contents: textContents(`import StyleDictionary from 'style-dictionary';
-${tailwindFormat}
+        contents: textContents(`${runtimeImport}${tailwindFormat}
 /**
  * Pipeline DTCG → cibles de build. Généré par \`klee init\` ; ce fichier vous appartient,
  * adaptez-le. En revanche \`dist/\` est produit par ce pipeline et ne s'édite jamais à la main.

@@ -1,0 +1,7 @@
+id: MOCK-002
+title: Connexion
+status: draft
+related_tickets:
+  - KLEE-001
+related_docs: []
+implemented_in: null

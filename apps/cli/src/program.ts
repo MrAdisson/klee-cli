@@ -81,6 +81,7 @@ export function createProgram(): Command {
     .argument('<module>', 'identifiant du module')
     .option('--dry-run', 'affiche le plan sans rien écrire')
     .option('--refresh-root', 'régénère aussi les fichiers de racine')
+    .option('--force', 'avec --refresh-root : écrase aussi les fichiers modifiés depuis')
     .option('--install', 'installe les dépendances que le module ajoute')
     .action(async (moduleName: string, options: ModuleCommandOptions) => {
       await runModuleAdd(moduleName, options);
@@ -92,6 +93,7 @@ export function createProgram(): Command {
     .argument('<module>', 'identifiant du module')
     .option('--dry-run', 'n’écrit pas la configuration')
     .option('--refresh-root', 'régénère aussi les fichiers de racine')
+    .option('--force', 'avec --refresh-root : écrase aussi les fichiers modifiés depuis')
     .action(async (moduleName: string, options: ModuleCommandOptions) => {
       await runModuleRemove(moduleName, options);
     });

@@ -1,7 +1,7 @@
 ---
 id: KLEE-003
 title: Ouvrir une sortie au site de documentation pour les projets légers
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

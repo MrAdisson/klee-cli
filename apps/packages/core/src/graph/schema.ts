@@ -32,8 +32,8 @@ export interface GraphNode {
   readonly status: string | null;
   /**
    * Composant qui implémente réellement une maquette (TECHNICAL.md §7). Ce n'est pas une
-   * arête : à l'autre bout il y a un chemin de fichier, pas un identifiant. La comparer au
-   * code est l'objet de la détection de dérive, en phase 4.
+   * arête : à l'autre bout il y a un chemin de fichier, pas un identifiant. Comparer les deux
+   * automatiquement a été instruit puis écarté — cf ADR 0015. Le champ documente le lien.
    */
   readonly implementedIn: string | null;
 }

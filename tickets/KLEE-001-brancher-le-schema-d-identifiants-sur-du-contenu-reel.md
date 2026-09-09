@@ -1,7 +1,7 @@
 ---
 id: KLEE-001
 title: Brancher le schéma d'identifiants sur du contenu réel
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

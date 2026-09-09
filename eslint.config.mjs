@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
@@ -16,6 +17,13 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    // Le JavaScript de configuration du dépôt (Eleventy, Style Dictionary, Docusaurus)
+    // s'exécute sous Node : sans ses globales, `no-undef` signale `URL` ou `process` comme
+    // indéfinis. Les fichiers `.ts` n'en ont pas besoin — @types/node les leur donne.
+    files: ['**/*.mjs', '**/*.cjs', '**/*.js'],
+    languageOptions: { globals: globals.nodeBuiltin },
+  },
   {
     files: ['**/*.ts'],
     rules: {

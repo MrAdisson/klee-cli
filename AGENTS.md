@@ -15,14 +15,14 @@ Principe fondateur : **everything lives in the codebase.** Aucun artefact struct
 
 ## État d'avancement
 
-| Phase | Contenu                                                                    | État          |
-| ----- | -------------------------------------------------------------------------- | ------------- |
-| 0     | Squelette monorepo, schéma d'ID, modules/providers, `klee init`            | ✅            |
-| 1     | `design-system/` (tokens DTCG + pipeline), `mockups/` + serveur local      | ✅            |
-| 2     | `tickets/` : format, CLI, `klee board`, deux index                         | ✅            |
-| 3     | Liens croisés entre identifiants + docs-as-code (Docusaurus)               | ✅            |
-| 4     | Cockpit `klee studio`, recherche transverse, détection de dérive, webhooks | ⬅ **suivant** |
-| 5–7   | Interopérabilité, observabilité, environnements                            |               |
+| Phase | Contenu                                                               | État           |
+| ----- | --------------------------------------------------------------------- | -------------- |
+| 0     | Squelette monorepo, schéma d'ID, modules/providers, `klee init`       | ✅             |
+| 1     | `design-system/` (tokens DTCG + pipeline), `mockups/` + serveur local | ✅             |
+| 2     | `tickets/` : format, CLI, `klee board`, deux index                    | ✅             |
+| 3     | Liens croisés entre identifiants + docs-as-code (Docusaurus)          | ✅             |
+| 4     | Cockpit `klee studio`, recherche transverse, webhooks internes        | ⬅ **en cours** |
+| 5–7   | Interopérabilité, observabilité, environnements                       |                |
 
 La roadmap complète est en fin de `TECHNICAL.md`. **Chaque phase se lance après validation
 humaine de la précédente** — n'anticipez pas.
@@ -104,7 +104,7 @@ klee docs serve       # la documentation du dépôt, sur http://localhost:3000
 
 ## Décisions déjà prises
 
-Douze ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
+Quinze ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
 
 | ADR  | Sujet                                                                           |
 | ---- | ------------------------------------------------------------------------------- |
@@ -119,6 +119,10 @@ Douze ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couv
 | 0009 | Un seul nom : Klee, projet comme commande                                       |
 | 0010 | Le graphe de traçabilité — arêtes, mentions, ce que `links check` refuse        |
 | 0011 | Site docs-as-code — Docusaurus, en une seule instance                           |
+| 0012 | Ce qu'un preset propose, ce qu'un provider déclare                              |
+| 0013 | Le scaffolding n'écrase pas ce qui a été rédigé                                 |
+| 0014 | Le studio agrège des serveurs, il ne les remplace pas                           |
+| 0015 | Détection de dérive maquette / composant — hors périmètre                       |
 
 ## Références
 

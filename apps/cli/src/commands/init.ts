@@ -130,7 +130,7 @@ export async function runInit(directory: string | undefined, options: InitOption
   const result = await applyScaffoldPlan(plan, {
     root,
     dryRun: options.dryRun ?? false,
-    force: options.force ?? false,
+    onConflict: options.force === true ? 'overwrite' : 'fail',
   });
 
   heading('Récapitulatif');

@@ -87,6 +87,13 @@ Ce qu'il faut en retenir, au-delà du cas :
   (ADR 0012). Il est **daté** : à relire à chaque montée de version, et à alléger dès que
   l'amont a repris la correction. Ne jamais y ajouter une ligne sans portée (`paquet@<version`)
   — un override inconditionnel survit à sa raison d'être et bloque une mise à jour.
+- Les fichiers qu'un `klee module add` dépose dans **ce** dépôt ne passent ni `prettier --check`
+  ni `eslint` : ils sont écrits pour des projets qui n'ont ni l'un ni l'autre. Après une
+  activation de module, lancer `pnpm run format` puis relire ce que le lint signale — une
+  erreur peut venir du template (donc à corriger dans le provider) ou de notre config (donc à
+  corriger ici). L'import mort de `style-dictionary.config.mjs` était du premier type.
+- `--refresh-root` ne réécrit plus les fichiers de racine modifiés depuis (ADR 0013) : il les
+  signale `≠` et les laisse. Avant ce correctif, il les écrasait sans prévenir.
 - Un override de version ne se juge pas à la lecture : le vérifier en installant, en
   construisant **et** en lançant le serveur de développement. `uuid` et `qs` ne vivent que
   dans `webpack-dev-server`, donc un `build` réussi ne prouve rien à leur sujet.

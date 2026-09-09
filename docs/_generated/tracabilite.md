@@ -13,9 +13,20 @@ sidebar_label: Traçabilité
 
 | Identifiant | Titre | Statut | Liens | Fichier |
 | --- | --- | --- | --- | --- |
-| KLEE-001 | Brancher le schéma d'identifiants sur du contenu réel | in-review | DOC-012, DOC-014 | `tickets/KLEE-001-brancher-le-schema-d-identifiants-sur-du-contenu-reel.md` |
-| KLEE-002 | Servir docs/ par le provider docs-as-code retenu | in-review | DOC-013, KLEE-003 | `tickets/KLEE-002-servir-docs-par-le-provider-docs-as-code-retenu.md` |
-| KLEE-003 | Ouvrir une sortie au site de documentation pour les projets légers | in-review | DOC-013, DOC-015, KLEE-002 | `tickets/KLEE-003-ouvrir-une-sortie-au-site-de-documentation-pour-les-projets.md` |
+| KLEE-001 | Brancher le schéma d'identifiants sur du contenu réel | done | DOC-012, DOC-014, MOCK-001, MOCK-002 | `tickets/KLEE-001-brancher-le-schema-d-identifiants-sur-du-contenu-reel.md` |
+| KLEE-002 | Servir docs/ par le provider docs-as-code retenu | done | DOC-013, KLEE-003 | `tickets/KLEE-002-servir-docs-par-le-provider-docs-as-code-retenu.md` |
+| KLEE-003 | Ouvrir une sortie au site de documentation pour les projets légers | done | DOC-013, DOC-015, KLEE-002 | `tickets/KLEE-003-ouvrir-une-sortie-au-site-de-documentation-pour-les-projets.md` |
+| KLEE-004 | Le scaffolding n'écrase plus les fichiers de racine rédigés | in-review | DOC-016 | `tickets/KLEE-004-le-scaffolding-n-ecrase-plus-les-fichiers-de-racine-rediges.md` |
+| KLEE-005 | Cockpit klee studio : une app unique par-dessus des serveurs indépendants | ready-for-dev | DOC-017 | `tickets/KLEE-005-cockpit-klee-studio-une-app-unique-par-dessus-des-serveurs-i.md` |
+| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | backlog | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
+| KLEE-007 | Webhooks internes : réactions locales aux transitions | backlog | — | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
+
+## Maquettes
+
+| Identifiant | Titre | Statut | Liens | Fichier |
+| --- | --- | --- | --- | --- |
+| MOCK-001 | Bouton | draft | KLEE-001 | `mockups/components/button/button.meta.yml` |
+| MOCK-002 | Connexion | draft | KLEE-001 | `mockups/pages/login.meta.yml` |
 
 ## Documents
 
@@ -36,10 +47,14 @@ sidebar_label: Traçabilité
 | DOC-013 | 0011 — Site docs-as-code : Docusaurus, en une seule instance | — | KLEE-002, KLEE-003 | `docs/decisions/0011-site-docs-as-code.md` |
 | DOC-014 | Graphe de traçabilité | — | KLEE-001 | `docs/technical/graphe-de-tracabilite.md` |
 | DOC-015 | 0012 — Ce qu'un preset propose, ce qu'un provider déclare | — | KLEE-003 | `docs/decisions/0012-ce-quun-preset-propose-et-un-provider-declare.md` |
+| DOC-016 | 0013 — Le scaffolding n'écrase pas ce qui a été rédigé | — | KLEE-004 | `docs/decisions/0013-le-scaffolding-n-ecrase-pas-le-contenu-redige.md` |
+| DOC-017 | 0014 — Le studio agrège des serveurs, il ne les remplace pas | — | KLEE-005, KLEE-006 | `docs/decisions/0014-architecture-du-cockpit-studio.md` |
+| DOC-018 | 0015 — La détection de dérive maquette / composant sort du périmètre | — | — | `docs/decisions/0015-detection-de-derive-hors-scope.md` |
 
 
 ## Sans lien déclaré
 
+- KLEE-007 — Webhooks internes : réactions locales aux transitions
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé
@@ -51,3 +66,4 @@ sidebar_label: Traçabilité
 - DOC-009 — 0007 — Nunjucks comme langage de template des maquettes
 - DOC-010 — 0008 — Format des tickets
 - DOC-011 — 0009 — Le projet s'appelle Klee, comme sa commande
+- DOC-018 — 0015 — La détection de dérive maquette / composant sort du périmètre

@@ -55,10 +55,48 @@ describe('applyScaffoldPlan', () => {
     await applyScaffoldPlan(plan, { root });
     await writeFile(join(root, 'README.md'), '# modifié\n', 'utf8');
 
-    const result = await applyScaffoldPlan(plan, { root, force: true });
+    const result = await applyScaffoldPlan(plan, { root, onConflict: 'overwrite' });
 
     expect(result.files[0]?.outcome).toBe('overwritten');
     await expect(readFile(join(root, 'README.md'), 'utf8')).resolves.toBe('# demo\n');
+  });
+
+  // Classe de bug : `module add --refresh-root` imposait `force`, et a écrasé en silence des
+  // fichiers de racine rédigés à la main (AGENTS.md, README.md). Le mode `skip` est la
+  // réponse — laisser intact ce qui a divergé, écrire quand même ce qui manque (ADR 0013).
+  describe('onConflict: skip', () => {
+    it('laisse intact un fichier modifié depuis, et écrit quand même ce qui manque', async () => {
+      await applyScaffoldPlan(plan, { root });
+      const authored = '# rédigé à la main, surtout ne pas perdre\n';
+      await writeFile(join(root, 'README.md'), authored, 'utf8');
+      await rm(join(root, 'docs/AGENTS.md'));
+
+      const result = await applyScaffoldPlan(plan, { root, onConflict: 'skip' });
+
+      expect(result.files.map((file) => file.outcome)).toEqual(['skipped', 'created']);
+      await expect(readFile(join(root, 'README.md'), 'utf8')).resolves.toBe(authored);
+      await expect(readFile(join(root, 'docs/AGENTS.md'), 'utf8')).resolves.toBe('docs\n');
+    });
+
+    it('n’échoue pas quand tout a divergé', async () => {
+      await applyScaffoldPlan(plan, { root });
+      await writeFile(join(root, 'README.md'), 'a\n', 'utf8');
+      await writeFile(join(root, 'docs/AGENTS.md'), 'b\n', 'utf8');
+
+      const result = await applyScaffoldPlan(plan, { root, onConflict: 'skip' });
+
+      expect(result.files.every((file) => file.outcome === 'skipped')).toBe(true);
+      await expect(readFile(join(root, 'README.md'), 'utf8')).resolves.toBe('a\n');
+    });
+
+    it('n’écrit rien en dry-run', async () => {
+      await applyScaffoldPlan(plan, { root });
+      await rm(join(root, 'docs/AGENTS.md'));
+
+      await applyScaffoldPlan(plan, { root, onConflict: 'skip', dryRun: true });
+
+      await expect(readFile(join(root, 'docs/AGENTS.md'), 'utf8')).rejects.toThrow();
+    });
   });
 
   it('n’écrit rien en dry-run mais rapporte le résultat attendu', async () => {

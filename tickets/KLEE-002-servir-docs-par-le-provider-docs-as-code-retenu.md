@@ -1,7 +1,7 @@
 ---
 id: KLEE-002
 title: Servir docs/ par le provider docs-as-code retenu
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

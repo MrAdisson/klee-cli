@@ -35,12 +35,18 @@ const OUTCOME_MARKS = {
   created: pc.green('+'),
   overwritten: pc.yellow('~'),
   unchanged: pc.dim('='),
+  skipped: pc.yellow('≠'),
   conflict: pc.red('!'),
 } as const;
 
 export function fileLine(file: AppliedFile): void {
   const mark = OUTCOME_MARKS[file.outcome];
-  const suffix = file.outcome === 'unchanged' ? pc.dim(' (inchangé)') : '';
+  const suffix =
+    file.outcome === 'unchanged'
+      ? pc.dim(' (inchangé)')
+      : file.outcome === 'skipped'
+        ? pc.dim(' (modifié depuis — laissé tel quel)')
+        : '';
   write(`  ${mark} ${file.path}${suffix}`);
 }
 
@@ -52,16 +58,22 @@ export function reportApply(result: ApplyScaffoldResult): void {
   const created = result.files.filter((file) => file.outcome === 'created').length;
   const overwritten = result.files.filter((file) => file.outcome === 'overwritten').length;
   const unchanged = result.files.filter((file) => file.outcome === 'unchanged').length;
+  const skipped = result.files.filter((file) => file.outcome === 'skipped').length;
 
   write();
   const parts = [`${String(created)} créé(s)`];
   if (overwritten > 0) parts.push(`${String(overwritten)} écrasé(s)`);
+  if (skipped > 0) parts.push(`${String(skipped)} laissé(s) tel(s) quel(s)`);
   if (unchanged > 0) parts.push(`${String(unchanged)} inchangé(s)`);
 
   if (result.dryRun) {
     write(`  ${pc.cyan('dry-run')} ${parts.join(', ')} — rien n'a été écrit.`);
   } else {
     success(`${parts.join(', ')} dans ${result.root}`);
+  }
+
+  if (skipped > 0) {
+    info('`--force` pour reprendre aussi les fichiers modifiés depuis — ils seront écrasés.');
   }
 }
 

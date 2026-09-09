@@ -21,6 +21,7 @@ export interface ModuleCommandOptions {
   readonly dryRun?: boolean;
   /** Régénère aussi les fichiers de racine, qui énumèrent les modules retenus. */
   readonly refreshRoot?: boolean;
+  readonly force?: boolean;
   /** Installe les dépendances que le module ajoute. */
   readonly install?: boolean;
 }
@@ -109,7 +110,7 @@ export async function runModuleAdd(
   }
 
   if (options.refreshRoot === true) {
-    await refreshRootFiles(root, next, options.dryRun ?? false);
+    await refreshRootFiles(root, next, options.dryRun ?? false, options.force ?? false);
   } else {
     write();
     info('`README.md` énumère les modules du projet : `--refresh-root` pour le régénérer.');
@@ -149,7 +150,7 @@ export async function runModuleRemove(
   }
 
   if (options.refreshRoot === true) {
-    await refreshRootFiles(root, next, options.dryRun ?? false);
+    await refreshRootFiles(root, next, options.dryRun ?? false, options.force ?? false);
   }
   write();
 }
@@ -158,6 +159,7 @@ async function refreshRootFiles(
   root: string,
   config: ProjectConfig,
   dryRun: boolean,
+  force: boolean,
 ): Promise<void> {
   const plan = buildScaffoldPlan({
     config,
@@ -165,7 +167,14 @@ async function refreshRootFiles(
     includeRoot: true,
     includeProviders: false,
   });
-  const result = await applyScaffoldPlan(plan, { root, dryRun, force: true });
+  // Les fichiers de racine sont rédigés autant que générés : `AGENTS.md` et `README.md`
+  // portent du contenu humain dès le lendemain de l'init. Régénérer ne peut donc vouloir
+  // dire qu'« ajouter ce qui manque » — écraser reste une demande explicite (ADR 0013).
+  const result = await applyScaffoldPlan(plan, {
+    root,
+    dryRun,
+    onConflict: force ? 'overwrite' : 'skip',
+  });
   write();
   info('Fichiers de racine régénérés :');
   reportApply(result);

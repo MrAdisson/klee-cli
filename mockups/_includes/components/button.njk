@@ -1,0 +1,17 @@
+{#
+  Composant Bouton — source unique du markup.
+
+  Écrit comme une macro et non comme un simple include : la portée est isolée et les
+  paramètres sont explicites. Un include qui lit des variables posées par la page laisse
+  l'état d'un appel contaminer le suivant — un piège pour qui édite la maquette.
+#}
+{% macro button(label, variant='primary', type='button', disabled=false, loading=false) %}
+<button
+  type="{{ type }}"
+  class="btn btn--{{ variant }}"
+  {% if disabled %}disabled{% endif %}
+  {% if loading %}aria-busy="true"{% endif %}
+>
+  {{ label }}
+</button>
+{% endmacro %}

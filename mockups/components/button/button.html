@@ -1,0 +1,32 @@
+---
+layout: layout.njk
+title: Bouton
+id: MOCK-001
+---
+
+<h1>Bouton</h1>
+
+{% from "components/button.njk" import button %}
+
+<p>
+  Chaque état est maquetté : un état non maquetté est un état qui sera improvisé en implémentation.
+  Le markup vient d'une macro unique — cette page ne le réécrit pas.
+</p>
+
+<h2>default</h2>
+<div class="demo-row">{{ button('Valider') }} {{ button('Secondaire', variant='secondary') }}</div>
+
+<h2>hover · active</h2>
+<div class="demo-row">
+  {{ button('Survolez-moi') }}
+  <span>Survol et enfoncement sont portés par le CSS, pas par un état séparé.</span>
+</div>
+
+<h2>disabled</h2>
+<div class="demo-row">{{ button('Indisponible', disabled=true) }}</div>
+
+<h2>loading</h2>
+<div class="demo-row">
+  {{ button('Envoi en cours', loading=true) }}
+  <span><code>aria-busy</code> annonce l'attente aux lecteurs d'écran.</span>
+</div>

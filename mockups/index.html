@@ -1,0 +1,32 @@
+---
+layout: layout.njk
+title: Catalogue des composants
+---
+
+<h1>Catalogue des composants</h1>
+
+<p>
+  Cette page est générée à partir des fichiers <code>.meta.yml</code> — elle n'est jamais maintenue
+  à la main, pour ne pas désynchroniser la liste de la réalité des fichiers.
+</p>
+
+<ul class="catalogue">
+  {% for component in catalogue %}
+  <li>
+    <a href="{{ component.url }}"><strong>{{ component.title or component.slug }}</strong></a>
+    {% if component.missingMeta %}
+    <p>⚠ Aucun <code>.meta.yml</code> : ce composant est invisible du graphe de traçabilité.</p>
+    {% else %}
+    <p>
+      {{ component.id }} · statut <code>{{ component.status }}</code> · ticket {{ component.ticket
+      }}
+    </p>
+    <ul class="states">
+      {% for state in component.states %}
+      <li>{{ state }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>

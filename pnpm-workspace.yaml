@@ -2,7 +2,9 @@
 packages:
   - apps/cli
   - apps/packages/*
+  - design-system
   - docs
+  - mockups
 
 # Scripts de post-installation connus, tranchés explicitement. pnpm refuse d'en ignorer un
 # en silence : sans cette liste, `pnpm install` échoue. Un script nouveau fera échouer

@@ -61,7 +61,7 @@ export async function runDocsInit(options: DocsInitOptions): Promise<void> {
   const result = await applyScaffoldPlan(plan, {
     root: project.root,
     dryRun: options.dryRun ?? false,
-    force: options.force ?? false,
+    onConflict: options.force === true ? 'overwrite' : 'fail',
   });
 
   heading(`Site de documentation — ${provider.label}`);

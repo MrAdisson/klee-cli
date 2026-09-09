@@ -9,11 +9,23 @@ export interface ApplyScaffoldOptions {
   readonly root: string;
   /** N'écrit rien : sert à afficher le résultat exact d'une exécution réelle. */
   readonly dryRun?: boolean;
-  /** Écrase les fichiers existants dont le contenu diffère. */
-  readonly force?: boolean;
+  /**
+   * Que faire d'un fichier existant dont le contenu diffère du plan.
+   *
+   * - `fail` (défaut) : refuser le plan entier. Le bon réflexe pour un scaffolding initial,
+   *   où un fichier divergent signale qu'on écrit dans un projet qu'on croyait vide.
+   * - `overwrite` : écraser. Ne doit jamais être un défaut : à ce stade le contenu écrasé
+   *   peut être le travail d'un humain, et rien ne le distingue d'un fichier généré.
+   * - `skip` : laisser le fichier tel quel, écrire les autres, et le signaler. C'est le seul
+   *   comportement acceptable pour une régénération partielle (`module add --refresh-root`),
+   *   qui vise à ajouter ce qui manque, pas à reprendre la main sur ce qui existe.
+   */
+  readonly onConflict?: ConflictBehaviour;
 }
 
-export type FileOutcome = 'created' | 'unchanged' | 'overwritten' | 'conflict';
+export type ConflictBehaviour = 'fail' | 'overwrite' | 'skip';
+
+export type FileOutcome = 'created' | 'unchanged' | 'overwritten' | 'conflict' | 'skipped';
 
 export interface AppliedFile {
   readonly path: string;
@@ -38,7 +50,7 @@ export async function applyScaffoldPlan(
 ): Promise<ApplyScaffoldResult> {
   const root = resolve(options.root);
   const dryRun = options.dryRun ?? false;
-  const force = options.force ?? false;
+  const onConflict = options.onConflict ?? 'fail';
 
   const classified: AppliedFile[] = [];
   const outcomes = new Map<string, FileOutcome>();
@@ -51,9 +63,11 @@ export async function applyScaffoldPlan(
         ? 'created'
         : existing === file.contents
           ? 'unchanged'
-          : force
+          : onConflict === 'overwrite'
             ? 'overwritten'
-            : 'conflict';
+            : onConflict === 'skip'
+              ? 'skipped'
+              : 'conflict';
     classified.push({ path: file.path, origin: file.origin, outcome });
     outcomes.set(file.path, outcome);
   }
@@ -65,7 +79,9 @@ export async function applyScaffoldPlan(
 
   if (!dryRun) {
     for (const file of plan.files) {
-      if (outcomes.get(file.path) === 'unchanged') continue;
+      const outcome = outcomes.get(file.path);
+      // Un fichier inchangé n'a rien à recevoir ; un fichier ignoré appartient à son auteur.
+      if (outcome === 'unchanged' || outcome === 'skipped') continue;
 
       const absolute = resolveInsideRoot(root, file.path);
       await mkdir(dirname(absolute), { recursive: true });
