@@ -1,3 +1,5 @@
+import { foldForSearch, type SearchHit } from '@klee/core';
+
 import { escapeHtml } from '../board/render.js';
 import type { TabId } from './targets.js';
 
@@ -29,14 +31,39 @@ export interface StudioViewModel {
   /** Chemin ouvert dans l'onglet actif — un deep link, sinon la racine du serveur. */
   readonly at: string;
   readonly notice?: string;
+  /** Terme cherché, pour le garder dans le champ après une recherche. */
+  readonly query?: string;
 }
 
 export function renderStudio(view: StudioViewModel): string {
   const active = view.tabs.find((tab) => tab.id === view.active);
 
-  const nav = view.tabs
+  return shell(
+    view.projectName,
+    view.tabs,
+    '',
+    `${view.notice === undefined ? '' : `<p class="flash" role="status">${escapeHtml(view.notice)}</p>`}
+
+${renderPanel(active, view.at)}`,
+    { active: view.active, openAlone: active?.url ?? null },
+  );
+}
+
+/**
+ * Coquille commune au cadre et à la page de résultats : mêmes onglets, même champ de
+ * recherche. Deux en-têtes différents feraient de la recherche un ailleurs, alors qu'elle est
+ * une vue du studio comme les autres.
+ */
+function shell(
+  projectName: string,
+  tabs: readonly StudioTab[],
+  query: string,
+  body: string,
+  options: { active?: TabId; openAlone?: string | null } = {},
+): string {
+  const nav = tabs
     .map((tab) => {
-      const current = tab.id === view.active;
+      const current = tab.id === options.active;
       // `aria-current` plutôt qu'un `role="tab"` : ce sont de vrais liens qui rechargent la
       // page, et annoncer un motif d'onglets sans son comportement clavier serait mentir au
       // lecteur d'écran (DESIGN.md §6).
@@ -49,22 +76,25 @@ export function renderStudio(view: StudioViewModel): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(view.projectName)} — studio</title>
+<title>${escapeHtml(projectName)} — studio</title>
 <style>${STYLES}</style>
 </head>
 <body>
 <header class="bar">
-  <strong>${escapeHtml(view.projectName)}</strong>
+  <strong>${escapeHtml(projectName)}</strong>
   <nav class="tabs" aria-label="Sections du studio">
       ${nav}
   </nav>
+  <form class="search" method="get" action="/search" role="search">
+    <label class="sr-only" for="q">Rechercher dans le projet</label>
+    <input id="q" name="q" type="search" placeholder="Rechercher…" value="${escapeHtml(query)}">
+    <button type="submit">Chercher</button>
+  </form>
   <span class="spacer"></span>
-  ${active?.url === null || active === undefined ? '' : `<a class="ext" href="${escapeHtml(active.url)}" target="_blank" rel="noreferrer">Ouvrir seul ↗</a>`}
+  ${options.openAlone === null || options.openAlone === undefined ? '' : `<a class="ext" href="${escapeHtml(options.openAlone)}" target="_blank" rel="noreferrer">Ouvrir seul ↗</a>`}
 </header>
 
-${view.notice === undefined ? '' : `<p class="flash" role="status">${escapeHtml(view.notice)}</p>`}
-
-${renderPanel(active, view.at)}
+${body}
 </body>
 </html>
 `;
@@ -126,6 +156,32 @@ body {
   border-bottom: 1px solid var(--line); font-size: 0.9rem; flex: none;
 }
 .panel { flex: 1; width: 100%; border: 0; display: block; }
+.search { display: flex; gap: 0.35rem; }
+.search input {
+  font: inherit; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg); min-width: 14rem;
+}
+.search button {
+  font: inherit; font-size: 0.85rem; padding: 0.3rem 0.7rem; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--bar); color: var(--fg); cursor: pointer;
+}
+.search input:focus-visible, .search button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.results { flex: 1; overflow-y: auto; padding: 1.5rem 1rem 3rem; max-width: 52rem;
+  margin: 0 auto; width: 100%; }
+.results h1 { font-size: 1.15rem; margin: 0 0 1.2rem; }
+.results h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--dim); margin: 1.6rem 0 0.6rem; }
+.hit { padding: 0.6rem 0; border-top: 1px solid var(--line); }
+.hit a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.hit a:hover { text-decoration: underline; }
+.hit p { margin: 0.25rem 0 0; color: var(--dim); font-size: 0.9rem; }
+.hit mark { background: color-mix(in srgb, var(--accent) 28%, transparent); color: inherit; }
 .empty { flex: 1; display: grid; place-content: center; text-align: center; gap: 0.5rem;
   padding: 2rem; max-width: 46rem; margin: 0 auto; }
 .empty h1 { font-size: 1.2rem; margin: 0; }
@@ -133,3 +189,84 @@ body {
 .why { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem;
   color: var(--warn); }
 `;
+
+const KIND_LABELS: Readonly<Record<SearchHit['kind'], string>> = {
+  ticket: 'Tickets',
+  doc: 'Documents',
+  mockup: 'Maquettes',
+};
+
+export interface SearchViewModel {
+  readonly projectName: string;
+  readonly tabs: readonly StudioTab[];
+  readonly query: string;
+  readonly hits: readonly SearchHit[];
+}
+
+/**
+ * Page de résultats. Chaque résultat mène à `/go/<id>` : le studio y retrouve l'onglet et la
+ * page réelle de l'artefact, plutôt qu'une fiche qui le décrirait — c'est la maquette qu'on
+ * veut voir, pas sa notice.
+ */
+export function renderSearch(view: SearchViewModel): string {
+  // Les groupes suivent la pertinence, pas un ordre fixe : chercher `MOCK-001` doit montrer
+  // la maquette avant les tickets qui la citent, sinon le classement du domaine est perdu
+  // au moment de l'affichage.
+  const groups = (Object.keys(KIND_LABELS) as SearchHit['kind'][])
+    .map((kind) => ({ kind, hits: view.hits.filter((hit) => hit.kind === kind) }))
+    .filter((group) => group.hits.length > 0)
+    .sort((a, b) => (b.hits[0]?.score ?? 0) - (a.hits[0]?.score ?? 0));
+
+  const body =
+    view.query.trim() === ''
+      ? '<p class="dim">Entrez un terme pour chercher dans les tickets, les documents et les maquettes.</p>'
+      : groups.length === 0
+        ? `<p class="dim">Aucun artefact ne contient « ${escapeHtml(view.query)} ». Rien d’autre à en conclure : la recherche a bien eu lieu.</p>`
+        : groups
+            .map(
+              (group) => `<h2>${KIND_LABELS[group.kind]}</h2>
+      ${group.hits.map((hit) => renderHit(hit, view.query)).join('\n')}`,
+            )
+            .join('\n');
+
+  return shell(
+    view.projectName,
+    view.tabs,
+    view.query,
+    `<main class="results">
+  <h1>${view.query.trim() === '' ? 'Recherche' : `${String(view.hits.length)} résultat(s) pour « ${escapeHtml(view.query)} »`}</h1>
+  ${body}
+</main>`,
+  );
+}
+
+function renderHit(hit: SearchHit, query: string): string {
+  return `<article class="hit">
+    <a href="/go/${encodeURIComponent(hit.id)}">${escapeHtml(hit.id)} — ${escapeHtml(hit.title)}</a>
+    ${hit.excerpt === null ? '' : `<p>${highlight(hit.excerpt, query)}</p>`}
+    <p class="dim"><code>${escapeHtml(hit.path)}</code></p>
+  </article>`;
+}
+
+/**
+ * Met en évidence le terme dans l'extrait. La comparaison se fait sur le texte replié —
+ * accents et casse retirés — mais la découpe porte sur l'original : le repli conserve la
+ * longueur, donc les bornes restent valides et l'extrait s'affiche tel qu'il est écrit.
+ */
+function highlight(excerpt: string, query: string): string {
+  const needle = foldForSearch(query.trim());
+  if (needle === '') return escapeHtml(excerpt);
+
+  const haystack = foldForSearch(excerpt);
+  const out: string[] = [];
+  let cursor = 0;
+
+  for (let at = haystack.indexOf(needle); at !== -1; at = haystack.indexOf(needle, cursor)) {
+    out.push(escapeHtml(excerpt.slice(cursor, at)));
+    out.push(`<mark>${escapeHtml(excerpt.slice(at, at + needle.length))}</mark>`);
+    cursor = at + needle.length;
+  }
+
+  out.push(escapeHtml(excerpt.slice(cursor)));
+  return out.join('');
+}

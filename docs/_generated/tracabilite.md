@@ -18,7 +18,7 @@ sidebar_label: Traçabilité
 | KLEE-003 | Ouvrir une sortie au site de documentation pour les projets légers | done | DOC-013, DOC-015, KLEE-002 | `tickets/KLEE-003-ouvrir-une-sortie-au-site-de-documentation-pour-les-projets.md` |
 | KLEE-004 | Le scaffolding n'écrase plus les fichiers de racine rédigés | done | DOC-016 | `tickets/KLEE-004-le-scaffolding-n-ecrase-plus-les-fichiers-de-racine-rediges.md` |
 | KLEE-005 | Cockpit klee studio : une app unique par-dessus des serveurs indépendants | done | DOC-017, DOC-019 | `tickets/KLEE-005-cockpit-klee-studio-une-app-unique-par-dessus-des-serveurs-i.md` |
-| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | backlog | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
+| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | in-review | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
 | KLEE-007 | Webhooks internes : réactions locales aux transitions | in-review | DOC-022, KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
 | KLEE-008 | Gate d'accessibilité : axe-core avant qu'une maquette passe validated | done | DOC-021, KLEE-007 | `tickets/KLEE-008-gate-d-accessibilite-axe-core-avant-qu-une-maquette-passe-va.md` |
 | KLEE-009 | Lire un ticket depuis le board, pas seulement le déplacer | done | — | `tickets/KLEE-009-lire-un-ticket-depuis-le-board-pas-seulement-le-deplacer.md` |

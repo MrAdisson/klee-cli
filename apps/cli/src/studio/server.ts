@@ -3,7 +3,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { buildTraceGraph, type GraphNode } from '@klee/core';
 
 import { openTicketIndex, type Project } from '../project.js';
-import { renderStudio, type StudioTab } from './render.js';
+import { renderSearch, renderStudio, type StudioTab } from './render.js';
+import { searchProject } from './search.js';
 import { deepLinkFor, safeInnerPath, type TabId } from './targets.js';
 
 /**
@@ -72,6 +73,24 @@ async function handle(
 
   if (request.method === 'GET' && url.pathname === '/') {
     renderShell(response, options, url);
+    return;
+  }
+
+  // Recherche transverse (TECHNICAL.md §9) : la seule vue que le studio porte en propre,
+  // parce qu'aucun des serveurs qu'il agrège ne voit les trois natures d'artefact.
+  if (request.method === 'GET' && url.pathname === '/search') {
+    const query = url.searchParams.get('q') ?? '';
+    respond(
+      response,
+      200,
+      'text/html; charset=utf-8',
+      renderSearch({
+        projectName: options.project.config.name,
+        tabs: options.tabs(),
+        query,
+        hits: await searchProject(options.project, query),
+      }),
+    );
     return;
   }
 

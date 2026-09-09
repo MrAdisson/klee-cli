@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GraphNode } from '@klee/core';
 
-import { renderStudio } from './render.js';
+import { renderSearch, renderStudio } from './render.js';
 import { deepLinkFor, safeInnerPath } from './targets.js';
 
 /**
@@ -119,5 +119,56 @@ describe('renderStudio', () => {
 
     expect(html).not.toContain('<script>alert(1)</script>');
     expect(html).toContain('&lt;script&gt;');
+  });
+});
+
+describe('renderSearch', () => {
+  const tabs = [
+    { id: 'board' as const, label: 'Board', url: 'http://127.0.0.1:4000/' },
+    { id: 'mockups' as const, label: 'Maquettes', url: 'http://127.0.0.1:4002/' },
+  ];
+  const hit = (
+    id: string,
+    kind: 'ticket' | 'doc' | 'mockup',
+    score: number,
+    excerpt: string | null = null,
+  ) => ({ id, kind, title: `Titre de ${id}`, path: `p/${id}`, excerpt, score });
+
+  it('groupe par nature, et met en tête celle qui répond le mieux', () => {
+    const html = renderSearch({
+      projectName: 'demo',
+      tabs,
+      query: 'MOCK-001',
+      hits: [hit('MOCK-001', 'mockup', 200), hit('KLEE-001', 'ticket', 1, 'cite MOCK-001')],
+    });
+
+    expect(html.indexOf('Maquettes</h2>')).toBeLessThan(html.indexOf('Tickets</h2>'));
+    // Chaque résultat mène à l'artefact réel, pas à une fiche qui le décrit.
+    expect(html).toContain('href="/go/MOCK-001"');
+  });
+
+  /** Régression : `\p{Diacritic}` rangeait l'accent grave parmi les diacritiques, ce qui
+   * décalait le surlignage dans tout extrait contenant du code entre accents graves. */
+  it('surligne le terme au bon endroit, même après du code entre accents graves', () => {
+    const html = renderSearch({
+      projectName: 'demo',
+      tabs,
+      query: 'dérogation',
+      hits: [hit('DOC-021', 'doc', 1, 'un gate sur `validated`, avec des dérogations motivées')],
+    });
+
+    expect(html).toContain('<mark>dérogation</mark>');
+    expect(html).not.toContain('<mark>s dérogati</mark>');
+  });
+
+  it('dit qu’il n’y a rien plutôt que de laisser une page vide', () => {
+    const html = renderSearch({ projectName: 'demo', tabs, query: 'introuvable', hits: [] });
+    expect(html).toContain('Aucun artefact ne contient');
+  });
+
+  it('reste utilisable sans JavaScript : un formulaire GET', () => {
+    const html = renderSearch({ projectName: 'demo', tabs, query: '', hits: [] });
+    expect(html).toContain('method="get" action="/search"');
+    expect(html).not.toContain('<script');
   });
 });

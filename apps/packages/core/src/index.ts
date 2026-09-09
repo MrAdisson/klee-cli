@@ -47,6 +47,15 @@ export {
 
 export { headingTitle, splitFrontmatter, type SplitDocument } from './frontmatter.js';
 
+export { indexableText } from './search/indexable.js';
+
+export {
+  foldForSearch,
+  searchDocuments,
+  type SearchDocument,
+  type SearchHit,
+} from './search/search.js';
+
 export {
   isGated,
   judgeA11y,

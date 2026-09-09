@@ -9,8 +9,8 @@ related_mockups: []
 
 État : **phases 0 à 4** (cockpit). Seules les commandes ci-dessous existent. `klee studio`
 n'absorbe rien : il agrège les serveurs existants, qui restent utilisables seuls (ADR 0014).
-La recherche transverse reste à venir ; les webhooks internes et la régression visuelle
-sont sortis du périmètre (ADR 0019), comme la détection de dérive avant eux (ADR 0015).
+Les webhooks internes et la régression visuelle sont sortis du périmètre (ADR 0019), comme la
+détection de dérive avant eux (ADR 0015).
 
 ```
 klee [-v | --version] [-h | --help] <commande>
@@ -295,6 +295,31 @@ celui de Docusaurus : un serveur lancé en arrière-plan n'ouvre jamais de fenê
 
 **Les ports des serveurs agrégés sont assignés par le studio**, jamais laissés au hasard :
 sur un port occupé, Docusaurus s'arrête et Eleventy annonce une URL qu'il n'a pas obtenue.
+
+### `GET /search?q=…`
+
+Recherche transverse (TECHNICAL.md §9) : la seule vue que le studio porte en propre, parce
+qu'aucun des serveurs qu'il agrège ne voit les trois natures d'artefact — le board ne connaît
+que les tickets, Docusaurus que les documents, Eleventy que les maquettes.
+
+Elle cherche dans le **contenu** des fichiers, pas seulement dans les titres, et trouve aussi
+un identifiant : c'est ainsi qu'on suit une arête quand on ne se souvient plus de quel côté
+elle a été déclarée. Les accents et la casse sont ignorés — chercher « accessibilite » trouve
+« accessibilité ».
+
+Les résultats sont groupés par nature, et les groupes suivent la pertinence : chercher
+`MOCK-001` montre la maquette avant les tickets qui la citent. Chaque résultat mène à
+`/go/<id>`, donc à l'artefact réel dans son onglet. Un formulaire `GET`, sans JavaScript.
+
+Le **frontmatter est indexé par ses valeurs, pas par ses clés**. `related_mockups` ou
+`authored_by` sont du vocabulaire de format que personne n'a écrit pour être lu : les indexer
+faisait remonter tous les artefacts du dépôt sur le mot « mock ». Les valeurs, elles, restent
+cherchables — `MOCK-001` déclaré dans `related_mockups` est précisément l'arête qu'on cherche
+quand on ne sait plus de quel côté elle a été posée.
+
+Les artefacts cherchés sont **les nœuds du graphe** : ce que la recherche voit est exactement
+ce que `klee links` voit. Un artefact invisible du graphe le serait aussi de la recherche — et
+ce serait alors le graphe qu'il faudrait corriger.
 
 ### `GET /go/<ID>`
 
