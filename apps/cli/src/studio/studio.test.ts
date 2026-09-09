@@ -15,9 +15,9 @@ function node(partial: Partial<GraphNode> & Pick<GraphNode, 'id' | 'kind' | 'pat
 }
 
 describe('deepLinkFor', () => {
-  it('envoie un ticket sur la vue de voisinage du board', () => {
+  it('envoie un ticket sur sa page, qui porte contenu et voisinage', () => {
     const link = deepLinkFor(node({ id: 'KLEE-001', kind: 'ticket', path: 'tickets/KLEE-001.md' }));
-    expect(link).toEqual({ tab: 'board', path: '/links/KLEE-001' });
+    expect(link).toEqual({ tab: 'board', path: '/tickets/KLEE-001' });
   });
 
   it('déduit l’URL Docusaurus du dossier et de l’identifiant', () => {

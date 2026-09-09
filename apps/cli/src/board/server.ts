@@ -9,7 +9,7 @@ import {
 } from '@klee/core';
 
 import { openTicketIndex, type Project } from '../project.js';
-import { renderBoard, renderLinks } from './render.js';
+import { renderBoard, renderLinks, renderTicket } from './render.js';
 
 /**
  * Dashboard local des tickets (TECHNICAL.md §6, DESIGN.md §5).
@@ -81,11 +81,14 @@ async function handle(
 
   const links = /^\/links(?:\/([^/]+))?\/?$/.exec(url.pathname);
   if (request.method === 'GET' && links !== null) {
-    await renderGraphPage(
-      response,
-      options,
-      links[1] === undefined ? null : decodeURIComponent(links[1]).toUpperCase(),
-    );
+    const focus = links[1] === undefined ? null : decodeURIComponent(links[1]).toUpperCase();
+    // Un ticket n'a qu'une page : celle qui porte son contenu et son voisinage. Rediriger
+    // plutôt que dupliquer évite deux vues du même objet, dont une amputée.
+    if (focus !== null && focus.startsWith(`${options.project.config.idPrefix}-`)) {
+      response.writeHead(303, { location: `/tickets/${encodeURIComponent(focus)}` }).end();
+      return;
+    }
+    await renderGraphPage(response, options, focus);
     return;
   }
 
@@ -121,6 +124,12 @@ async function handle(
     });
 
     redirect(response, `${ticket.id} créé.`);
+    return;
+  }
+
+  const detail = /^\/tickets\/([^/]+)\/?$/.exec(url.pathname);
+  if (request.method === 'GET' && detail !== null && detail[1] !== undefined) {
+    await renderTicketPage(response, options, decodeURIComponent(detail[1]).toUpperCase());
     return;
   }
 
@@ -162,6 +171,48 @@ async function renderPage(
   }
 }
 
+/** Page d'un ticket : sa description et ses critères d'acceptation, lisibles sans terminal. */
+async function renderTicketPage(
+  response: ServerResponse,
+  options: BoardServerOptions,
+  id: string,
+): Promise<void> {
+  const index = openTicketIndex(options.project);
+  try {
+    const tickets = await index.list();
+    const ticket = tickets.find((candidate) => candidate.id === id);
+    if (ticket === undefined) {
+      respond(
+        response,
+        404,
+        'text/plain; charset=utf-8',
+        `${id} : aucun ticket ne porte cet identifiant.`,
+      );
+      return;
+    }
+    respond(
+      response,
+      200,
+      'text/html; charset=utf-8',
+      renderTicket({
+        projectName: options.project.config.name,
+        idPrefix: options.project.config.idPrefix,
+        ticket,
+        // Le voisinage vient du graphe, pas du frontmatter : une arête déclarée d'en face
+        // compte autant (ADR 0010), et le frontmatter seul n'en montrerait que la moitié.
+        graph: await buildTraceGraph({
+          root: options.project.root,
+          ticketPrefix: options.project.config.idPrefix,
+          tickets,
+        }),
+        ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),
+      }),
+    );
+  } finally {
+    index.close();
+  }
+}
+
 /**
  * Vue du graphe. Les tickets passent par l'index configuré, comme le board : le graphe
  * n'introduit pas un second chemin de lecture des mêmes fichiers.
@@ -180,6 +231,7 @@ async function renderGraphPage(
     });
     const html = renderLinks({
       projectName: options.project.config.name,
+      idPrefix: options.project.config.idPrefix,
       graph,
       focus,
       ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),

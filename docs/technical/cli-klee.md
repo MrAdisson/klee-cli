@@ -256,8 +256,20 @@ clavier par construction. Il n'écoute que sur la boucle locale et n'a aucun ét
 les fichiers de `tickets/` restent la source de vérité, éditables à la main pendant qu'il
 tourne. `GET /api/tickets` expose la même liste en JSON, pour un agent ou un script.
 
-Chaque identifiant affiché est cliquable : `/links` montre tout le graphe, `/links/<id>` le
-voisinage d'un artefact avec les fichiers qui déclarent chaque arête.
+`/tickets/<id>` est **la** page d'un ticket : description et critères d'acceptation rendus tels
+qu'ils ont été écrits, plus son voisinage dans le graphe. Une description saisie depuis le
+board doit pouvoir s'y relire — sans quoi l'information entre et disparaît. Les identifiants
+cités dans le corps sont liés, sauf à l'intérieur d'un bloc de code : là, `KLEE-123` est un
+exemple, pas une référence (ADR 0010).
+
+Chaque identifiant affiché est cliquable, et mène à ce qui le porte : un ticket vers sa page,
+une maquette ou un document vers sa fiche de graphe, `/links/<id>`, avec les fichiers qui
+déclarent chaque arête. `/links` montre tout le graphe.
+
+Un ticket n'a donc qu'une seule vue : `/links/<id>` sur un ticket **redirige** vers sa page.
+Deux pages pour le même objet, dont l'une sans son contenu, ne se distinguaient pas à l'usage.
+Le voisinage affiché est celui du graphe, pas du frontmatter : une arête déclarée d'en face
+compte autant (ADR 0010).
 
 Le board est aussi l'onglet Board de `klee studio`, et reste utilisable seul.
 

@@ -49,7 +49,7 @@ export interface BoardViewModel {
 
 export function renderBoard(view: BoardViewModel): string {
   const done = new Set(view.tickets.filter((t) => t.status === 'done').map((t) => t.id));
-  const idLink = makeIdLink(view.studioUrl);
+  const idLink = makeIdLink(view.studioUrl, view.idPrefix);
 
   const columns = TICKET_STATUSES.map((status) => {
     const tickets = view.tickets.filter((ticket) => ticket.status === status);
@@ -122,19 +122,26 @@ type IdLinker = (id: string, className?: string) => string;
  *
  * Où il mène dépend de l'endroit d'où on clique :
  *
- * - **board seul** : sa fiche dans le graphe (`/links/<id>`), le seul endroit que le board
- *   sache montrer ;
+ * - **board seul** : la page du ticket (`/tickets/<id>`), qui porte son contenu *et* son
+ *   voisinage ; pour une maquette ou un document, dont le board ne détient pas le contenu,
+ *   sa fiche dans le graphe (`/links/<id>`) ;
  * - **board dans le studio** : `/go/<id>`, qui ouvre l'onglet où l'artefact vit vraiment.
  *   Cliquer sur `MOCK-002` affiche alors **la maquette**, pas une fiche qui la décrit.
  *
  * `target="_top"` fait sortir du cadre : sans lui, le studio s'afficherait dans son propre
  * onglet Board, en poupées russes.
  */
-function makeIdLink(studioUrl: string | undefined): IdLinker {
+function makeIdLink(studioUrl: string | undefined, idPrefix?: string): IdLinker {
   return (id: string, className = 'chip'): string => {
     const safe = escapeHtml(id);
     if (studioUrl === undefined) {
-      return `<a class="${className}" href="/links/${encodeURIComponent(id)}">${safe}</a>`;
+      // Un ticket a sa propre page, qui porte son contenu **et** son voisinage ; les
+      // maquettes et documents n'en ont pas dans le board, et gardent la fiche du graphe.
+      const path =
+        idPrefix !== undefined && id.startsWith(`${idPrefix}-`)
+          ? `/tickets/${encodeURIComponent(id)}`
+          : `/links/${encodeURIComponent(id)}`;
+      return `<a class="${className}" href="${path}">${safe}</a>`;
     }
     const target = `${studioUrl.replace(/\/$/, '')}/go/${encodeURIComponent(id)}`;
     return `<a class="${className}" target="_top" href="${escapeHtml(target)}">${safe}</a>`;
@@ -152,7 +159,7 @@ function renderCard(ticket: Ticket, done: ReadonlySet<string>, idLink: IdLinker)
       ${idLink(ticket.id, 'card__id')}
       ${ticket.authored_by === 'agent' ? '<span class="chip chip--agent">agent</span>' : ''}
     </div>
-    <p class="card__title">${escapeHtml(ticket.title)}</p>
+    <p class="card__title"><a class="card__open" href="/tickets/${encodeURIComponent(ticket.id)}">${escapeHtml(ticket.title)}</a></p>
     ${ticket.assignee === null ? '' : `<p class="dim">@${escapeHtml(ticket.assignee)}</p>`}
     ${blockers.length > 0 ? `<p class="blocked">En attente de ${blockers.map((id) => idLink(id, 'blocked__link')).join(', ')}</p>` : ''}
     ${chips === '' ? '' : `<p class="chips">${chips}</p>`}
@@ -177,6 +184,7 @@ const KIND_LABELS: Readonly<Record<EntityKind, string>> = {
 
 export interface LinksViewModel {
   readonly projectName: string;
+  readonly idPrefix: string;
   readonly graph: TraceGraph;
   /** Identifiant demandé. `null` pour la vue d'ensemble. */
   readonly focus: string | null;
@@ -193,7 +201,7 @@ export interface LinksViewModel {
  */
 export function renderLinks(view: LinksViewModel): string {
   const { graph } = view;
-  const idLink = makeIdLink(view.studioUrl);
+  const idLink = makeIdLink(view.studioUrl, view.idPrefix);
   const node = view.focus === null ? undefined : graph.nodes.find((n) => n.id === view.focus);
 
   if (view.focus !== null && node === undefined) {
@@ -240,7 +248,12 @@ function renderNodeCard(graph: TraceGraph, node: GraphNode, idLink: IdLinker): s
   </article>`;
 }
 
-function renderNeighbourhood(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
+/**
+ * Voisinage d'un nœud : les arêtes déclarées **des deux côtés** et les mentions en texte
+ * libre. Déclarer un lien d'un seul côté suffit (ADR 0010), donc lire le frontmatter du
+ * ticket ne montrerait que la moitié du graphe.
+ */
+function edgeRows(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
   const around = neighbours(graph, node.id);
 
@@ -259,28 +272,161 @@ function renderNeighbourhood(graph: TraceGraph, node: GraphNode, idLink: IdLinke
       <span class="dim">${edge.sources.map(escapeHtml).join(', ')}</span></li>`;
   };
 
+  return `<h3>Liens déclarés</h3>
+    ${around.declared.length === 0 ? '<p class="empty">Aucun.</p>' : `<ul class="links">${around.declared.map(row).join('')}</ul>`}
+
+    ${around.mentions.length === 0 ? '' : `<h3>Mentions dans le texte</h3><ul class="links">${around.mentions.map(row).join('')}</ul>`}`;
+}
+
+/** Le même voisinage, rendu dans la page du ticket plutôt que dans une page séparée. */
+function renderTicketLinks(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
+  return `<section class="ticket__links">${edgeRows(graph, node, idLink)}
+    <p class="dim"><a href="/links">Tout le graphe</a></p>
+  </section>`;
+}
+
+function renderNeighbourhood(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
   return `<section class="new">
     <h2>${escapeHtml(node.id)} — ${escapeHtml(node.title)}</h2>
     <p class="dim">${KIND_LABELS[node.kind]}${node.status === null ? '' : ` · ${escapeHtml(node.status)}`} · <code>${escapeHtml(node.path)}</code></p>
     ${node.implementedIn === null ? '' : `<p class="dim">Implémenté dans <code>${escapeHtml(node.implementedIn)}</code></p>`}
 
-    <h3>Liens déclarés</h3>
-    ${around.declared.length === 0 ? '<p class="empty">Aucun.</p>' : `<ul class="links">${around.declared.map(row).join('')}</ul>`}
-
-    ${around.mentions.length === 0 ? '' : `<h3>Mentions dans le texte</h3><ul class="links">${around.mentions.map(row).join('')}</ul>`}
+    ${edgeRows(graph, node, idLink)}
 
     <p><a href="/links">Tout le graphe</a> · <a href="/">Retour au board</a></p>
   </section>`;
 }
 
 /** Coquille commune au board et à la vue du graphe : même barre, même feuille de style. */
-function page(projectName: string, body: string): string {
+export interface TicketViewModel {
+  readonly projectName: string;
+  readonly ticket: Ticket;
+  readonly idPrefix: string;
+  /** Le graphe, pour montrer le voisinage réel plutôt que le seul frontmatter. */
+  readonly graph: TraceGraph;
+  readonly studioUrl?: string;
+}
+
+/**
+ * Page d'un ticket. Le board savait le créer, le déplacer et montrer son voisinage — pas le
+ * lire. Or une description écrite depuis le board devait pouvoir s'y relire, et les critères
+ * d'acceptation sont la partie la plus utile d'un ticket (ADR 0008).
+ *
+ * Sans JavaScript, comme le reste du board : une page, pas un dépliant.
+ */
+export function renderTicket(view: TicketViewModel): string {
+  const idLink = makeIdLink(view.studioUrl, view.idPrefix);
+  const { ticket } = view;
+
+  const meta = [
+    ['Statut', STATUS_LABELS[ticket.status]],
+    ['Assigné', ticket.assignee ?? '—'],
+    ['Créé', ticket.created],
+    ['Modifié', ticket.updated],
+    ['Auteur', ticket.authored_by === 'agent' ? 'agent' : 'humain'],
+  ]
+    .map(
+      ([label, value]) => `<div><dt>${label ?? ''}</dt><dd>${escapeHtml(value ?? '')}</dd></div>`,
+    )
+    .join('');
+
+  const node = view.graph.nodes.find((candidate) => candidate.id === ticket.id);
+
+  return page(
+    view.projectName,
+    `<section class="ticket">
+  <p class="dim"><a href="/">← Board</a></p>
+  <h1><span class="ticket__id">${escapeHtml(ticket.id)}</span> ${escapeHtml(ticket.title)}</h1>
+
+  <dl class="meta">${meta}</dl>
+
+  <form method="post" action="/tickets/${encodeURIComponent(ticket.id)}/move" data-auto>
+    <label for="move">Statut</label>
+    <select id="move" name="status">
+      ${TICKET_STATUSES.map(
+        (status) =>
+          `<option value="${status}"${status === ticket.status ? ' selected' : ''}>${STATUS_LABELS[status]}</option>`,
+      ).join('')}
+    </select>
+    <button type="submit">Déplacer</button>
+  </form>
+
+  <article class="body">${renderTicketBody(ticket.body, idLink)}</article>
+
+  ${node === undefined ? '' : renderTicketLinks(view.graph, node, idLink)}
+
+  <p class="dim">Source : <code>${escapeHtml(ticket.path)}</code></p>
+</section>`,
+    ticket.id,
+  );
+}
+
+/**
+ * Rendu markdown minimal : titres, paragraphes et blocs de code. Assez pour lire un ticket,
+ * et sans dépendance — le board doit démarrer dans n'importe quel projet sans rien installer.
+ *
+ * Les identifiants ne sont liés **que hors des blocs de code** : un ADR qui illustre le schéma
+ * avec `KLEE-123` donne un exemple, il ne référence rien (ADR 0010).
+ */
+function renderTicketBody(markdown: string, idLink: IdLinker): string {
+  const out: string[] = [];
+  let fence: string[] | null = null;
+  let paragraph: string[] = [];
+
+  const flush = (): void => {
+    if (paragraph.length === 0) return;
+    out.push(`<p>${linkifyIds(escapeHtml(paragraph.join(' ')), idLink)}</p>`);
+    paragraph = [];
+  };
+
+  const closeFence = (): void => {
+    out.push(`<pre><code>${escapeHtml((fence ?? []).join('\n'))}</code></pre>`);
+    fence = null;
+  };
+
+  for (const line of markdown.split('\n')) {
+    if (line.startsWith('```')) {
+      if (fence === null) {
+        flush();
+        fence = [];
+      } else closeFence();
+      continue;
+    }
+    if (fence !== null) {
+      fence.push(line);
+      continue;
+    }
+
+    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (heading !== null) {
+      flush();
+      out.push(`<h2>${linkifyIds(escapeHtml(heading[2] ?? ''), idLink)}</h2>`);
+      continue;
+    }
+    if (line.trim() === '') flush();
+    else paragraph.push(line.trim());
+  }
+
+  flush();
+  // Un bloc jamais refermé : mieux vaut le montrer que perdre la fin du ticket.
+  if (fence !== null) closeFence();
+
+  return out.join('\n');
+}
+
+const ID_IN_TEXT = /\b[A-Z][A-Z0-9]{1,9}-\d{1,6}\b/g;
+
+function linkifyIds(escaped: string, idLink: IdLinker): string {
+  return escaped.replace(ID_IN_TEXT, (id) => idLink(id, 'chip'));
+}
+
+function page(projectName: string, body: string, section = 'graphe'): string {
   return `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(projectName)} — graphe</title>
+<title>${escapeHtml(projectName)} — ${escapeHtml(section)}</title>
 <style>${STYLES}</style>
 </head>
 <body>
@@ -329,6 +475,23 @@ a { color: var(--accent); }
 .card__head { display: flex; align-items: center; gap: 8px; }
 .card__head code { font-size: 12px; color: var(--muted); }
 .card__title { margin: 6px 0; font-weight: 500; }
+.card__open { color: inherit; text-decoration: none; }
+.card__open:hover { text-decoration: underline; }
+
+.ticket { max-width: 52rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.ticket h1 { font-size: 1.35rem; line-height: 1.35; margin: 0.4rem 0 1rem; }
+.ticket__id { margin-right: 0.4rem; }
+.ticket .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.6rem 1rem; margin: 0 0 1.4rem; }
+.ticket .meta dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--muted); }
+.ticket .meta dd { margin: 0.15rem 0 0; }
+.ticket .body { margin-top: 1.6rem; }
+.ticket .body h2 { font-size: 1rem; margin: 1.6rem 0 0.5rem; }
+.ticket .body p { margin: 0 0 0.8rem; line-height: 1.6; }
+.ticket .body pre { background: var(--raised); border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.8rem 1rem; overflow-x: auto; }
+.ticket .body pre code { font-size: 13px; line-height: 1.5; white-space: pre; }
 .blocked { color: var(--danger); font-size: 13px; margin: 4px 0; }
 .chips { margin: 6px 0 0; display: flex; gap: 4px; flex-wrap: wrap; }
 .chip { font-size: 11px; padding: 1px 6px; border-radius: 999px;

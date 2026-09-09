@@ -25,8 +25,9 @@ export interface DeepLink {
 export function deepLinkFor(node: GraphNode): DeepLink | null {
   switch (node.kind) {
     case 'ticket':
-      // Le board sait déjà afficher le voisinage d'un identifiant : rien à déduire.
-      return { tab: 'board', path: `/links/${encodeURIComponent(node.id)}` };
+      // La page du ticket porte son contenu et son voisinage : rien à déduire, et c'est la
+      // seule vue d'un ticket depuis que `/links/<id>` y redirige.
+      return { tab: 'board', path: `/tickets/${encodeURIComponent(node.id)}` };
     case 'doc':
       return { tab: 'docs', path: docPath(node) };
     case 'mockup':

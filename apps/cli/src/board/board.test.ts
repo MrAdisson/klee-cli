@@ -134,10 +134,19 @@ describe('graphe dans le board', () => {
     );
   });
 
-  it('rend chaque identifiant d’une carte cliquable', async () => {
+  it('rend chaque identifiant d’une carte cliquable, vers ce qui le porte', async () => {
     const html = await (await fetch(`${base}/`)).text();
-    expect(html).toContain('href="/links/ACME-001"');
+    // Un ticket a une page qui porte son contenu ; une doc n'en a pas dans le board, et
+    // garde sa fiche du graphe.
+    expect(html).toContain('href="/tickets/ACME-001"');
     expect(html).toContain('href="/links/DOC-001"');
+  });
+
+  it('renvoie /links/<ticket> vers la page du ticket, pour n’en avoir qu’une', async () => {
+    await fetch(`${base}/tickets`, form({ title: 'Unique', status: 'backlog' }));
+    const response = await fetch(`${base}/links/ACME-001`, { redirect: 'manual' });
+    expect(response.status).toBe(303);
+    expect(response.headers.get('location')).toBe('/tickets/ACME-001');
   });
 
   it('affiche le voisinage d’un identifiant, dans les deux sens', async () => {
@@ -172,6 +181,7 @@ describe('identifiants cliquables', () => {
   it('sort vers le studio quand il y est intégré', () => {
     const html = renderLinks({
       projectName: 'demo',
+      idPrefix: 'ACME',
       graph: {
         nodes: [
           {
@@ -195,5 +205,71 @@ describe('identifiants cliquables', () => {
     expect(html).toContain('target="_top"');
     expect(html).toContain('href="http://127.0.0.1:4300/go/MOCK-002"');
     expect(html).not.toContain('href="/links/MOCK-002"');
+  });
+});
+
+describe('page d’un ticket', () => {
+  /** Le board savait créer et déplacer un ticket ; il devait aussi savoir le lire (KLEE-009). */
+  async function createWithDescription(description: string): Promise<string> {
+    const response = await fetch(
+      `${base}/tickets`,
+      form({ title: 'Ticket lisible', status: 'backlog', description }),
+    );
+    expect(response.status).toBe(303);
+    return `${base}/tickets/ACME-001`;
+  }
+
+  it('relit la description écrite depuis le board', async () => {
+    const url = await createWithDescription('Une description qui doit revenir.');
+    const html = await (await fetch(url)).text();
+
+    expect(html).toContain('Une description qui doit revenir.');
+    // Sans JavaScript : le changement de statut reste un formulaire.
+    expect(html).toContain('action="/tickets/ACME-001/move"');
+  });
+
+  it('rend les critères d’acceptation en préformaté, indentation comprise', async () => {
+    await createWithDescription('Peu importe.');
+    const file = join(root, 'tickets', 'ACME-001-ticket-lisible.md');
+    await writeFile(
+      file,
+      `${await readFile(file, 'utf8')}\n## Critères d'acceptation\n\n\`\`\`gherkin\nScénario: lisible\n  Étant donné MOCK-001\n\`\`\`\n`,
+      'utf8',
+    );
+
+    const html = await (await fetch(`${base}/tickets/ACME-001`)).text();
+    expect(html).toContain('<pre><code>');
+    expect(html).toContain('  Étant donné MOCK-001');
+    // Un identifiant dans un bloc de code est un exemple, pas une arête (ADR 0010).
+    expect(html).not.toContain('href="/links/MOCK-001"');
+  });
+
+  it('lie les identifiants cités hors des blocs de code', async () => {
+    const url = await createWithDescription('Transcrit MOCK-001 fidèlement.');
+    const html = await (await fetch(url)).text();
+    expect(html).toContain('href="/links/MOCK-001"');
+  });
+
+  it('n’affiche aucune section de critères quand le ticket n’en a pas', async () => {
+    // Un ticket créé porte toujours le bloc gherkin du gabarit ; le cas visé est celui d'un
+    // fichier rédigé à la main, que le format autorise (ADR 0008 : tous ne s'y prêtent pas).
+    await createWithDescription('Peu importe.');
+    const file = join(root, 'tickets', 'ACME-001-ticket-lisible.md');
+    const [, frontmatter = ''] = /^(---\n[\s\S]*?\n---\n)/.exec(await readFile(file, 'utf8')) ?? [];
+    await writeFile(file, `${frontmatter}\nUne description seule, sans critères.\n`, 'utf8');
+
+    const html = await (await fetch(`${base}/tickets/ACME-001`)).text();
+    expect(html).toContain('Une description seule, sans critères.');
+    expect(html).not.toContain('<pre><code>');
+  });
+
+  it('mène à la page du ticket depuis sa carte', async () => {
+    await createWithDescription('Peu importe.');
+    const board = await (await fetch(`${base}/`)).text();
+    expect(board).toContain('href="/tickets/ACME-001"');
+  });
+
+  it('répond 404 sur un ticket inexistant', async () => {
+    expect((await fetch(`${base}/tickets/ACME-404`)).status).toBe(404);
   });
 });
