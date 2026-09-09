@@ -1,0 +1,51 @@
+# AGENTS.md — Contexte partagé des agents
+
+> Contexte commun à tous les agents intervenant sur keel. Le `AGENTS.md` de la racine dit
+> _quoi_ ; celui-ci dit _comment travailler_.
+
+## Vocabulaire du domaine
+
+| Terme                   | Sens précis dans ce projet                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Module**              | Axe 1 de configuration : un pan du projet, présent ou absent (`mockups`, `contracts`…). Un module absent ne génère **rien** — ni fichier, ni dépendance, ni section de cockpit. |
+| **Socle**               | Modules jamais optionnels (`apps`, `tickets`, `docs-technical`, `docs-decisions`) : ce sont eux qui portent le graphe de traçabilité.                                           |
+| **Provider**            | Axe 2 : l'implémentation retenue pour un point configurable d'un module retenu (Docusaurus vs VitePress…).                                                                      |
+| **Point (de provider)** | L'emplacement configurable lui-même (`workspace`, `docs`, `tokens-pipeline`…).                                                                                                  |
+| **Plan de scaffolding** | La liste des fichiers à écrire, calculée sans toucher au disque.                                                                                                                |
+| **Preset**              | Un raccourci sur l'axe 1 uniquement : il fixe des modules, jamais des providers.                                                                                                |
+
+Ne pas introduire de synonyme concurrent : « feature » pour module, « adapter » pour provider,
+« template » pour générateur brouillent le code autant que les discussions.
+
+## Règles de travail
+
+- **Lire avant d'écrire.** `TECHNICAL.md` tranche la plupart des questions d'architecture.
+  Une décision qui semble à prendre y est souvent déjà prise.
+- **Ce qui n'est pas spécifié ne s'invente pas.** Si l'implémentation d'un ticket exige un
+  choix non couvert par le brief ou par un ADR, le bon geste est d'ouvrir la question, pas de
+  trancher silencieusement dans le code.
+- **Respecter la phase courante.** Un provider dont la phase de scaffolding n'est pas atteinte
+  est un `declarativeProvider` : il enregistre un choix, il ne génère rien. C'est volontaire.
+- **Toute nouvelle règle structurante devient un ADR**, pas un commentaire enfoui.
+- **`pnpm run verify` avant de rendre la main.** Format, lint, typecheck et tests.
+
+## Pièges connus
+
+- `dist/` contient du code compilé : Vitest est configuré pour ne lire que `src/**/*.test.ts`,
+  et les tests sont exclus du build. Ne pas « simplifier » l'un sans l'autre.
+- TypeScript est volontairement figé en 6.x tant que typescript-eslint ne supporte pas TS 7
+  (cf `docs/decisions/0004-toolchain.md`). Ne pas remonter la version sans vérifier le lint.
+- Les templates de scaffolding produisent du contenu destiné à **d'autres** projets : ce qui
+  y est écrit devient la convention de quelqu'un d'autre. Les relire comme de la doc publiée.
+
+## Périmètre d'édition pour un agent
+
+**Autorisé**
+
+- Ajouter ici des notes de contexte durables : vocabulaire, pièges, conventions implicites
+  rendues explicites.
+
+**Interdit**
+
+- Y stocker un état volatile (todo de session, brouillon d'analyse).
+- Y dupliquer un contenu déjà présent dans un `AGENTS.md` local — préférer un renvoi.

@@ -1,0 +1,4 @@
+# Topologie monorepo — cf TECHNICAL.md §1 et docs/decisions/0001-repo-topology.md
+packages:
+  - apps/cli
+  - apps/packages/*

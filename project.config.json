@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "name": "keel",
+  "idPrefix": "KEEL",
+  "modules": {
+    "apps": true,
+    "tickets": true,
+    "docs-technical": true,
+    "docs-decisions": true,
+    "mockups": false,
+    "contracts": false,
+    "docs-product": false,
+    "docs-i18n-copy": false
+  },
+  "providers": {
+    "workspace": "pnpm-turborepo",
+    "docs": "docusaurus",
+    "contracts": "openapi",
+    "tickets-index": "markdown-sqlite",
+    "mockups-composition": "eleventy",
+    "visual-regression": "playwright",
+    "tokens-pipeline": "style-dictionary"
+  }
+}

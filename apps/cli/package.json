@@ -1,0 +1,33 @@
+{
+  "name": "@keel/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "klee — la CLI de Keel : scaffolding, modules et providers d'un projet Keel.",
+  "type": "module",
+  "bin": {
+    "klee": "./dist/bin/klee.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/program.d.ts",
+      "default": "./dist/program.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --build --force && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@clack/prompts": "1.8.0",
+    "@keel/core": "workspace:*",
+    "commander": "15.0.0",
+    "picocolors": "1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.5.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.0"
+  }
+}

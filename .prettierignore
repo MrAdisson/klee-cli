@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+pnpm-lock.yaml
+*.tsbuildinfo
+.turbo/
+
+# Documents de cadrage : leur mise en forme est celle de leur auteur, pas celle d'un outil.
+TECHNICAL.md
+DESIGN.md
