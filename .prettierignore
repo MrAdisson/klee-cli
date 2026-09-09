@@ -8,3 +8,8 @@ pnpm-lock.yaml
 # Documents de cadrage : leur mise en forme est celle de leur auteur, pas celle d'un outil.
 TECHNICAL.md
 DESIGN.md
+
+# Vue du graphe : sa mise en forme appartient à `klee links report`. La reformater ici la
+# ferait diverger de son générateur à chaque exécution, et le fichier produirait un diff
+# permanent que personne ne saurait résoudre.
+docs/_generated/

@@ -1,5 +1,11 @@
-import { DOC_PREFIX, MOCKUP_PREFIX } from '../../ids.js';
-import { ACCEPTANCE_HEADING, TICKET_STATUSES } from '../../tickets/schema.js';
+import { DOC_PREFIX, MOCKUP_PREFIX, formatId } from '../../ids.js';
+import { serializeTicket, newTicketBody } from '../../tickets/format.js';
+import {
+  ACCEPTANCE_HEADING,
+  TICKET_STATUSES,
+  ticketFileName,
+  type TicketFrontmatter,
+} from '../../tickets/schema.js';
 import { agentsDoc } from '../agents-doc.js';
 import type { ScaffoldContext, ScaffoldFile, ScaffoldGenerator } from '../types.js';
 
@@ -47,6 +53,63 @@ export const ticketsGenerator: ScaffoldGenerator = {
           ],
         }),
       },
+      seedTicket(context, origin),
     ];
   },
 };
+
+/**
+ * Premier ticket du projet.
+ *
+ * Il n'est pas là pour faire joli : sans lui, le `.meta.yml` que génère le module `mockups`
+ * référencerait un ticket inexistant, et le premier `klee links check` d'un projet neuf
+ * échouerait sur la sortie de `klee init` — alors que `tickets/AGENTS.md` interdit
+ * précisément d'inventer un lien vers ce qui n'existe pas.
+ *
+ * Il donne aussi la seule chose qu'une convention écrite ne donne jamais : un exemple
+ * complet et résolvable, que `klee links` affiche dès la première commande.
+ */
+function seedTicket(context: ScaffoldContext, origin: string): ScaffoldFile {
+  const prefix = context.config.idPrefix;
+  const id = formatId(prefix, 1);
+  const today = context.now.toISOString().slice(0, 10);
+  const withMockups = context.config.modules.mockups;
+
+  const title = withMockups
+    ? 'Transcrire la maquette de connexion en composant'
+    : 'Décrire le premier lot de travail';
+
+  const frontmatter: TicketFrontmatter = {
+    id,
+    title,
+    status: 'backlog',
+    assignee: null,
+    created: today,
+    updated: today,
+    depends_on: [],
+    // MOCK-002 est la page de connexion générée par le provider de composition.
+    related_mockups: withMockups ? [formatId(MOCKUP_PREFIX, 2)] : [],
+    // DOC-001 est l'ADR de topologie, généré par le module `docs-decisions` du socle.
+    related_docs: [formatId(DOC_PREFIX, 1)],
+    authored_by: 'human',
+  };
+
+  const description = withMockups
+    ? `Ce ticket est l'exemple qu'écrit \`klee init\` : il montre à quoi ressemble une arête du graphe.
+
+La maquette ${formatId(MOCKUP_PREFIX, 2)} fait foi pour l'UI (DESIGN.md §1) : la transcrire ne doit demander
+aucune décision de design. Une fois le composant écrit, renseignez \`implemented_in\` dans
+\`mockups/pages/login.meta.yml\` et passez la maquette en \`status: implemented\`.
+
+\`klee links show ${id}\` affiche ses liens ; \`klee links check\` vérifie qu'ils pointent quelque part.`
+    : `Ce ticket est l'exemple qu'écrit \`klee init\` : il montre à quoi ressemble une arête du graphe.
+
+Remplacez-le par le premier lot réel du projet. \`klee links show ${id}\` affiche ses liens ;
+\`klee links check\` vérifie qu'ils pointent quelque part.`;
+
+  return {
+    path: `tickets/${ticketFileName(id, title)}`,
+    origin,
+    contents: serializeTicket(frontmatter, newTicketBody(description)),
+  };
+}

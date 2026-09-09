@@ -19,6 +19,37 @@ function frontmatter(fields: Record<string, string>): string {
   );
 }
 
+/**
+ * Premier document d'une section.
+ *
+ * Il n'est pas décoratif : une section de site docs-as-code sans aucun document ne se
+ * construit pas, et un dossier vide ne dit rien de ce qu'on attend qu'on y écrive. Les
+ * identifiants sont fixes par section — ils ne se décalent pas selon les modules retenus,
+ * sinon `DOC-003` désignerait autre chose d'un projet à l'autre.
+ */
+function starterDoc(options: {
+  readonly path: string;
+  readonly origin: string;
+  readonly id: string;
+  readonly title: string;
+  readonly body: string;
+}): ScaffoldFile {
+  return {
+    path: options.path,
+    origin: options.origin,
+    contents: textContents(`${frontmatter({
+      id: options.id,
+      title: options.title,
+      related_tickets: '[]',
+      related_mockups: '[]',
+    })}
+
+# ${options.title}
+
+${options.body}`),
+  };
+}
+
 export const docsTechnicalGenerator: ScaffoldGenerator = {
   files(context: ScaffoldContext): ScaffoldFile[] {
     const origin = 'module:docs-technical';
@@ -46,11 +77,19 @@ export const docsTechnicalGenerator: ScaffoldGenerator = {
           references: ['`AGENTS.md` (racine).', '`docs/decisions/` — ADR.'],
         }),
       },
-      {
-        path: 'docs/technical/.gitkeep',
+      starterDoc({
+        path: 'docs/technical/index.md',
         origin,
-        contents: textContents(''),
-      },
+        id: formatId(DOC_PREFIX, 2),
+        title: 'Documentation technique',
+        body: `Cette section décrit *comment* le projet est fait : architecture, conventions,
+référence des outils. Elle est **authored** — écrite par des humains et des agents, jamais
+produite par un pipeline (\`TECHNICAL.md\` §5).
+
+Les identifiants cités dans le texte (\`${context.config.idPrefix}-xxx\`, \`${MOCKUP_PREFIX}-xxx\`,
+\`${DOC_PREFIX}-xxx\`) sont des arêtes du graphe de traçabilité : \`klee links check\` vérifie
+qu'elles pointent vers un artefact existant.`,
+      }),
     ];
   },
 };
@@ -112,6 +151,16 @@ export const docsProductGenerator: ScaffoldGenerator = {
     const origin = 'module:docs-product';
 
     return [
+      starterDoc({
+        path: 'docs/product/index.md',
+        origin,
+        id: formatId(DOC_PREFIX, 3),
+        title: 'Documentation produit',
+        body: `Personas, flows utilisateurs et specs fonctionnelles (DESIGN.md §4).
+
+Un flow décrit un parcours de bout en bout ; l'écran, lui, est déjà couvert par la maquette.
+Une spec fonctionnelle se rattache au ticket qui la porte et à la maquette qui la montre.`,
+      }),
       {
         path: 'docs/product/AGENTS.md',
         origin,
@@ -140,6 +189,16 @@ export const docsI18nCopyGenerator: ScaffoldGenerator = {
     const origin = 'module:docs-i18n-copy';
 
     return [
+      starterDoc({
+        path: 'docs/i18n-copy/index.md',
+        origin,
+        id: formatId(DOC_PREFIX, 4),
+        title: 'UX writing et traductions',
+        body: `Textes d'interface, ton, vocabulaire et règles de traduction (DESIGN.md §4).
+
+Traité à part du reste du design parce que le copy change indépendamment des tokens et du
+HTML. Une chaîne d'interface est identifiée par une clé stable, jamais par son contenu.`,
+      }),
       {
         path: 'docs/i18n-copy/AGENTS.md',
         origin,

@@ -4,6 +4,13 @@ coverage/
 *.tsbuildinfo
 .turbo/
 
+# Caches locaux de Klee (index de tickets…) — reconstructibles, jamais versionnés
+.klee/
+
+# Cache et sortie de construction du site de documentation
+docs/.docusaurus/
+docs/build/
+
 # Environnement local — les secrets ne vivent jamais dans le repo (TECHNICAL.md §10)
 .env
 .env.*

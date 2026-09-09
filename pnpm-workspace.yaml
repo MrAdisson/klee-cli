@@ -2,3 +2,19 @@
 packages:
   - apps/cli
   - apps/packages/*
+  - docs
+
+# Scripts de post-installation connus, tranchés explicitement. pnpm refuse d'en ignorer un
+# en silence : sans cette liste, `pnpm install` échoue. Un script nouveau fera échouer
+# l'installation de la même façon, et c'est voulu.
+allowBuilds:
+  core-js: false
+
+# Versions imposées dans l'arbre transitif de Docusaurus : ce que des dépendances profondes
+# traînent et que leur auteur n'a pas encore corrigé (paquet déprécié, avis de sécurité).
+# Les portées font que chaque ligne s'efface d'elle-même quand l'amont passe au-delà.
+# Même liste que celle déclarée par le provider `docs` pour les projets scaffoldés.
+overrides:
+  qs@<6.16.0: ^6.16.0
+  serialize-javascript@<7.0.5: ^7.0.5
+  uuid@<11.1.1: ^11.1.1

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -110,5 +110,49 @@ describe('board', () => {
 
     const tickets = (await (await fetch(`${base}/api/tickets`)).json()) as { id: string }[];
     expect(tickets.map((ticket) => ticket.id)).toEqual(['ACME-001']);
+  });
+});
+
+/**
+ * Les liens croisés doivent être cliquables partout où un identifiant apparaît
+ * (DESIGN.md §5). Sans terminal, c'est la seule façon de suivre le graphe.
+ */
+describe('graphe dans le board', () => {
+  beforeEach(async () => {
+    await createTicket({
+      root,
+      prefix: 'ACME',
+      title: 'Transcrire la maquette',
+      relatedDocs: ['DOC-001'],
+    });
+    await mkdir(join(root, 'docs', 'technical'), { recursive: true });
+    await writeFile(
+      join(root, 'docs', 'technical', 'guide.md'),
+      '---\nid: DOC-001\n---\n\n# Guide\n',
+      'utf8',
+    );
+  });
+
+  it('rend chaque identifiant d’une carte cliquable', async () => {
+    const html = await (await fetch(`${base}/`)).text();
+    expect(html).toContain('href="/links/ACME-001"');
+    expect(html).toContain('href="/links/DOC-001"');
+  });
+
+  it('affiche le voisinage d’un identifiant, dans les deux sens', async () => {
+    const fromTicket = await (await fetch(`${base}/links/ACME-001`)).text();
+    expect(fromTicket).toContain('DOC-001');
+    expect(fromTicket).toContain('Guide');
+
+    // La doc ne déclare rien : c'est la résolution de l'arête qui la relie au ticket.
+    const fromDoc = await (await fetch(`${base}/links/DOC-001`)).text();
+    expect(fromDoc).toContain('ACME-001');
+    expect(fromDoc).toContain('Transcrire la maquette');
+  });
+
+  it('répond 404 sur un identifiant inconnu, sans planter', async () => {
+    const response = await fetch(`${base}/links/DOC-404`);
+    expect(response.status).toBe(404);
+    expect(await response.text()).toContain('Aucun artefact');
   });
 });

@@ -22,7 +22,7 @@ ticket       →  document produit (DOC-018)
 
 ## État du projet
 
-**Phases 0 à 2 livrées.**
+**Phases 0 à 3 livrées.**
 
 - **Phase 0** — squelette du monorepo, schéma d'identifiants, architecture modules/providers,
   `klee init` avec mode interactif, `--yes` et presets.
@@ -33,7 +33,11 @@ ticket       →  document produit (DOC-018)
 - **Phase 2** — `tickets/` : format markdown à frontmatter, CLI `create/list/move/show`,
   kanban local (`klee board`) utilisable sans terminal, et deux providers d'indexation.
 
-Les phases suivantes (docs-as-code, cockpit unifié, interopérabilité) sont décrites
+- **Phase 3** — le **graphe de traçabilité** : un vocabulaire de lien unique pour les trois
+  natures d'artefact, des arêtes résolues dans les deux sens, `klee links check` qui refuse
+  tout lien cassé, et le site **docs-as-code** que ce dépôt sert désormais lui-même.
+
+Les phases suivantes (cockpit unifié, interopérabilité, observabilité) sont décrites
 dans [`TECHNICAL.md`](TECHNICAL.md) et se lancent dans l'ordre, chacune après validation
 humaine de la précédente.
 
@@ -74,13 +78,25 @@ klee ticket list
 klee board            # kanban local, sans terminal pour créer et déplacer
 ```
 
+Le graphe qui relie tout ça, et la documentation qui le publie :
+
+```bash
+klee links            # tickets ↔ maquettes ↔ docs, par nature d'artefact
+klee links show DOC-014
+klee links check      # sort en 1 sur un lien déclaré vers un artefact inexistant
+klee docs serve       # le site de documentation, sur http://localhost:3000
+```
+
 Presets disponibles :
 
-| Preset                               | Modules optionnels retenus               |
-| ------------------------------------ | ---------------------------------------- |
-| `full-product` _(défaut de `--yes`)_ | maquettes, contracts, docs produit, i18n |
-| `api-service`                        | contracts                                |
-| `internal-lib`                       | aucun                                    |
+| Preset                               | Modules optionnels retenus               | Site de docs proposé  |
+| ------------------------------------ | ---------------------------------------- | --------------------- |
+| `full-product` _(défaut de `--yes`)_ | maquettes, contracts, docs produit, i18n | Docusaurus            |
+| `api-service`                        | contracts                                | Docusaurus            |
+| `internal-lib`                       | aucun                                    | aucun — markdown seul |
+
+Un preset _propose_ ce défaut, il ne l'impose pas : `--provider docs=docusaurus` passe avant,
+et le mode interactif se contente de présélectionner (ADR 0012).
 
 Le socle — `apps/`, `tickets/`, `docs/technical/`, `docs/decisions/` — est toujours présent :
 c'est lui qui porte le graphe.
@@ -94,6 +110,7 @@ apps/cli/              # @klee/cli — la CLI klee : arguments, questions, rendu
 apps/packages/core/    # @klee/core — le domaine : modules, providers, config, scaffolding
 docs/technical/        # référence technique
 docs/decisions/        # ADR
+docs/_generated/       # vue du graphe, écrite par `klee links report`
 tickets/               # tickets markdown (format posé en phase 2)
 TECHNICAL.md           # brief d'architecture — source de vérité
 DESIGN.md              # conventions design, produit et UX — source de vérité
@@ -118,6 +135,9 @@ Avant de contribuer : [`AGENTS.md`](AGENTS.md) pour les conventions et le périm
 
 ## Documentation
 
+`klee docs serve` sert tout ce qui suit sur `http://localhost:3000`.
+
 - [Référence de la CLI `klee`](docs/technical/cli-klee.md)
+- [Graphe de traçabilité](docs/technical/graphe-de-tracabilite.md)
 - [Schéma de `project.config.json`](docs/technical/project-config.md)
 - [Décisions d'architecture](docs/decisions/)

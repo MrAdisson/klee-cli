@@ -1,13 +1,14 @@
 ---
 id: DOC-005
+title: Référence de la CLI klee
 related_tickets: []
 related_mockups: []
 ---
 
 # Référence de la CLI `klee`
 
-État : **phases 0 à 2**. Seules les commandes ci-dessous existent ; `klee studio` — le cockpit
-unifié qui absorbera le board — arrive en phase 4 (`TECHNICAL.md`).
+État : **phases 0 à 3**. Seules les commandes ci-dessous existent ; `klee studio` — le cockpit
+unifié qui absorbera le board et la vue du graphe — arrive en phase 4 (`TECHNICAL.md`).
 
 ```
 klee [-v | --version] [-h | --help] <commande>
@@ -17,14 +18,15 @@ klee [-v | --version] [-h | --help] <commande>
 
 Crée la structure d'un projet Klee dans `directory` (défaut : le dossier courant).
 
-| Option                 | Effet                                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------------- |
-| `--name <name>`        | Nom du projet. Défaut : le nom du dossier, normalisé en nom de package npm.             |
-| `--id-prefix <prefix>` | Préfixe des identifiants de tickets. Défaut : `PROJ`.                                   |
-| `--preset <preset>`    | `full-product` \| `api-service` \| `internal-lib`. Fixe les modules, pas les providers. |
-| `-y`, `--yes`          | Aucune question : preset `full-product` (ou celui demandé) et providers par défaut.     |
-| `--dry-run`            | Affiche le plan exact sans rien écrire.                                                 |
-| `--force`              | Écrase les fichiers existants dont le contenu diffère.                                  |
+| Option                 | Effet                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `--name <name>`        | Nom du projet. Défaut : le nom du dossier, normalisé en nom de package npm.                          |
+| `--id-prefix <prefix>` | Préfixe des identifiants de tickets. Défaut : `PROJ`.                                                |
+| `--preset <preset>`    | `full-product` \| `api-service` \| `internal-lib`. Fixe les modules, et peut _proposer_ un provider. |
+| `--provider <p>=<id>`  | Impose un provider, répétable. Passe avant le preset (ADR 0012).                                     |
+| `-y`, `--yes`          | Aucune question : preset `full-product` (ou celui demandé) et providers par défaut.                  |
+| `--dry-run`            | Affiche le plan exact sans rien écrire.                                                              |
+| `--force`              | Écrase les fichiers existants dont le contenu diffère.                                               |
 
 **Mode interactif** (défaut) — dans l'ordre : dossier cible (si l'argument n'a pas été donné),
 nom, préfixe d'identifiants, puis, comme l'impose `TECHNICAL.md` §13, **les modules**, puis,
@@ -41,10 +43,17 @@ remplit `./tutu/`, en nommant le projet `tutu`.
 sans supervision. Sans terminal et sans `--yes`, la commande échoue explicitement plutôt que
 de deviner.
 
+**Résolution d'un provider**, du plus fort au plus faible : `--provider` ou la réponse donnée
+en interactif, puis la proposition du preset, puis le défaut du point. `internal-lib` propose
+ainsi `docs=markdown-only` — une bibliothèque interne n'a pas à installer React pour trois ADR
+(ADR 0012). Le mode interactif présélectionne cette proposition sans masquer les autres choix.
+
 ```bash
 klee init                                   # interactif
 klee init --yes                             # full-product, tous les défauts
 klee init ./mon-api --yes --preset api-service --id-prefix ACME
+klee init ./ma-lib --yes --preset internal-lib          # documentation en markdown, pas de site
+klee init ./ma-lib --yes --provider docs=docusaurus     # …sauf si on en veut un
 klee init --yes --dry-run                   # inspecter le plan avant d'écrire
 ```
 
@@ -102,6 +111,43 @@ signale, il ne détruit pas.
 
 `add` génère aussi les fichiers des providers rattachés au module : ajouter `mockups` installe
 le pipeline de tokens et le serveur de maquettes, pas seulement le dossier.
+
+## `klee links`
+
+Graphe de traçabilité entre tickets, maquettes et documents
+(cf [`graphe-de-tracabilite.md`](./graphe-de-tracabilite.md)).
+
+| Commande               | Effet                                                                    |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `klee links`           | Tout le graphe, par nature d'artefact. `--json` pour un agent.           |
+| `klee links show <id>` | Voisinage d'un identifiant, dans les deux sens, mentions comprises.      |
+| `klee links check`     | Vérifie que tout lien déclaré mène à un artefact existant.               |
+| `klee links report`    | (Ré)écrit `docs/_generated/tracabilite.md`. `--dry-run` pour l'afficher. |
+
+`check` sort en `1` sur une **erreur** — arête déclarée dans le vide, identifiant revendiqué
+deux fois, `depends_on` vers autre chose qu'un ticket, fichier dont l'identifiant ne
+correspond pas à sa nature. Les **avertissements** — mention vers un artefact inexistant, doc
+sans `id` — n'affectent pas le code de sortie. C'est la commande à mettre en CI.
+
+Un identifiant déclaré d'un seul côté relie bien les deux artefacts : il n'y a aucune symétrie
+de frontmatter à maintenir (ADR 0010).
+
+## `klee docs`
+
+| Commande          | Effet                                                                        |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `klee docs init`  | Génère les fichiers du site pour le provider retenu. `--dry-run`, `--force`. |
+| `klee docs serve` | Sert la documentation en local, avec rechargement à chaud.                   |
+| `klee docs build` | Construit la version statique.                                               |
+
+`serve` et `build` régénèrent `docs/_generated/tracabilite.md` au préalable : une vue présente
+mais périmée serait pire qu'absente.
+
+`init` est le chemin de mise à niveau d'un projet scaffoldé avant la phase 3 : le point `docs`
+n'est rattaché à aucun module, donc `klee module add` ne peut pas l'atteindre.
+
+Le provider `markdown-only` ne génère aucun site — `klee docs serve` le dit alors clairement
+plutôt que d'échouer sur un fichier manquant (ADR 0011).
 
 ## `klee tokens build`
 
@@ -164,6 +210,9 @@ clavier par construction. Il n'écoute que sur la boucle locale et n'a aucun ét
 les fichiers de `tickets/` restent la source de vérité, éditables à la main pendant qu'il
 tourne. `GET /api/tickets` expose la même liste en JSON, pour un agent ou un script.
 
+Chaque identifiant affiché est cliquable : `/links` montre tout le graphe, `/links/<id>` le
+voisinage d'un artefact avec les fichiers qui déclarent chaque arête.
+
 En phase 4, ce board deviendra l'onglet Board de `klee studio`.
 
 ## Codes de sortie et erreurs
@@ -179,6 +228,10 @@ n'est pas un bug, c'est une réponse à corriger. Une erreur inattendue affiche 
 | `ALREADY_INITIALIZED`                                      | `project.config.json` existe déjà dans la cible       |
 | `NOT_A_TTY`                                                | Mode interactif demandé hors terminal                 |
 | `PRESET_UNKNOWN` / `MODULE_UNKNOWN` / `MODULE_CORE`        | Argument invalide                                     |
+| `PROVIDER_OPTION_INVALID`                                  | `--provider` mal formé (attendu `<point>=<id>`)       |
 | `PROVIDER_UNKNOWN`                                         | La configuration référence un provider non enregistré |
 | `CONFIG_NOT_FOUND` / `CONFIG_MALFORMED` / `CONFIG_INVALID` | Problème de `project.config.json`                     |
 | `SCAFFOLD_CONFLICT`                                        | Des fichiers existants diffèrent du plan              |
+| `NODE_NOT_FOUND`                                           | `klee links show` sur un identifiant inconnu          |
+| `DOCS_SITE_MISSING`                                        | `klee docs serve` sans site généré                    |
+| `DOC_INVALID` / `MOCKUP_INVALID`                           | Frontmatter de doc ou `.meta.yml` mal formé           |

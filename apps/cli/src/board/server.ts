@@ -1,9 +1,15 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
-import { createTicket, isTicketStatus, moveTicket, type TicketStatus } from '@klee/core';
+import {
+  buildTraceGraph,
+  createTicket,
+  isTicketStatus,
+  moveTicket,
+  type TicketStatus,
+} from '@klee/core';
 
 import { openTicketIndex, type Project } from '../project.js';
-import { renderBoard } from './render.js';
+import { renderBoard, renderLinks } from './render.js';
 
 /**
  * Dashboard local des tickets (TECHNICAL.md §6, DESIGN.md §5).
@@ -64,6 +70,16 @@ async function handle(
 
   if (request.method === 'GET' && url.pathname === '/') {
     await renderPage(response, options, url.searchParams.get('message') ?? undefined);
+    return;
+  }
+
+  const links = /^\/links(?:\/([^/]+))?\/?$/.exec(url.pathname);
+  if (request.method === 'GET' && links !== null) {
+    await renderGraphPage(
+      response,
+      options,
+      links[1] === undefined ? null : decodeURIComponent(links[1]).toUpperCase(),
+    );
     return;
   }
 
@@ -134,6 +150,34 @@ async function renderPage(
       ...(message === undefined ? {} : { message }),
     });
     respond(response, 200, 'text/html; charset=utf-8', html);
+  } finally {
+    index.close();
+  }
+}
+
+/**
+ * Vue du graphe. Les tickets passent par l'index configuré, comme le board : le graphe
+ * n'introduit pas un second chemin de lecture des mêmes fichiers.
+ */
+async function renderGraphPage(
+  response: ServerResponse,
+  options: BoardServerOptions,
+  focus: string | null,
+): Promise<void> {
+  const index = openTicketIndex(options.project);
+  try {
+    const graph = await buildTraceGraph({
+      root: options.project.root,
+      ticketPrefix: options.project.config.idPrefix,
+      tickets: await index.list(),
+    });
+    const html = renderLinks({ projectName: options.project.config.name, graph, focus });
+    respond(
+      response,
+      focus !== null && !graph.nodes.some((n) => n.id === focus) ? 404 : 200,
+      'text/html; charset=utf-8',
+      html,
+    );
   } finally {
     index.close();
   }

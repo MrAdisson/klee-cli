@@ -17,8 +17,10 @@ import {
   createProjectConfig,
   defaultProviderSelection,
   isPresetId,
+  isProviderPoint,
   moduleSelectionFromOptional,
   moduleSelectionFromPreset,
+  providerDefaultsFromPreset,
   providerRegistry,
   type ModuleSelection,
   type PresetId,
@@ -29,6 +31,7 @@ import {
 } from '@klee/core';
 
 import { field, heading, info, reportApply, success, warn, write } from '../ui/output.js';
+import { refreshGraphReport } from './links.js';
 import {
   askIdPrefix,
   askInstallDependencies,
@@ -49,8 +52,39 @@ export interface InitOptions {
   readonly dryRun?: boolean;
   readonly force?: boolean;
   readonly install?: boolean;
+  /** `--provider <point>=<id>`, répétable : impose un provider, quel que soit le preset. */
+  readonly provider?: string[];
   /** `--no-git` : ne pas initialiser de dépôt. */
   readonly git?: boolean;
+}
+
+/**
+ * Providers imposés en ligne de commande. Ils passent avant le défaut du point comme avant
+ * la proposition du preset : c'est ce qui rend cette proposition non contraignante, y
+ * compris sans terminal (ADR 0012).
+ */
+function explicitProviders(options: InitOptions): Partial<Record<ProviderPoint, string>> {
+  const chosen: Partial<Record<ProviderPoint, string>> = {};
+
+  for (const entry of options.provider ?? []) {
+    const separator = entry.indexOf('=');
+    const point = separator === -1 ? '' : entry.slice(0, separator);
+    const id = separator === -1 ? '' : entry.slice(separator + 1);
+
+    if (!isProviderPoint(point) || id === '') {
+      throw new KleeError(`Option --provider invalide : "${entry}".`, {
+        code: 'PROVIDER_OPTION_INVALID',
+        hint: `Attendu : <point>=<provider>, avec un point parmi ${PROVIDER_POINTS.join(', ')}.`,
+      });
+    }
+
+    // Résolution stricte tout de suite : mieux vaut échouer avant d'écrire quoi que ce soit
+    // qu'à la première commande qui lira la configuration.
+    providerRegistry.resolve(point, id);
+    chosen[point] = id;
+  }
+
+  return chosen;
 }
 
 export async function runInit(directory: string | undefined, options: InitOptions): Promise<void> {
@@ -120,6 +154,10 @@ export async function runInit(directory: string | undefined, options: InitOption
   if (installed) {
     await buildTokens(root, config, interactive);
   }
+
+  // Première vue du graphe. Comme le build des tokens, c'est local, déterministe, et sans
+  // ça `docs/_generated/` — que TECHNICAL.md §5 impose — resterait une promesse vide.
+  await refreshGraphReport({ root, config });
 
   reportNextSteps(config, plan, installed);
 }
@@ -245,7 +283,7 @@ function nonInteractiveConfig(root: string, preset: PresetId, options: InitOptio
     name: options.name ?? defaultProjectName(root),
     idPrefix: options.idPrefix ?? DEFAULT_TICKET_PREFIX,
     modules,
-    providers: defaultProviderSelection(),
+    providers: { ...defaultProviderSelection(preset), ...explicitProviders(options) },
     tokenTargets: [REQUIRED_TOKEN_TARGET],
   });
 }
@@ -261,9 +299,14 @@ async function interactiveConfig(
   const optionalModules = await askOptionalModules(PRESETS[preset].optionalModules);
   const modules = moduleSelectionFromOptional(optionalModules);
 
-  const providers: Partial<Record<ProviderPoint, string>> = {};
+  const imposed = explicitProviders(options);
+  const proposed = providerDefaultsFromPreset(preset);
+
+  const providers: Partial<Record<ProviderPoint, string>> = { ...imposed };
   for (const point of applicablePoints(modules)) {
-    providers[point] = await askProvider(point, providerRegistry);
+    // Un point tranché en ligne de commande n'a pas à être redemandé.
+    if (imposed[point] !== undefined) continue;
+    providers[point] = await askProvider(point, providerRegistry, proposed[point]);
   }
 
   const tokenTargets: TokenTarget[] = modules.mockups

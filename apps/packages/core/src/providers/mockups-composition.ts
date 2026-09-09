@@ -188,7 +188,14 @@ function mockupsManifest(
   };
 }
 
-/** Métadonnées de traçabilité communes aux deux providers (TECHNICAL.md §7). */
+/**
+ * Métadonnées de traçabilité communes aux deux providers (TECHNICAL.md §7).
+ *
+ * Le vocabulaire d'arête est celui des tickets et des docs — `related_tickets`,
+ * `related_docs` — et non le `ticket:` scalaire de §4 : trois formats pour la même notion
+ * obligeaient chaque lecteur du graphe à porter un cas particulier par type de fichier
+ * (ADR 0010). L'ancienne forme reste lue, pour les projets scaffoldés avant ce changement.
+ */
 function metaYml(options: {
   readonly id: string;
   readonly ticket: string;
@@ -197,8 +204,10 @@ function metaYml(options: {
 }): string {
   return textContents(`id: ${options.id}
 title: ${options.title}
-ticket: ${options.ticket}
 status: draft
+related_tickets:
+  - ${options.ticket}
+related_docs: []
 implemented_in: null
 ${options.states === undefined ? '' : `states:\n${options.states.map((state) => `  - ${state}`).join('\n')}`}`);
 }

@@ -37,8 +37,13 @@ export interface ProviderPointDefinition {
    * Phase de la roadmap à laquelle la génération de fichiers de ce point est implémentée.
    * Le choix est enregistré dans project.config.json dès la phase 0 (§13), mais tous les
    * providers ne produisent pas encore de fichiers.
+   *
+   * `null` = **non planifié** : la roadmap de TECHNICAL.md ne situe ce point dans aucune
+   * phase. Écrire un numéro au jugé ferait dire au code une chose que le brief ne dit pas.
+   * Ne concerne que la génération du provider — le module, lui, peut très bien produire ses
+   * fichiers de convention dès aujourd'hui.
    */
-  readonly scaffoldingPhase: number;
+  readonly scaffoldingPhase: number | null;
 }
 
 /**
@@ -75,6 +80,26 @@ export interface Provider extends ScaffoldGenerator {
    * comportement reste derrière une interface commune (§13).
    */
   readonly ticketIndex?: TicketIndexFactory;
+  /**
+   * Scripts de post-installation qu'apportent les dépendances de ce provider, et la décision
+   * prise pour chacun (`true` = exécuter, `false` = ne pas exécuter).
+   *
+   * Le gestionnaire de paquets refuse d'ignorer un tel script en silence : sans décision,
+   * l'installation échoue. C'est le provider qui apporte la dépendance qui sait de quoi il
+   * s'agit ; c'est le provider `workspace` qui possède le fichier où la décision s'écrit.
+   * Déclarer ici plutôt que d'aller écrire là-bas est ce qui permet d'ajouter un provider
+   * sans toucher à un autre (ADR 0012).
+   */
+  readonly installScripts?: Readonly<Record<string, boolean>>;
+  /**
+   * Versions imposées dans l'arbre transitif de ce provider, pour corriger ce qu'une
+   * dépendance profonde traîne et que son auteur n'a pas encore corrigé.
+   *
+   * La clé porte de préférence la portée : `uuid@<11.1.1` ne s'applique qu'aux versions
+   * concernées et cesse d'agir d'elle-même le jour où l'amont passe au-delà. Un override
+   * inconditionnel survivrait à sa raison d'être et finirait par bloquer une mise à jour.
+   */
+  readonly dependencyOverrides?: Readonly<Record<string, string>>;
 }
 
 export function isProviderPoint(value: string): value is ProviderPoint {

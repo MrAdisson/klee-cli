@@ -28,7 +28,8 @@ export const mockupsGenerator: ScaffoldGenerator = {
           conventions: [
             'HTML sémantique — une maquette en `<div>` produit un composant inaccessible.',
             'Aucune valeur brute : les couleurs, espacements et rayons passent par `var(--…)` depuis `design-system/dist/css/tokens.css`.',
-            `Chaque page ou composant a un \`.meta.yml\` : \`id: ${MOCKUP_PREFIX}-xxx\`, \`ticket\`, \`status: draft | validated | implemented\`, \`implemented_in\`.`,
+            `Chaque page ou composant a un \`.meta.yml\` : \`id: ${MOCKUP_PREFIX}-xxx\`, \`status: draft | validated | implemented\`, \`related_tickets\`, \`related_docs\`, \`implemented_in\`.`,
+            'Le vocabulaire des liens est le même partout — `related_tickets`, `related_mockups`, `related_docs` : un identifiant cité doit exister, `klee links check` le vérifie.',
             'Chaque composant documente ses états (default, hover, disabled, loading, erreur) : un état non maquetté est un état qui sera improvisé en implémentation.',
             `Aucun copier-coller de markup entre pages : une page inclut un composant via ${composition.label}, elle ne le réécrit jamais.`,
             ...(composition.id === 'eleventy'

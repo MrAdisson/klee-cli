@@ -1,6 +1,7 @@
 import { ConfigError } from '../errors.js';
 import { DEFAULT_TICKET_PREFIX } from '../ids.js';
 import type { ModuleSelection } from '../modules.js';
+import { providerDefaultsFromPreset, type PresetId } from '../presets.js';
 import { PROVIDER_POINT_DEFINITIONS } from '../providers/points.js';
 import { PROVIDER_POINTS } from '../providers/types.js';
 import {
@@ -14,10 +15,20 @@ import {
 import { formatIssues } from './issues.js';
 import { validateProjectConfig } from './validate.js';
 
-/** Providers appliqués par `--yes` et par les presets (TECHNICAL.md §13). */
-export function defaultProviderSelection(): ProviderSelectionConfig {
+/**
+ * Providers appliqués par `--yes` (TECHNICAL.md §13).
+ *
+ * Le défaut du point s'applique, sauf si le preset en propose un autre : un preset décrit un
+ * genre de projet, et certains points n'ont pas le même défaut sensé pour tous les genres
+ * (ADR 0012). Un choix explicite de l'utilisateur passe avant les deux.
+ */
+export function defaultProviderSelection(preset?: PresetId): ProviderSelectionConfig {
+  const proposed = preset === undefined ? {} : providerDefaultsFromPreset(preset);
   return Object.fromEntries(
-    PROVIDER_POINTS.map((point) => [point, PROVIDER_POINT_DEFINITIONS[point].defaultProvider]),
+    PROVIDER_POINTS.map((point) => [
+      point,
+      proposed[point] ?? PROVIDER_POINT_DEFINITIONS[point].defaultProvider,
+    ]),
   ) as unknown as ProviderSelectionConfig;
 }
 

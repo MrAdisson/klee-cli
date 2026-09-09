@@ -1,4 +1,15 @@
-import { TICKET_STATUSES, type Ticket, type TicketStatus } from '@klee/core';
+import {
+  ENTITY_KINDS,
+  TICKET_STATUSES,
+  neighbours,
+  otherEnd,
+  type EntityKind,
+  type GraphEdge,
+  type GraphNode,
+  type Ticket,
+  type TicketStatus,
+  type TraceGraph,
+} from '@klee/core';
 
 /**
  * Rendu du board. Volontairement du HTML serveur, sans framework ni étape de build : le
@@ -57,6 +68,7 @@ export function renderBoard(view: BoardViewModel): string {
 <header class="bar">
   <strong>${escapeHtml(view.projectName)}</strong>
   <span class="dim">${String(view.tickets.length)} ticket(s)</span>
+  <a class="dim" href="/links">Graphe</a>
   <a class="dim" href="#nouveau">Nouveau ticket</a>
 </header>
 
@@ -98,21 +110,30 @@ for (const form of document.querySelectorAll('form[data-auto]')) {
 `;
 }
 
+/**
+ * Un identifiant est toujours cliquable, partout où il apparaît (DESIGN.md §5). C'est la
+ * seule façon qu'a une PM ou une designer de suivre le graphe sans terminal — et donc la
+ * condition d'adoption de l'outil hors de l'équipe de développement.
+ */
+function idLink(id: string, className = 'chip'): string {
+  const safe = escapeHtml(id);
+  return `<a class="${className}" href="/links/${encodeURIComponent(id)}">${safe}</a>`;
+}
+
 function renderCard(ticket: Ticket, done: ReadonlySet<string>): string {
   const blockers = ticket.depends_on.filter((id) => !done.has(id));
-  const chips = [
-    ...ticket.related_mockups.map((id) => `<span class="chip">${escapeHtml(id)}</span>`),
-    ...ticket.related_docs.map((id) => `<span class="chip">${escapeHtml(id)}</span>`),
-  ].join('');
+  const chips = [...ticket.related_mockups, ...ticket.related_docs]
+    .map((id) => idLink(id))
+    .join('');
 
   return `<article class="card${blockers.length > 0 ? ' card--blocked' : ''}">
     <div class="card__head">
-      <code>${escapeHtml(ticket.id)}</code>
+      ${idLink(ticket.id, 'card__id')}
       ${ticket.authored_by === 'agent' ? '<span class="chip chip--agent">agent</span>' : ''}
     </div>
     <p class="card__title">${escapeHtml(ticket.title)}</p>
     ${ticket.assignee === null ? '' : `<p class="dim">@${escapeHtml(ticket.assignee)}</p>`}
-    ${blockers.length > 0 ? `<p class="blocked">En attente de ${blockers.map(escapeHtml).join(', ')}</p>` : ''}
+    ${blockers.length > 0 ? `<p class="blocked">En attente de ${blockers.map((id) => idLink(id, 'blocked__link')).join(', ')}</p>` : ''}
     ${chips === '' ? '' : `<p class="chips">${chips}</p>`}
     <form method="post" action="/tickets/${encodeURIComponent(ticket.id)}/move" data-auto>
       <label class="sr-only" for="move-${ticket.id}">Statut de ${escapeHtml(ticket.id)}</label>
@@ -125,6 +146,126 @@ function renderCard(ticket: Ticket, done: ReadonlySet<string>): string {
       <button type="submit">Déplacer</button>
     </form>
   </article>`;
+}
+
+const KIND_LABELS: Readonly<Record<EntityKind, string>> = {
+  ticket: 'Ticket',
+  mockup: 'Maquette',
+  doc: 'Document',
+};
+
+export interface LinksViewModel {
+  readonly projectName: string;
+  readonly graph: TraceGraph;
+  /** Identifiant demandé. `null` pour la vue d'ensemble. */
+  readonly focus: string | null;
+}
+
+/**
+ * Vue du graphe de traçabilité, servie par le board.
+ *
+ * Elle n'ajoute aucune donnée : elle rend cliquable ce que `klee links` affiche en terminal,
+ * pour les profils qui n'en ouvriront jamais un (DESIGN.md §5). Le cockpit unifié de la
+ * phase 4 l'absorbera comme il absorbera le board.
+ */
+export function renderLinks(view: LinksViewModel): string {
+  const { graph } = view;
+  const node = view.focus === null ? undefined : graph.nodes.find((n) => n.id === view.focus);
+
+  if (view.focus !== null && node === undefined) {
+    return page(
+      view.projectName,
+      `<section class="new"><h2>${escapeHtml(view.focus)}</h2>
+      <p>Aucun artefact ne porte cet identifiant.</p>
+      <p class="dim">Un lien déclaré vers un artefact inexistant est signalé par <code>klee links check</code>.</p>
+      <p><a href="/links">Voir tout le graphe</a></p></section>`,
+    );
+  }
+
+  const body = node === undefined ? renderGraphOverview(graph) : renderNeighbourhood(graph, node);
+
+  return page(view.projectName, body);
+}
+
+function renderGraphOverview(graph: TraceGraph): string {
+  const sections = ENTITY_KINDS.map((kind) => {
+    const nodes = graph.nodes.filter((n) => n.kind === kind);
+    if (nodes.length === 0) return '';
+    return `<section class="column">
+      <h2>${KIND_LABELS[kind]}s <span class="count">${String(nodes.length)}</span></h2>
+      ${nodes.map((n) => renderNodeCard(graph, n)).join('')}
+    </section>`;
+  }).join('');
+
+  return `<main class="board">${sections || '<p class="empty">Aucun artefact identifié.</p>'}</main>`;
+}
+
+function renderNodeCard(graph: TraceGraph, node: GraphNode): string {
+  const links = neighbours(graph, node.id)
+    .declared.map((edge) => idLink(otherEnd(edge, node.id)))
+    .join('');
+
+  return `<article class="card">
+    <div class="card__head">${idLink(node.id, 'card__id')}</div>
+    <p class="card__title">${escapeHtml(node.title)}</p>
+    ${node.status === null ? '' : `<p class="dim">${escapeHtml(node.status)}</p>`}
+    ${links === '' ? '' : `<p class="chips">${links}</p>`}
+  </article>`;
+}
+
+function renderNeighbourhood(graph: TraceGraph, node: GraphNode): string {
+  const byId = new Map(graph.nodes.map((n) => [n.id, n]));
+  const around = neighbours(graph, node.id);
+
+  const row = (edge: GraphEdge): string => {
+    const target = otherEnd(edge, node.id);
+    const relation =
+      edge.kind === 'depends-on'
+        ? edge.from === node.id
+          ? 'dépend de'
+          : 'bloque'
+        : edge.kind === 'mention'
+          ? 'cite'
+          : 'lié à';
+    return `<li><span class="dim">${relation}</span> ${idLink(target)}
+      ${escapeHtml(byId.get(target)?.title ?? 'artefact inexistant')}
+      <span class="dim">${edge.sources.map(escapeHtml).join(', ')}</span></li>`;
+  };
+
+  return `<section class="new">
+    <h2>${escapeHtml(node.id)} — ${escapeHtml(node.title)}</h2>
+    <p class="dim">${KIND_LABELS[node.kind]}${node.status === null ? '' : ` · ${escapeHtml(node.status)}`} · <code>${escapeHtml(node.path)}</code></p>
+    ${node.implementedIn === null ? '' : `<p class="dim">Implémenté dans <code>${escapeHtml(node.implementedIn)}</code></p>`}
+
+    <h3>Liens déclarés</h3>
+    ${around.declared.length === 0 ? '<p class="empty">Aucun.</p>' : `<ul class="links">${around.declared.map(row).join('')}</ul>`}
+
+    ${around.mentions.length === 0 ? '' : `<h3>Mentions dans le texte</h3><ul class="links">${around.mentions.map(row).join('')}</ul>`}
+
+    <p><a href="/links">Tout le graphe</a> · <a href="/">Retour au board</a></p>
+  </section>`;
+}
+
+/** Coquille commune au board et à la vue du graphe : même barre, même feuille de style. */
+function page(projectName: string, body: string): string {
+  return `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(projectName)} — graphe</title>
+<style>${STYLES}</style>
+</head>
+<body>
+<header class="bar">
+  <strong>${escapeHtml(projectName)}</strong>
+  <a class="dim" href="/">Board</a>
+  <a class="dim" href="/links">Graphe</a>
+</header>
+${body}
+</body>
+</html>
+`;
 }
 
 /**
@@ -178,4 +319,11 @@ button { background: var(--accent); color: #fff; border-color: transparent;
 .new form { display: grid; gap: 4px; }
 .new label { font-size: 13px; color: var(--muted); margin-top: 8px; }
 .new button { margin-top: var(--space); justify-self: start; padding: 8px 16px; }
+.new h3 { font-size: 14px; margin: var(--space) 0 4px; }
+.card__id { font-size: 12px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, monospace; }
+a.chip { text-decoration: none; }
+a.chip:hover, .card__id:hover, .blocked__link:hover { text-decoration: underline; }
+.blocked__link { color: var(--danger); }
+.links { list-style: none; padding: 0; margin: 0; }
+.links li { padding: 4px 0; border-bottom: 1px solid var(--border); }
 `;

@@ -2,6 +2,7 @@ import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
 import { ConfigError } from '../errors.js';
 import { formatIssues } from '../config/issues.js';
+import { splitFrontmatter } from '../frontmatter.js';
 import { textContents } from '../scaffold/format.js';
 import {
   ACCEPTANCE_HEADING,
@@ -16,7 +17,6 @@ import {
  * doit produire le même fichier, sinon le diff git devient illisible.
  */
 
-const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 const GHERKIN_BLOCK = /```gherkin\r?\n([\s\S]*?)```/g;
 
 /** Ordre d'écriture du frontmatter : identité, état, puis arêtes du graphe. */
@@ -34,8 +34,8 @@ const KEY_ORDER: readonly (keyof TicketFrontmatter)[] = [
 ];
 
 export function parseTicket(path: string, contents: string): Ticket {
-  const match = FRONTMATTER.exec(contents);
-  if (match === null || match[1] === undefined) {
+  const split = splitFrontmatter(contents);
+  if (split === null) {
     throw new ConfigError(`${path} n'a pas de frontmatter : ce n'est pas un ticket.`, {
       code: 'TICKET_MALFORMED',
       hint: 'Un ticket commence par un bloc `---` contenant au moins `id`, `title` et `status`.',
@@ -44,7 +44,7 @@ export function parseTicket(path: string, contents: string): Ticket {
 
   let raw: unknown;
   try {
-    raw = parseYaml(match[1]);
+    raw = parseYaml(split.frontmatter);
   } catch (cause) {
     throw new ConfigError(`${path} : frontmatter YAML invalide.`, {
       code: 'TICKET_MALFORMED',
@@ -62,7 +62,7 @@ export function parseTicket(path: string, contents: string): Ticket {
     );
   }
 
-  const body = contents.slice(match[0].length);
+  const { body } = split;
   return { ...parsed.data, path, body, acceptance: extractAcceptance(body) };
 }
 

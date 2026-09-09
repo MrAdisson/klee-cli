@@ -138,6 +138,9 @@ coverage/
 # Caches locaux de Klee (index de tickets…) — reconstructibles, jamais versionnés
 .klee/
 
+# Cache de construction du site de documentation
+docs/.docusaurus/
+
 # Les secrets ne vivent jamais dans le dépôt
 .env
 .env.*

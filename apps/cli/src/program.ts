@@ -9,6 +9,15 @@ import {
   type ModuleCommandOptions,
 } from './commands/module.js';
 import { runBoard, type BoardOptions } from './commands/board.js';
+import {
+  runLinksCheck,
+  runLinksList,
+  runLinksReport,
+  runLinksShow,
+  type LinksListOptions,
+  type LinksReportOptions,
+} from './commands/links.js';
+import { runDocsBuild, runDocsInit, runDocsServe, type DocsInitOptions } from './commands/docs.js';
 import { runProjectScript } from './commands/project-script.js';
 import {
   runTicketCreate,
@@ -42,6 +51,10 @@ export function createProgram(): Command {
     .option('--name <name>', 'nom du projet (défaut : nom du dossier)')
     .option('--id-prefix <prefix>', 'préfixe des identifiants de tickets (défaut : PROJ)')
     .option('--preset <preset>', `preset de modules : ${PRESET_IDS.join(' | ')}`)
+    .option(
+      '--provider <point=id...>',
+      'impose un provider, ex. --provider docs=markdown-only (passe avant le preset)',
+    )
     .option('-y, --yes', 'aucune question : preset full-product et providers par défaut')
     .option('--dry-run', 'affiche le plan sans rien écrire')
     .option('--force', 'écrase les fichiers existants qui diffèrent')
@@ -135,6 +148,64 @@ export function createProgram(): Command {
     .argument('<id>', 'identifiant du ticket')
     .action(async (id: string) => {
       await runTicketShow(id);
+    });
+
+  const linksCommand = program
+    .command('links')
+    .description('Graphe de traçabilité : liens croisés entre tickets, maquettes et docs.')
+    .option('--json', 'sortie JSON, pour un agent ou un script')
+    .action(async (options: LinksListOptions) => {
+      await runLinksList(options);
+    });
+
+  linksCommand
+    .command('show')
+    .description('Affiche le voisinage d’un identifiant.')
+    .argument('<id>', 'identifiant : ticket, MOCK-xxx ou DOC-xxx')
+    .action(async (id: string) => {
+      await runLinksShow(id);
+    });
+
+  linksCommand
+    .command('check')
+    .description('Vérifie que tout lien déclaré pointe vers un artefact existant.')
+    .action(async () => {
+      await runLinksCheck();
+    });
+
+  linksCommand
+    .command('report')
+    .description('Régénère la vue du graphe dans docs/_generated/.')
+    .option('--dry-run', 'affiche le contenu sans l’écrire')
+    .action(async (options: LinksReportOptions) => {
+      await runLinksReport(options);
+    });
+
+  const docsCommand = program
+    .command('docs')
+    .description('Site de documentation (docs/), servi par le provider retenu.');
+
+  docsCommand
+    .command('init')
+    .description('Génère les fichiers du site de documentation.')
+    .option('--dry-run', 'affiche le plan sans rien écrire')
+    .option('--force', 'écrase les fichiers existants qui diffèrent')
+    .action(async (options: DocsInitOptions) => {
+      await runDocsInit(options);
+    });
+
+  docsCommand
+    .command('serve')
+    .description('Sert la documentation en local, avec rechargement à chaud.')
+    .action(async () => {
+      await runDocsServe();
+    });
+
+  docsCommand
+    .command('build')
+    .description('Construit la version statique du site de documentation.')
+    .action(async () => {
+      await runDocsBuild();
     });
 
   const tokensCommand = program

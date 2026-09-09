@@ -28,6 +28,7 @@ export {
   PROVIDER_POINT_LIST,
   providerPointsForModule,
 } from './points.js';
+export { dependencyOverrideDecisions, installScriptDecisions } from './declarations.js';
 export {
   PROVIDER_POINTS,
   isProviderPoint,

@@ -3,7 +3,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/*.tsbuildinfo'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/*.tsbuildinfo',
+      // Sortie et cache du site de documentation : du JavaScript produit par Docusaurus,
+      // qui n'a pas à passer les règles écrites pour le code de ce dépôt.
+      'docs/build/**',
+      'docs/.docusaurus/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

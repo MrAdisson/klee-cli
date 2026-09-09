@@ -1,5 +1,6 @@
 import { jsonContents, textContents } from '../scaffold/format.js';
 import type { ScaffoldContext, ScaffoldDependency, ScaffoldFile } from '../scaffold/types.js';
+import { dependencyOverrideDecisions, installScriptDecisions } from './declarations.js';
 import type { Provider } from './types.js';
 
 /**
@@ -21,7 +22,48 @@ const NX_VERSION = '^23.2.0';
  * `design-system` et `mockups` en permanence évite que `klee module add mockups` laisse un
  * fichier de workspace périmé derrière lui. Un état de moins à synchroniser.
  */
-const WORKSPACE_GLOBS = ['apps/*', 'apps/packages/*', 'design-system', 'mockups'];
+const WORKSPACE_GLOBS = ['apps/*', 'apps/packages/*', 'design-system', 'docs', 'mockups'];
+
+/**
+ * Bloc `allowBuilds` de pnpm : la décision prise pour chaque script de post-installation
+ * qu'apportent les providers retenus.
+ *
+ * Rien n'est écrit en dur ici — la liste vient des providers eux-mêmes (ADR 0012). Un script
+ * qu'aucun d'eux ne déclare fera échouer `pnpm install`, et c'est voulu : exécuter du code à
+ * l'installation reste une décision humaine.
+ */
+function allowBuildsBlock(context: ScaffoldContext): string[] {
+  const decisions = Object.entries(installScriptDecisions(context));
+  if (decisions.length === 0) return [];
+
+  return [
+    '',
+    '# Scripts de post-installation apportés par les providers retenus, tranchés',
+    '# explicitement. pnpm refuse d’en ignorer un en silence : un script nouveau fera',
+    '# échouer l’installation, et c’est voulu.',
+    'allowBuilds:',
+    ...decisions.map(([name, allowed]) => `  ${name}: ${String(allowed)}`),
+  ];
+}
+
+/**
+ * Versions imposées dans l'arbre transitif, déclarées par les providers retenus.
+ *
+ * Les portées (`uuid@<11.1.1`) sont conservées telles quelles : l'override cesse d'agir de
+ * lui-même dès que l'amont passe au-delà, au lieu de survivre à sa raison d'être.
+ */
+function overridesBlock(context: ScaffoldContext): string[] {
+  const overrides = Object.entries(dependencyOverrideDecisions(context));
+  if (overrides.length === 0) return [];
+
+  return [
+    '',
+    '# Versions imposées dans l’arbre transitif : ce que des dépendances profondes traînent',
+    '# et que leur auteur n’a pas encore corrigé. À retirer quand l’amont aura bougé.',
+    'overrides:',
+    ...overrides.map(([target, version]) => `  ${target}: ${version}`),
+  ];
+}
 
 /**
  * Scripts de racine volontairement génériques. Chaque dossier possède les siens
@@ -76,6 +118,8 @@ const pnpmTurborepo: Provider = {
             '# Membres du workspace — cf docs/decisions/0001-repo-topology.md',
             'packages:',
             ...WORKSPACE_GLOBS.map((glob) => `  - ${glob}`),
+            ...allowBuildsBlock(context),
+            ...overridesBlock(context),
           ].join('\n'),
         ),
       },
@@ -85,7 +129,10 @@ const pnpmTurborepo: Provider = {
         contents: jsonContents({
           $schema: 'https://turborepo.com/schema.json',
           tasks: {
-            build: { dependsOn: ['^build'], outputs: ['dist/**'] },
+            // `build/**` : sortie du site de documentation, à côté de `dist/**` que
+            // produisent les packages. Un output non déclaré fait mettre en cache un
+            // résultat vide, et la tâche « réussit » sans rien produire.
+            build: { dependsOn: ['^build'], outputs: ['dist/**', 'build/**'] },
             test: { dependsOn: ['^build'] },
             lint: {},
             // Tâche longue : ni cache, ni attente de terminaison. `dependsOn` garantit que
@@ -108,6 +155,25 @@ const pnpmTurborepo: Provider = {
     ];
   },
 };
+
+/**
+ * Équivalent npm des overrides. npm ne connaît pas la forme `paquet@portée` : la portée est
+ * donc retirée, ce qui rend l'override inconditionnel. C'est plus large que sous pnpm, et
+ * c'est le mieux que npm permette — à surveiller lors d'une montée de version de l'amont.
+ */
+function npmOverrides(context: ScaffoldContext): { overrides?: Record<string, string> } {
+  const overrides = Object.entries(dependencyOverrideDecisions(context));
+  if (overrides.length === 0) return {};
+
+  return {
+    overrides: Object.fromEntries(
+      overrides.map(([target, version]) => [
+        target.split('@<')[0]?.split('@>')[0] ?? target,
+        version,
+      ]),
+    ),
+  };
+}
 
 const nx: Provider = {
   id: 'nx',
@@ -135,6 +201,7 @@ const nx: Provider = {
           engines: { node: '>=22.12.0' },
           workspaces: WORKSPACE_GLOBS,
           scripts: rootScripts('nx'),
+          ...npmOverrides(context),
         }),
       },
       {

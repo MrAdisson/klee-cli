@@ -89,9 +89,14 @@ export async function askOptionalModules(initialValues: readonly ModuleId[]): Pr
   );
 }
 
+/**
+ * `proposed` : le défaut que le preset suggère pour ce point. Il ne fait que présélectionner
+ * la réponse — la liste complète reste offerte (ADR 0012).
+ */
 export async function askProvider(
   point: ProviderPoint,
   registry: ProviderRegistry,
+  proposed?: string,
 ): Promise<string> {
   const definition = PROVIDER_POINT_DEFINITIONS[point];
   const providers = registry.list(point);
@@ -99,7 +104,7 @@ export async function askProvider(
   return ensure(
     await select<string>({
       message: `${definition.question} ${definition.reference}`,
-      initialValue: definition.defaultProvider,
+      initialValue: proposed ?? definition.defaultProvider,
       options: providers.map((provider) => ({
         value: provider.id,
         label: provider.label,

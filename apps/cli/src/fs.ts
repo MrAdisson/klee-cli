@@ -1,5 +1,14 @@
-import { stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, parse, resolve } from 'node:path';
+
+/** Contenu d'un fichier, ou `null` s'il n'existe pas — pour distinguer « créé » de « mis à jour ». */
+export async function readFileIfExists(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, 'utf8');
+  } catch {
+    return null;
+  }
+}
 
 export async function fileExists(path: string): Promise<boolean> {
   try {

@@ -9,7 +9,7 @@
 | ------------- | -------- | ------------------------------------------------------------------------ |
 | `technical/`  | authored | Référence technique : CLI, format de configuration, architecture interne |
 | `decisions/`  | authored | ADR numérotés — ce qui a été tranché et pourquoi                         |
-| `_generated/` | générée  | _(à venir, phase 3)_ — jamais édité à la main                            |
+| `_generated/` | générée  | Vue du graphe, écrite par `klee links report` — jamais éditée à la main  |
 
 ## Conventions
 
@@ -24,7 +24,18 @@
   décision qui change fait l'objet d'un nouvel ADR qui supersède explicitement l'ancien.
 - Un ADR répond à trois questions, dans cet ordre : quel était le contexte, qu'a-t-on décidé,
   qu'est-ce que ça coûte. Un ADR sans section « conséquences » cache son prix.
-- Le site docs-as-code (Docusaurus, cf `project.config.json`) arrive en phase 3.
+- Un identifiant cité dans le **texte** est une mention ; un identifiant listé dans
+  `related_tickets` / `related_mockups` / `related_docs` est une **arête déclarée**, et
+  `klee links check` exige qu'elle mène quelque part. Déclarer d'un seul côté suffit.
+- Un identifiant écrit entre backticks ou dans un bloc de code n'est **pas** une référence :
+  c'est un échantillon, et il est ignoré du graphe. C'est ce qui permet aux ADR d'illustrer le
+  schéma avec `KLEE-123` sans polluer la vérification.
+- Le site docs-as-code est servi par `klee docs serve`. `docs/` porte donc aussi
+  `package.json`, `docusaurus.config.mjs`, `sidebars.mjs`, `index.md` et `src/` : ce sont des
+  fichiers de site, pas de la documentation (cf ADR 0011).
+- Les liens entre documents s'écrivent en **relatif de fichier à fichier**
+  (`../decisions/0008-….md`) : ils fonctionnent sur une forge comme dans le site. Un lien
+  cassé fait échouer `klee docs build`.
 
 ## Périmètre d'édition pour un agent
 
@@ -36,6 +47,7 @@
 
 **Interdit**
 
+- Éditer `_generated/` à la main : le fichier est réécrit à chaque `klee links report`.
 - Réécrire un ADR déjà accepté.
 - Créer une doc sans frontmatter.
 - Écrire un secret ou une donnée personnelle dans une doc.

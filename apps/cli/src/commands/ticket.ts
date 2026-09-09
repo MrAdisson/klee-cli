@@ -1,14 +1,17 @@
 import {
   KleeError,
   TICKET_STATUSES,
+  buildTraceGraph,
   createTicket,
   isTicketStatus,
   moveTicket,
+  neighbours,
+  otherEnd,
   type Ticket,
   type TicketStatus,
 } from '@klee/core';
 
-import { loadProject, openTicketIndex } from '../project.js';
+import { loadProject, openTicketIndex, type Project } from '../project.js';
 import { field, heading, info, success, ticketRow, warn, write } from '../ui/output.js';
 
 /**
@@ -144,11 +147,50 @@ export async function runTicketShow(id: string): Promise<void> {
     field('Auteur', ticket.authored_by);
     field('Fichier', ticket.path);
 
+    await showIncomingLinks(project, ticket);
+
     write();
     write(ticket.body.trimEnd());
     write();
   } finally {
     index.close();
+  }
+}
+
+/**
+ * Ce qui pointe vers ce ticket sans qu'il le sache : une maquette qui le référence, une doc
+ * qui le cite. Le frontmatter du ticket ne peut pas les connaître — c'est tout l'intérêt
+ * d'une arête résolue dans les deux sens (ADR 0010).
+ */
+async function showIncomingLinks(project: Project, ticket: Ticket): Promise<void> {
+  const graph = await buildTraceGraph({
+    root: project.root,
+    ticketPrefix: project.config.idPrefix,
+  });
+
+  const declared = new Set([
+    ...ticket.depends_on,
+    ...ticket.related_mockups,
+    ...ticket.related_docs,
+  ]);
+
+  const around = neighbours(graph, ticket.id);
+  const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+
+  const incoming = around.declared
+    .map((edge) => otherEnd(edge, ticket.id))
+    .filter((id) => !declared.has(id));
+
+  const cited = around.mentions.map((edge) => otherEnd(edge, ticket.id));
+
+  if (incoming.length > 0) {
+    field(
+      'Référencé par',
+      incoming.map((id) => `${id} (${byId.get(id)?.title ?? '?'})`).join(', '),
+    );
+  }
+  if (cited.length > 0) {
+    field('Cite', cited.join(', '));
   }
 }
 

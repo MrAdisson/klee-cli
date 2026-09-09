@@ -33,7 +33,10 @@ export const PROVIDER_POINT_DEFINITIONS: Readonly<Record<ProviderPoint, Provider
       requiresModule: 'contracts',
       defaultProvider: 'openapi',
       reference: 'TECHNICAL.md §8',
-      scaffoldingPhase: 3,
+      // Non planifié : la roadmap ne situe la génération de contrats dans aucune phase, et
+      // §8 repousse explicitement le sujet à un usage réel. Le module `contracts`, lui,
+      // produit déjà ses fichiers de convention — c'est le provider qui attend.
+      scaffoldingPhase: null,
     },
     'tickets-index': {
       point: 'tickets-index',

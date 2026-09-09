@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createProjectConfig } from '../config/defaults.js';
+import { createProjectConfig, defaultProviderSelection } from '../config/defaults.js';
 import type { ProjectConfig } from '../config/schema.js';
 import { moduleSelectionFromPreset } from '../presets.js';
 import type { PresetId } from '../presets.js';
@@ -8,8 +8,13 @@ import { buildScaffoldPlan } from './plan.js';
 
 const FIXED_NOW = new Date('2026-01-15T00:00:00.000Z');
 
+/** Ce que produit réellement `klee init --preset <preset> --yes`, providers compris. */
 function configFor(preset: PresetId): ProjectConfig {
-  return createProjectConfig({ name: 'demo', modules: moduleSelectionFromPreset(preset) });
+  return createProjectConfig({
+    name: 'demo',
+    modules: moduleSelectionFromPreset(preset),
+    providers: defaultProviderSelection(preset),
+  });
 }
 
 function paths(preset: PresetId): string[] {
@@ -132,8 +137,73 @@ describe('phase 1 — design system et maquettes', () => {
 
   it('ne génère ni tokens ni maquettes quand le module est absent', () => {
     const lib = buildScaffoldPlan({ config: configFor('internal-lib'), now: FIXED_NOW });
-    expect(lib.dependencies.map((d) => d.name)).toEqual(['turbo']);
     expect(lib.files.some((file) => file.path.startsWith('design-system/'))).toBe(false);
+    expect(lib.files.some((file) => file.path.startsWith('mockups/'))).toBe(false);
+  });
+
+  /**
+   * Le point `docs` appartient au socle : avec Docusaurus, même une bibliothèque interne
+   * embarquerait React. `internal-lib` propose donc `markdown-only` (ADR 0012).
+   */
+  it('n’impose aucun site de documentation à une bibliothèque interne', () => {
+    const lib = buildScaffoldPlan({ config: configFor('internal-lib'), now: FIXED_NOW });
+
+    expect(lib.dependencies.map((d) => d.name)).toEqual(['turbo']);
+    expect(lib.files.some((file) => file.path === 'docs/package.json')).toBe(false);
+    // Le contenu, lui, reste : le socle est la documentation, pas son site.
+    expect(lib.files.some((file) => file.path === 'docs/technical/index.md')).toBe(true);
+  });
+
+  it('mais la proposition du preset reste une proposition', () => {
+    const config = configFor('internal-lib');
+    const withSite = buildScaffoldPlan({
+      config: { ...config, providers: { ...config.providers, docs: 'docusaurus' } },
+      now: FIXED_NOW,
+    });
+
+    expect(withSite.files.some((file) => file.path === 'docs/package.json')).toBe(true);
+  });
+
+  /**
+   * La décision vient du provider qui apporte la dépendance, pas d'une liste tenue dans le
+   * provider `workspace` : c'est ce qui permet d'ajouter un provider sans toucher à un autre
+   * (ADR 0012). Sans ce bloc, `pnpm install` échoue sur un projet neuf.
+   */
+  it('inscrit les scripts de post-installation déclarés par les providers retenus', () => {
+    const workspaceFile = (preset: PresetId): string => {
+      const plan = buildScaffoldPlan({ config: configFor(preset), now: FIXED_NOW });
+      return plan.files.find((file) => file.path === 'pnpm-workspace.yaml')?.contents ?? '';
+    };
+
+    expect(workspaceFile('full-product')).toContain('core-js: false');
+    // Aucun provider retenu n'en déclare : pas de bloc du tout, pas un bloc vide.
+    expect(workspaceFile('internal-lib')).not.toContain('allowBuilds');
+  });
+
+  /**
+   * Un scaffolding ne doit pas livrer un projet qui avertit dès sa première installation.
+   * Les portées sont conservées : l'override s'efface de lui-même quand l'amont bouge.
+   */
+  it('impose les versions que les providers retenus déclarent, portée comprise', () => {
+    const workspaceFile = (preset: PresetId): string => {
+      const plan = buildScaffoldPlan({ config: configFor(preset), now: FIXED_NOW });
+      return plan.files.find((file) => file.path === 'pnpm-workspace.yaml')?.contents ?? '';
+    };
+
+    expect(workspaceFile('full-product')).toContain('uuid@<11.1.1: ^11.1.1');
+    expect(workspaceFile('internal-lib')).not.toContain('overrides:');
+  });
+
+  /** npm ne connaît pas la forme `paquet@portée` : la portée tombe, l'override reste. */
+  it('traduit les versions imposées pour un workspace npm', () => {
+    const config = configFor('full-product');
+    const plan = buildScaffoldPlan({
+      config: { ...config, providers: { ...config.providers, workspace: 'nx' } },
+      now: FIXED_NOW,
+    });
+
+    const manifest = plan.files.find((file) => file.path === 'package.json')?.contents ?? '{}';
+    expect(JSON.parse(manifest).overrides).toMatchObject({ uuid: '^11.1.1' });
   });
 });
 

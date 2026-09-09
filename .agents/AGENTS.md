@@ -28,6 +28,9 @@ Ne pas introduire de synonyme concurrent : « feature » pour module, « adapter
   est un `declarativeProvider` : il enregistre un choix, il ne génère rien. C'est volontaire.
 - **Toute nouvelle règle structurante devient un ADR**, pas un commentaire enfoui.
 - **`pnpm run verify` avant de rendre la main.** Format, lint, typecheck et tests.
+- **`klee links check` aussi.** Un identifiant cité dans un frontmatter doit exister ; la
+  commande sort en 1 sinon. C'est la règle que `tickets/AGENTS.md` énonçait sans que rien ne
+  l'applique jusqu'à la phase 3.
 - **Ne jamais committer ni stager.** Le mainteneur relit et committe lui-même : laissez
   l'arbre de travail propre et résumez ce qui a changé.
 
@@ -65,6 +68,28 @@ Ce qu'il faut en retenir, au-delà du cas :
   le port suivant. On croit tester un projet, on en regarde un autre. `pkill -f eleventy`.
 - Un provider peut porter du comportement, pas seulement des fichiers (`Provider.ticketIndex`,
   `Provider.workspace`). Cette extension du §13 est délibérée — cf ADR 0008.
+- `docs/package.json` ne déclare **pas** `"type": "module"`, contrairement à tous les autres
+  packages générés : le bundle serveur de Docusaurus est du CommonJS. L'y remettre fait échouer
+  la construction sur `require.resolveWeak is not a function`, message qui ne mentionne ni le
+  fichier ni la cause. Les configurations sont en `.mjs`, donc restent en ESM.
+- Le plugin `pages` de Docusaurus est désactivé : une page `.md` n'expose pas les métadonnées
+  du thème, une page `.mdx` fait échouer la compilation. La page d'accueil est un document.
+- Un seul `plugin-content-docs` : Docusaurus ne résout les liens relatifs de fichier à fichier
+  qu'à l'intérieur d'une instance. Le découper par section casse `[…](../decisions/….md)`.
+- `pnpm install` échoue si un script de post-installation n'est pas tranché dans
+  `pnpm-workspace.yaml`. La clé est `allowBuilds` (une table nom → booléen) en pnpm 12, pas
+  `ignoredBuiltDependencies` : pnpm réécrit lui-même le fichier avec la bonne forme si on se
+  trompe, ce qui est le moyen le plus rapide de la retrouver.
+- Même piège que les serveurs de maquettes, version docs : un `docusaurus serve` oublié sur un
+  port garde la main, et on relit un build précédent en croyant tester le nouveau. Les codes
+  200 sont alors parfaitement trompeurs. `pkill -f "docusaurus serve"`.
+- Le bloc `overrides` de `pnpm-workspace.yaml` corrige ce que l'arbre de Docusaurus traîne
+  (ADR 0012). Il est **daté** : à relire à chaque montée de version, et à alléger dès que
+  l'amont a repris la correction. Ne jamais y ajouter une ligne sans portée (`paquet@<version`)
+  — un override inconditionnel survit à sa raison d'être et bloque une mise à jour.
+- Un override de version ne se juge pas à la lecture : le vérifier en installant, en
+  construisant **et** en lançant le serveur de développement. `uuid` et `qs` ne vivent que
+  dans `webpack-dev-server`, donc un `build` réussi ne prouve rien à leur sujet.
 
 ## Périmètre d'édition pour un agent
 

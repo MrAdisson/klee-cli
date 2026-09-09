@@ -43,6 +43,9 @@ Scénario: ...
 - **`depends_on` est un vrai graphe**, pas un statut déguisé : c'est ce qui permet à un agent
   de savoir s'il risque une collision avec un autre agent.
 - **`authored_by: agent`** pour un ticket produit par un agent (`klee ticket create --agent`).
+- **Un lien déclaré d'un seul côté suffit** : une maquette qui déclare `related_tickets`
+  apparaît dans le voisinage du ticket sans que celui-ci la mentionne (ADR 0010). Rien à
+  synchroniser entre les deux frontmatters.
 - Le fichier reste la source de vérité : l'éditer à la main est légitime, et l'index s'en
   aperçoit.
 
@@ -59,7 +62,8 @@ Scénario: ...
 - Modifier `id` après création : c'est l'arête sur laquelle tout le reste pointe.
 - Supprimer un ticket : le passer en `done`, pour préserver l'historique de décision.
 - Écrire une donnée personnelle ou un secret dans un ticket.
-- Inventer un lien vers une maquette ou une doc qui n'existe pas.
+- Inventer un lien vers une maquette ou une doc qui n'existe pas — `klee links check` le
+  refuse désormais mécaniquement, avec un code de sortie non nul.
 
 ## Outils
 
@@ -67,11 +71,14 @@ Scénario: ...
 klee ticket create "Titre"   # --status --assignee --depends-on --mockup --doc --agent
 klee ticket list             # --status --assignee --json
 klee ticket move KLEE-001 in-progress
-klee ticket show KLEE-001
-klee board                   # kanban local, sans terminal
+klee ticket show KLEE-001    # affiche aussi ce qui pointe vers le ticket
+klee board                   # kanban local, sans terminal ; chaque identifiant est cliquable
+klee links show KLEE-001     # voisinage dans le graphe
+klee links check             # aucun lien cassé — à passer avant de rendre la main
 ```
 
 ## Références
 
 - `AGENTS.md` (racine) — schéma d'identifiants.
 - `docs/technical/cli-klee.md` — référence complète de la CLI.
+- `docs/technical/graphe-de-tracabilite.md` — arêtes, mentions, vérification.

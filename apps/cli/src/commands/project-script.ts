@@ -19,8 +19,12 @@ export interface RunProjectScriptOptions {
   /** Dossier du package qui porte le script, relatif à la racine du projet. */
   readonly directory: string;
   readonly script: string;
-  /** Module dont dépend ce script : absent, la commande n'a pas de sens. */
-  readonly requiresModule: ModuleId;
+  /**
+   * Module dont dépend ce script : absent, la commande n'a pas de sens. Facultatif pour un
+   * script qui ne dépend d'aucun module optionnel — le site de documentation, par exemple,
+   * dont le dossier appartient au socle.
+   */
+  readonly requiresModule?: ModuleId;
   /**
    * Construit les tokens au préalable s'ils manquent. Servir des maquettes sans tokens
    * produit des pages sans style et un 404 difficile à relier à sa cause : c'est un
@@ -34,12 +38,13 @@ const TOKENS_OUTPUT = 'design-system/dist/css/tokens.css';
 export async function runProjectScript(options: RunProjectScriptOptions): Promise<void> {
   const { root, config } = await loadProject();
 
-  if (!config.modules[options.requiresModule]) {
+  const required = options.requiresModule;
+  if (required !== undefined && !config.modules[required]) {
     throw new KleeError(
-      `Le module « ${MODULES[options.requiresModule].label} » n'est pas retenu dans ce projet.`,
+      `Le module « ${MODULES[required].label} » n'est pas retenu dans ce projet.`,
       {
         code: 'MODULE_ABSENT',
-        hint: `Ajoutez-le avec \`klee module add ${options.requiresModule}\`.`,
+        hint: `Ajoutez-le avec \`klee module add ${required}\`.`,
       },
     );
   }
