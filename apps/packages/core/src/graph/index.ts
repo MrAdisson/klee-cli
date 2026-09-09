@@ -29,6 +29,7 @@ export {
   mockupsDir,
   parseMockupMeta,
   readMockups,
+  updateMockupStatus,
   type MockupFile,
 } from './mockups.js';
 

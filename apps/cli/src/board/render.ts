@@ -1,5 +1,6 @@
 import {
   ENTITY_KINDS,
+  MOCKUP_STATUSES,
   TICKET_STATUSES,
   neighbours,
   otherEnd,
@@ -42,6 +43,8 @@ export interface BoardViewModel {
   readonly projectName: string;
   readonly idPrefix: string;
   readonly tickets: readonly Ticket[];
+  /** Maquettes liées depuis leur propre fichier de métadonnées. */
+  readonly mockupsByTicket?: Readonly<Record<string, readonly string[]>>;
   readonly message?: string;
   /** URL du studio quand le board y est intégré ; absent quand il est servi seul. */
   readonly studioUrl?: string;
@@ -55,7 +58,7 @@ export function renderBoard(view: BoardViewModel): string {
     const tickets = view.tickets.filter((ticket) => ticket.status === status);
     return `<section class="column" aria-labelledby="col-${status}">
       <h2 id="col-${status}">${STATUS_LABELS[status]} <span class="count">${String(tickets.length)}</span></h2>
-      ${tickets.map((ticket) => renderCard(ticket, done, idLink)).join('\n') || '<p class="empty">Rien ici.</p>'}
+      ${tickets.map((ticket) => renderCard(ticket, done, idLink, view.mockupsByTicket?.[ticket.id] ?? [])).join('\n') || '<p class="empty">Rien ici.</p>'}
     </section>`;
   }).join('\n');
 
@@ -107,6 +110,16 @@ for (const form of document.querySelectorAll('form[data-auto]')) {
   form.querySelector('button').hidden = true;
   form.querySelector('select').addEventListener('change', () => { form.submit(); });
 }
+for (const form of document.querySelectorAll('form.mockup-status')) {
+  form.addEventListener('submit', () => {
+    form.setAttribute('aria-busy', 'true');
+    const button = form.querySelector('button');
+    if (button !== null) {
+      button.disabled = true;
+      button.textContent = 'Vérification…';
+    }
+  });
+}
 </script>
 </body>
 </html>
@@ -125,34 +138,29 @@ type IdLinker = (id: string, className?: string) => string;
  * - **board seul** : la page du ticket (`/tickets/<id>`), qui porte son contenu *et* son
  *   voisinage ; pour une maquette ou un document, dont le board ne détient pas le contenu,
  *   sa fiche dans le graphe (`/links/<id>`) ;
- * - **board dans le studio** : `/go/<id>`, qui ouvre l'onglet où l'artefact vit vraiment.
- *   Cliquer sur `MOCK-002` affiche alors **la maquette**, pas une fiche qui la décrit.
- *
- * `target="_top"` fait sortir du cadre : sans lui, le studio s'afficherait dans son propre
- * onglet Board, en poupées russes.
+ * - **board dans le studio** : la même fiche locale, pour que le sens d'un identifiant ne
+ *   dépende pas de l'endroit où il est cliqué. Les aperçus réels portent un libellé distinct.
  */
 function makeIdLink(studioUrl: string | undefined, idPrefix?: string): IdLinker {
   return (id: string, className = 'chip'): string => {
     const safe = escapeHtml(id);
-    if (studioUrl === undefined) {
-      // Un ticket a sa propre page, qui porte son contenu **et** son voisinage ; les
-      // maquettes et documents n'en ont pas dans le board, et gardent la fiche du graphe.
-      const path =
-        idPrefix !== undefined && id.startsWith(`${idPrefix}-`)
-          ? `/tickets/${encodeURIComponent(id)}`
-          : `/links/${encodeURIComponent(id)}`;
-      return `<a class="${className}" href="${path}">${safe}</a>`;
-    }
-    const target = `${studioUrl.replace(/\/$/, '')}/go/${encodeURIComponent(id)}`;
-    return `<a class="${className}" target="_top" href="${escapeHtml(target)}">${safe}</a>`;
+    const path =
+      idPrefix !== undefined && id.startsWith(`${idPrefix}-`)
+        ? `/tickets/${encodeURIComponent(id)}`
+        : `/links/${encodeURIComponent(id)}`;
+    return `<a class="${className}" href="${path}">${safe}</a>`;
   };
 }
 
-function renderCard(ticket: Ticket, done: ReadonlySet<string>, idLink: IdLinker): string {
+function renderCard(
+  ticket: Ticket,
+  done: ReadonlySet<string>,
+  idLink: IdLinker,
+  reverseMockups: readonly string[],
+): string {
   const blockers = ticket.depends_on.filter((id) => !done.has(id));
-  const chips = [...ticket.related_mockups, ...ticket.related_docs]
-    .map((id) => idLink(id))
-    .join('');
+  const mockups = [...new Set([...ticket.related_mockups, ...reverseMockups])];
+  const chips = [...mockups, ...ticket.related_docs].map((id) => idLink(id)).join('');
 
   return `<article class="card${blockers.length > 0 ? ' card--blocked' : ''}">
     <div class="card__head">
@@ -190,6 +198,8 @@ export interface LinksViewModel {
   readonly focus: string | null;
   /** URL du studio quand le board y est intégré ; absent quand il est servi seul. */
   readonly studioUrl?: string;
+  readonly message?: string;
+  readonly messageKind?: 'success' | 'error';
 }
 
 /**
@@ -217,9 +227,13 @@ export function renderLinks(view: LinksViewModel): string {
   const body =
     node === undefined
       ? renderGraphOverview(graph, idLink)
-      : renderNeighbourhood(graph, node, idLink);
+      : renderNeighbourhood(graph, node, idLink, view.studioUrl);
 
-  return page(view.projectName, body);
+  const notice =
+    view.message === undefined
+      ? ''
+      : `<p class="flash flash--${view.messageKind ?? 'success'}" role="alert">${escapeHtml(view.message)}</p>`;
+  return page(view.projectName, `${notice}${body}`);
 }
 
 function renderGraphOverview(graph: TraceGraph, idLink: IdLinker): string {
@@ -285,7 +299,12 @@ function renderTicketLinks(graph: TraceGraph, node: GraphNode, idLink: IdLinker)
   </section>`;
 }
 
-function renderNeighbourhood(graph: TraceGraph, node: GraphNode, idLink: IdLinker): string {
+function renderNeighbourhood(
+  graph: TraceGraph,
+  node: GraphNode,
+  idLink: IdLinker,
+  studioUrl: string | undefined,
+): string {
   return `<section class="new">
     <h2>${escapeHtml(node.id)} — ${escapeHtml(node.title)}</h2>
     <p class="dim">${KIND_LABELS[node.kind]}${node.status === null ? '' : ` · ${escapeHtml(node.status)}`} · <code>${escapeHtml(node.path)}</code></p>
@@ -293,7 +312,34 @@ function renderNeighbourhood(graph: TraceGraph, node: GraphNode, idLink: IdLinke
 
     ${edgeRows(graph, node, idLink)}
 
+    ${node.kind === 'mockup' ? renderMockupStatus(node, studioUrl) : ''}
+    ${node.kind === 'doc' ? renderDocPreview(node, studioUrl) : ''}
+
     <p><a href="/links">Tout le graphe</a> · <a href="/">Retour au board</a></p>
+  </section>`;
+}
+
+function renderDocPreview(node: GraphNode, studioUrl: string | undefined): string {
+  if (studioUrl === undefined) return '';
+  return `<p><a href="${escapeHtml(`${studioUrl.replace(/\/$/, '')}/go/${encodeURIComponent(node.id)}`)}" target="_top">Ouvrir le document ↗</a></p>`;
+}
+
+function renderMockupStatus(node: GraphNode, studioUrl: string | undefined): string {
+  const preview =
+    studioUrl === undefined
+      ? ''
+      : `<p><a href="${escapeHtml(`${studioUrl.replace(/\/$/, '')}/go/${encodeURIComponent(node.id)}`)}" target="_top">Aperçu de la maquette ↗</a></p>`;
+  return `<section class="status-edit">
+    <h3>Statut de la maquette</h3>
+    ${preview}
+    <form class="mockup-status" method="post" action="/mockups/${encodeURIComponent(node.id)}/status">
+      <label for="mockup-status">Statut</label>
+      <select id="mockup-status" name="status">
+        ${MOCKUP_STATUSES.map((status) => `<option value="${status}"${status === node.status ? ' selected' : ''}>${status}</option>`).join('')}
+      </select>
+      <button type="submit">Enregistrer</button>
+    </form>
+    <p class="dim">Le passage à <code>validated</code> ou <code>implemented</code> lance le gate d’accessibilité.</p>
   </section>`;
 }
 
@@ -436,6 +482,18 @@ function page(projectName: string, body: string, section = 'graphe'): string {
   <a class="dim" href="/links">Graphe</a>
 </header>
 ${body}
+<script>
+for (const form of document.querySelectorAll('form.mockup-status')) {
+  form.addEventListener('submit', () => {
+    form.setAttribute('aria-busy', 'true');
+    const button = form.querySelector('button');
+    if (button !== null) {
+      button.disabled = true;
+      button.textContent = 'Vérification…';
+    }
+  });
+}
+</script>
 </body>
 </html>
 `;
@@ -462,6 +520,7 @@ a { color: var(--accent); }
   background: var(--raised); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
 .flash { margin: var(--space); padding: 12px; border-radius: var(--radius);
   background: #f0fdf4; color: #15803d; border: 1px solid #15803d33; }
+.flash--error { background: #fef2f2; color: var(--danger); border-color: #b91c1c55; }
 .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space); padding: var(--space); align-items: start; }
 .column { background: transparent; }
@@ -498,6 +557,7 @@ a { color: var(--accent); }
   background: #f3f4f6; color: var(--muted); }
 .chip--agent { background: #eef2ff; color: #3730a3; }
 .card form { display: flex; gap: 6px; margin-top: 10px; }
+.mockup-status button:disabled { cursor: wait; opacity: .7; }
 select, input, textarea, button { font: inherit; border-radius: 4px;
   border: 1px solid var(--border); padding: 4px 6px; background: var(--raised); color: var(--text); }
 .card select { flex: 1; font-size: 13px; }

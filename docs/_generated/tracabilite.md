@@ -20,7 +20,8 @@ sidebar_label: Traçabilité
 | KLEE-005 | Cockpit klee studio : une app unique par-dessus des serveurs indépendants | in-review | DOC-017, DOC-019 | `tickets/KLEE-005-cockpit-klee-studio-une-app-unique-par-dessus-des-serveurs-i.md` |
 | KLEE-006 | Recherche transverse sur tickets, docs et maquettes | backlog | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
 | KLEE-007 | Webhooks internes : réactions locales aux transitions | backlog | KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
-| KLEE-008 | Gate d'accessibilité : axe-core avant qu'une maquette passe validated | ready-for-dev | KLEE-007 | `tickets/KLEE-008-gate-d-accessibilite-axe-core-avant-qu-une-maquette-passe-va.md` |
+| KLEE-008 | Gate d'accessibilité : axe-core avant qu'une maquette passe validated | in-review | DOC-021, KLEE-007 | `tickets/KLEE-008-gate-d-accessibilite-axe-core-avant-qu-une-maquette-passe-va.md` |
+| KLEE-009 | Lire un ticket depuis le board, pas seulement le déplacer | in-review | — | `tickets/KLEE-009-lire-un-ticket-depuis-le-board-pas-seulement-le-deplacer.md` |
 
 ## Maquettes
 
@@ -53,10 +54,12 @@ sidebar_label: Traçabilité
 | DOC-018 | 0015 — La détection de dérive maquette / composant sort du périmètre | — | — | `docs/decisions/0015-detection-de-derive-hors-scope.md` |
 | DOC-019 | 0016 — Le studio encadre les serveurs plutôt que de les proxifier | — | KLEE-005 | `docs/decisions/0016-le-studio-encadre-plutot-que-de-proxifier.md` |
 | DOC-020 | 0017 — Le premier ticket d'un projet est un compte rendu, pas une tâche | — | — | `docs/decisions/0017-le-premier-ticket-est-un-compte-rendu.md` |
+| DOC-021 | 0018 — L'accessibilité est un gate sur `validated`, avec des dérogations motivées | — | KLEE-008 | `docs/decisions/0018-gate-accessibilite-et-derogations.md` |
 
 
 ## Sans lien déclaré
 
+- KLEE-009 — Lire un ticket depuis le board, pas seulement le déplacer
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé

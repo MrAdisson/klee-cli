@@ -1,7 +1,7 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { parse as parseYaml } from 'yaml';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
 import { formatIssues } from '../config/issues.js';
 import { ConfigError } from '../errors.js';
@@ -56,6 +56,25 @@ export async function readMockups(root: string): Promise<MockupFile[]> {
   return Promise.all(
     files.map(async (path) => parseMockupMeta(path, await readFile(join(root, path), 'utf8'))),
   );
+}
+
+export async function updateMockupStatus(
+  root: string,
+  id: string,
+  status: MockupMeta['status'],
+): Promise<MockupFile> {
+  const mockup = (await readMockups(root)).find((candidate) => candidate.meta.id === id);
+  if (mockup === undefined) {
+    throw new ConfigError(`${id} : aucune maquette ne porte cet identifiant.`, {
+      code: 'MOCKUP_NOT_FOUND',
+    });
+  }
+
+  const contents = await readFile(join(root, mockup.path), 'utf8');
+  const raw = parseYaml(contents) as Record<string, unknown>;
+  raw['status'] = status;
+  await writeFile(join(root, mockup.path), stringifyYaml(raw), 'utf8');
+  return parseMockupMeta(mockup.path, stringifyYaml(raw));
 }
 
 export function parseMockupMeta(path: string, contents: string): MockupFile {

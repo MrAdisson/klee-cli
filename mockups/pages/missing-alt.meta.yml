@@ -1,0 +1,7 @@
+id: MOCK-003
+title: Image sans alternative
+status: draft
+related_tickets:
+  - KLEE-010
+related_docs: []
+implemented_in: null

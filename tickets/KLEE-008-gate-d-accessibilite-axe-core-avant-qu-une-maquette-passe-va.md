@@ -1,7 +1,7 @@
 ---
 id: KLEE-008
 title: "Gate d'accessibilité : axe-core avant qu'une maquette passe validated"
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

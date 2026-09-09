@@ -1,0 +1,7 @@
+id: MOCK-004
+title: Champ sans label
+status: draft
+related_tickets:
+  - KLEE-010
+related_docs: []
+implemented_in: null

@@ -1,6 +1,6 @@
 id: MOCK-002
 title: Connexion
-status: draft
+status: validated
 related_tickets:
   - KLEE-001
 related_docs: []

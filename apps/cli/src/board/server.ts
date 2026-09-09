@@ -5,11 +5,15 @@ import {
   createTicket,
   isTicketStatus,
   moveTicket,
+  MOCKUP_STATUSES,
+  updateMockupStatus,
+  type A11yFinding,
   type TicketStatus,
 } from '@klee/core';
 
 import { openTicketIndex, type Project } from '../project.js';
 import { renderBoard, renderLinks, renderTicket } from './render.js';
+import { checkMockups } from '../commands/mockups-check.js';
 
 /**
  * Dashboard local des tickets (TECHNICAL.md §6, DESIGN.md §5).
@@ -82,13 +86,16 @@ async function handle(
   const links = /^\/links(?:\/([^/]+))?\/?$/.exec(url.pathname);
   if (request.method === 'GET' && links !== null) {
     const focus = links[1] === undefined ? null : decodeURIComponent(links[1]).toUpperCase();
+    const message = url.searchParams.get('message') ?? undefined;
+    const messageKind: 'success' | 'error' =
+      url.searchParams.get('kind') === 'error' ? 'error' : 'success';
     // Un ticket n'a qu'une page : celle qui porte son contenu et son voisinage. Rediriger
     // plutôt que dupliquer évite deux vues du même objet, dont une amputée.
     if (focus !== null && focus.startsWith(`${options.project.config.idPrefix}-`)) {
       response.writeHead(303, { location: `/tickets/${encodeURIComponent(focus)}` }).end();
       return;
     }
-    await renderGraphPage(response, options, focus);
+    await renderGraphPage(response, options, focus, message, messageKind);
     return;
   }
 
@@ -148,6 +155,32 @@ async function handle(
     return;
   }
 
+  const mockupStatus = /^\/mockups\/([^/]+)\/status$/.exec(url.pathname);
+  if (request.method === 'POST' && mockupStatus !== null && mockupStatus[1] !== undefined) {
+    const form = await readForm(request);
+    const id = decodeURIComponent(mockupStatus[1]).toUpperCase();
+    const status = form.get('status');
+    if (!MOCKUP_STATUSES.includes(status as (typeof MOCKUP_STATUSES)[number])) {
+      redirectMockup(response, id, 'Statut inconnu : la maquette n’a pas été modifiée.', 'error');
+      return;
+    }
+    const nextStatus = status as (typeof MOCKUP_STATUSES)[number];
+    const report = await checkMockups(options.project, { [id]: nextStatus });
+    if (report.failed) {
+      const finding = report.findings.find((candidate) => candidate.mockupId === id);
+      redirectMockup(
+        response,
+        id,
+        `La maquette ne peut pas être validée pour le moment : ${a11yExplanation(finding)} Corrigez ce point dans la maquette, puis réessayez. Le statut reste « draft ».${finding === undefined ? '' : ` Détail technique : règle ${finding.rule}, cible ${finding.target}.`}`,
+        'error',
+      );
+      return;
+    }
+    await updateMockupStatus(options.project.root, id, nextStatus);
+    redirectMockup(response, id, `${id} validée : statut ${nextStatus} enregistré.`, 'success');
+    return;
+  }
+
   respond(response, 404, 'text/plain; charset=utf-8', '404');
 }
 
@@ -158,10 +191,27 @@ async function renderPage(
 ): Promise<void> {
   const index = openTicketIndex(options.project);
   try {
+    const tickets = await index.list();
+    const graph = await buildTraceGraph({
+      root: options.project.root,
+      ticketPrefix: options.project.config.idPrefix,
+      tickets,
+    });
+    const mockupsByTicket: Record<string, string[]> = {};
+    for (const edge of graph.edges) {
+      const from = graph.nodes.find((node) => node.id === edge.from);
+      const to = graph.nodes.find((node) => node.id === edge.to);
+      if (from?.kind === 'ticket' && to?.kind === 'mockup') {
+        (mockupsByTicket[from.id] ??= []).push(to.id);
+      } else if (from?.kind === 'mockup' && to?.kind === 'ticket') {
+        (mockupsByTicket[to.id] ??= []).push(from.id);
+      }
+    }
     const html = renderBoard({
       projectName: options.project.config.name,
       idPrefix: options.project.config.idPrefix,
-      tickets: await index.list(),
+      tickets,
+      mockupsByTicket,
       ...(message === undefined ? {} : { message }),
       ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),
     });
@@ -221,6 +271,8 @@ async function renderGraphPage(
   response: ServerResponse,
   options: BoardServerOptions,
   focus: string | null,
+  message?: string,
+  messageKind: 'success' | 'error' = 'success',
 ): Promise<void> {
   const index = openTicketIndex(options.project);
   try {
@@ -234,6 +286,7 @@ async function renderGraphPage(
       idPrefix: options.project.config.idPrefix,
       graph,
       focus,
+      ...(message === undefined ? {} : { message, messageKind }),
       ...(options.studioUrl === undefined ? {} : { studioUrl: options.studioUrl }),
     });
     respond(
@@ -250,6 +303,18 @@ async function renderGraphPage(
 /** Redirection après POST : évite qu'un rafraîchissement rejoue l'action. */
 function redirect(response: ServerResponse, message: string): void {
   response.writeHead(303, { location: `/?message=${encodeURIComponent(message)}` });
+  response.end();
+}
+
+function redirectMockup(
+  response: ServerResponse,
+  id: string,
+  message: string,
+  kind: 'success' | 'error',
+): void {
+  response.writeHead(303, {
+    location: `/links/${encodeURIComponent(id)}?kind=${kind}&message=${encodeURIComponent(message)}`,
+  });
   response.end();
 }
 
@@ -280,4 +345,15 @@ async function readForm(request: IncomingMessage): Promise<URLSearchParams> {
 
 function describe(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function a11yExplanation(finding: A11yFinding | undefined): string {
+  if (finding === undefined) return 'le contrôle d’accessibilité a détecté un problème.';
+
+  const explanations: Readonly<Record<string, string>> = {
+    'button-name': 'un bouton n’a pas de nom compréhensible par un lecteur d’écran.',
+    'image-alt': 'une image n’a pas de texte alternatif pour décrire son contenu.',
+    label: 'un champ de formulaire n’est pas associé à une étiquette lisible.',
+  };
+  return explanations[finding.rule] ?? `${finding.help}.`;
 }

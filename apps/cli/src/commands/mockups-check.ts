@@ -11,6 +11,7 @@ import {
   type A11yReport,
   type A11yViolation,
   type MockupFile,
+  type MockupStatus,
 } from '@klee/core';
 
 import { loadProject, type Project } from '../project.js';
@@ -49,23 +50,33 @@ export async function runMockupsCheck(options: MockupsCheckOptions): Promise<voi
     return;
   }
 
-  const mockupsRoot = join(project.root, 'mockups');
-  await buildMockups(project, mockupsRoot);
-
-  const server = await serveStatic(join(mockupsRoot, 'dist'));
-  let violations: readonly A11yViolation[];
-  try {
-    violations = await audit(mockupsRoot, pagesFor(mockups, server.origin));
-  } finally {
-    await server.close();
-  }
-
-  const report = judgeA11y({ mockups, violations });
+  const report = await checkMockups(project);
   render(report);
 
   if (report.failed && options.report !== true) {
     process.exitCode = 1;
   }
+}
+
+export async function checkMockups(
+  project: Project,
+  statusOverrides: Readonly<Record<string, MockupStatus>> = {},
+): Promise<A11yReport> {
+  const mockups = await readMockups(project.root);
+  const effective = mockups.map((mockup) => {
+    const status = statusOverrides[mockup.meta.id];
+    return status === undefined ? mockup : { ...mockup, meta: { ...mockup.meta, status } };
+  });
+  const mockupsRoot = join(project.root, 'mockups');
+  await buildMockups(project, mockupsRoot);
+  const server = await serveStatic(join(mockupsRoot, 'dist'));
+  let violations: readonly A11yViolation[];
+  try {
+    violations = await audit(mockupsRoot, pagesFor(effective, server.origin));
+  } finally {
+    await server.close();
+  }
+  return judgeA11y({ mockups: effective, violations });
 }
 
 function pagesFor(

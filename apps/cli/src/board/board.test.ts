@@ -112,6 +112,19 @@ describe('board', () => {
     const tickets = (await (await fetch(`${base}/api/tickets`)).json()) as { id: string }[];
     expect(tickets.map((ticket) => ticket.id)).toEqual(['ACME-001']);
   });
+
+  it('affiche une maquette liée depuis son propre fichier de métadonnées', async () => {
+    const ticket = await createTicket({ root, prefix: 'ACME', title: 'Avec maquette' });
+    await mkdir(join(root, 'mockups', 'pages'), { recursive: true });
+    await writeFile(
+      join(root, 'mockups', 'pages', 'login.meta.yml'),
+      `id: MOCK-001\ntitle: Connexion\nstatus: draft\nrelated_tickets: [${ticket.id}]\n`,
+      'utf8',
+    );
+
+    const html = await (await fetch(`${base}/`)).text();
+    expect(html).toContain('href="/links/MOCK-001"');
+  });
 });
 
 /**
@@ -201,10 +214,65 @@ describe('identifiants cliquables', () => {
       studioUrl: 'http://127.0.0.1:4300/',
     });
 
-    // `target="_top"` : sans lui, le studio s'afficherait dans son propre onglet Board.
-    expect(html).toContain('target="_top"');
-    expect(html).toContain('href="http://127.0.0.1:4300/go/MOCK-002"');
-    expect(html).not.toContain('href="/links/MOCK-002"');
+    expect(html).toContain('href="/links/MOCK-002"');
+
+    const mockupPage = renderLinks({
+      projectName: 'demo',
+      idPrefix: 'ACME',
+      graph: {
+        nodes: [
+          {
+            id: 'MOCK-002',
+            kind: 'mockup',
+            title: 'Connexion',
+            path: 'mockups/pages/login.meta.yml',
+            status: 'draft',
+            implementedIn: null,
+          },
+        ],
+        edges: [],
+        mentions: [],
+        untracked: [],
+      },
+      focus: 'MOCK-002',
+      studioUrl: 'http://127.0.0.1:4300/',
+      message:
+        'La maquette ne peut pas être validée pour le moment : une image n’a pas de texte alternatif pour décrire son contenu. Corrigez ce point dans la maquette, puis réessayez. Le statut reste « draft ». Détail technique : règle image-alt, cible img.',
+      messageKind: 'error',
+    });
+    expect(mockupPage).toContain('action="/mockups/MOCK-002/status"');
+    expect(mockupPage).toContain('value="validated"');
+    expect(mockupPage).toContain('class="mockup-status"');
+    expect(mockupPage).toContain('Vérification…');
+    expect(mockupPage).toContain('Aperçu de la maquette');
+    expect(mockupPage).toContain('href="http://127.0.0.1:4300/go/MOCK-002"');
+    expect(mockupPage).toContain('class="flash flash--error"');
+    expect(mockupPage).toContain('une image n’a pas de texte alternatif');
+    expect(mockupPage).toContain('Le statut reste « draft ».');
+
+    const docPage = renderLinks({
+      projectName: 'demo',
+      idPrefix: 'ACME',
+      graph: {
+        nodes: [
+          {
+            id: 'DOC-001',
+            kind: 'doc',
+            title: 'Guide',
+            path: 'docs/technical/guide.md',
+            status: null,
+            implementedIn: null,
+          },
+        ],
+        edges: [],
+        mentions: [],
+        untracked: [],
+      },
+      focus: 'DOC-001',
+      studioUrl: 'http://127.0.0.1:4300/',
+    });
+    expect(docPage).toContain('Ouvrir le document');
+    expect(docPage).toContain('href="http://127.0.0.1:4300/go/DOC-001"');
   });
 });
 
@@ -267,6 +335,25 @@ describe('page d’un ticket', () => {
     await createWithDescription('Peu importe.');
     const board = await (await fetch(`${base}/`)).text();
     expect(board).toContain('href="/tickets/ACME-001"');
+  });
+
+  it('ne propose pas de valider une maquette depuis la fiche ticket', async () => {
+    await createTicket({
+      root,
+      prefix: 'ACME',
+      title: 'Ticket avec maquette',
+      relatedMockups: ['MOCK-001'],
+    });
+    await mkdir(join(root, 'mockups', 'components'), { recursive: true });
+    await writeFile(
+      join(root, 'mockups', 'components', 'button.meta.yml'),
+      'id: MOCK-001\ntitle: Bouton\nstatus: draft\nrelated_tickets: [ACME-001]\n',
+      'utf8',
+    );
+
+    const html = await (await fetch(`${base}/tickets/ACME-001`)).text();
+    expect(html).not.toContain('action="/mockups/MOCK-001/status"');
+    expect(html).toContain('href="/links/MOCK-001"');
   });
 
   it('répond 404 sur un ticket inexistant', async () => {

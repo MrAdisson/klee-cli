@@ -1,7 +1,7 @@
 ---
 id: KLEE-005
-title: 'Cockpit klee studio : une app unique par-dessus des serveurs indépendants'
-status: in-review
+title: "Cockpit klee studio : une app unique par-dessus des serveurs indépendants"
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

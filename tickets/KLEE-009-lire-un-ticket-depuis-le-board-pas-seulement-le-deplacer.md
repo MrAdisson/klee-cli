@@ -1,7 +1,7 @@
 ---
 id: KLEE-009
 title: Lire un ticket depuis le board, pas seulement le déplacer
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09

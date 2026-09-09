@@ -85,6 +85,7 @@ export {
   readDocs,
   readMockups,
   renderGraphReport,
+  updateMockupStatus,
   type BuildTraceGraphOptions,
   type DocFile,
   type DocFrontmatter,

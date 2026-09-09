@@ -1,6 +1,6 @@
 id: MOCK-001
 title: Bouton
-status: draft
+status: validated
 related_tickets:
   - KLEE-001
 related_docs: []
