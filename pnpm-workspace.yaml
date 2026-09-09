@@ -11,6 +11,9 @@ packages:
 # l'installation de la même façon, et c'est voulu.
 allowBuilds:
   core-js: false
+  # Télécharge le navigateur dont le gate d'accessibilité a besoin (ADR 0018) : il doit
+  # arriver avec les dépendances, pas par une étape séparée que personne ne pense à faire.
+  playwright: true
 
 # Versions imposées dans l'arbre transitif de Docusaurus : ce que des dépendances profondes
 # traînent et que leur auteur n'a pas encore corrigé (paquet déprécié, avis de sécurité).

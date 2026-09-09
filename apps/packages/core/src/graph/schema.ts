@@ -91,6 +91,20 @@ export const MOCKUP_STATUSES = ['draft', 'validated', 'implemented'] as const;
 export type MockupStatus = (typeof MOCKUP_STATUSES)[number];
 
 /**
+ * Dérogation à une règle d'accessibilité (ADR 0018).
+ *
+ * `reason` est **facultative ici et exigée au verdict** : une exemption muette doit être
+ * refusée en disant que c'est la raison qui manque, pas la règle. La rejeter dès le parsing
+ * la ferait passer pour un `.meta.yml` mal formé, ce qui n'aide personne à la corriger.
+ */
+export const a11yExemptionSchema = z.looseObject({
+  rule: z.string().min(1),
+  reason: z.string().optional(),
+});
+
+export type A11yExemption = z.infer<typeof a11yExemptionSchema>;
+
+/**
  * Métadonnées d'une maquette (`.meta.yml`).
  *
  * `ticket:` au singulier est la forme qu'a générée la phase 1 et que décrit encore
@@ -105,6 +119,8 @@ export const mockupMetaSchema = z.looseObject({
   related_tickets: idList(idReference),
   related_docs: idList(docReference),
   implemented_in: z.string().min(1).nullish(),
+  // Absent vaut « aucune » : les projets scaffoldés avant l'ADR 0018 restent valides.
+  a11y_exemptions: z.array(a11yExemptionSchema).default([]),
 });
 
 export type MockupMeta = z.infer<typeof mockupMetaSchema>;

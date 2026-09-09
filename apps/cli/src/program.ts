@@ -31,6 +31,7 @@ import {
   type CompletionInstallOptions,
 } from './commands/completion.js';
 import { SHELL_IDS } from './completion/candidates.js';
+import { runMockupsCheck, type MockupsCheckOptions } from './commands/mockups-check.js';
 import { runProjectScript } from './commands/project-script.js';
 import {
   runTicketCreate,
@@ -265,6 +266,14 @@ export function createProgram(): Command {
         servesFrom: 'mockups-composition',
         ...(options.port === undefined ? {} : { port: options.port }),
       });
+    });
+
+  mockupsCommand
+    .command('check')
+    .description('Vérifie l’accessibilité des maquettes (WCAG 2.1 AA) avant `validated`.')
+    .option('--report', 'affiche l’état des lieux sans faire échouer la commande')
+    .action(async (options: MockupsCheckOptions) => {
+      await runMockupsCheck(options);
     });
 
   mockupsCommand

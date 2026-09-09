@@ -1,7 +1,7 @@
 ---
 id: KLEE-008
 title: "Gate d'accessibilité : axe-core avant qu'une maquette passe validated"
-status: ready-for-dev
+status: in-review
 assignee: null
 created: 2026-09-09
 updated: 2026-09-09
@@ -33,6 +33,33 @@ déjà retenu pour la régression visuelle. À trancher, avec un ADR si le choix
 Le gate ne peut pas intercepter la pose du statut : `status: validated` s'écrit en éditant
 un `.meta.yml` à la main, jamais par une commande. Il prend donc la forme d'une vérification
 à la demande, sur le modèle de `klee links check` : elle constate, et refuse.
+
+## Sévérité, et pourquoi elle ne se configure pas
+
+**Bloquant sur `validated` et `implemented`, rien du tout sur `draft`.** La sévérité n'est
+pas un réglage de projet : `TECHNICAL.md` §13 réserve la configuration aux points où deux
+solutions se valent, et impose une convention unique partout ailleurs, « la cohérence
+transverse prime sur la flexibilité ».
+
+Ce qui rend la contrainte supportable n'est pas un interrupteur, c'est le statut lui-même.
+`draft` est libre : un projet qui explore n'est jamais bloqué. Le gate ne mord qu'au moment
+où quelqu'un **affirme** que la maquette est prête — et `DESIGN.md` §1 dit ce que cette
+affirmation engage : la maquette contient alors 100 % de l'information nécessaire, sans que
+celui qui implémente ait rien à inventer. `validated` est un contrat, pas une étape.
+
+## Exemptions : motivées, jamais muettes
+
+Une maquette peut écarter une règle précise, à condition d'écrire pourquoi. Une exemption
+sans raison est refusée comme la violation qu'elle couvre.
+
+Ce n'est pas une soupape concédée au gate, c'est le §1 appliqué : sans elle, un contraste
+faible dans une maquette validée est indiscernable d'un oubli, et celui qui implémente
+improvise — exactement ce que le principe interdit. La raison écrite lui dit que la
+dérogation est une décision, pas une négligence.
+
+Elles doivent rester **visibles** : listées par la vérification même quand tout passe. Une
+dérogation enterrée dans un YAML que personne ne relit redevient un vœu pieux, et
+l'ADR 0015 a déjà tranché qu'un signal qu'on n'entend plus est pire que pas de signal.
 
 ## Critères d'acceptation
 
@@ -69,6 +96,24 @@ Scénario: un projet sans maquettes n'a rien à vérifier
   Étant donné un projet dont le module mockups n'est pas retenu
   Quand on lance la vérification
   Alors elle le dit et sort en code 0, sans exiger aucune dépendance
+
+Scénario: une exemption motivée laisse passer la maquette
+  Étant donné une maquette validated qui écarte color-contrast avec une raison écrite
+  Quand on lance la vérification
+  Alors elle sort en code 0
+  Et l'exemption est listée dans le rapport, avec sa raison
+
+Scénario: une exemption sans raison ne vaut rien
+  Étant donné une maquette validated qui écarte color-contrast sans raison
+  Quand on lance la vérification
+  Alors elle sort en code non nul
+  Et le message dit que c'est la raison manquante qui est en cause, pas la règle
+
+Scénario: une exemption ne couvre que la règle qu'elle nomme
+  Étant donné une maquette validated qui écarte color-contrast avec une raison
+  Et qui viole aussi image-alt
+  Quand on lance la vérification
+  Alors elle sort en code non nul pour image-alt seulement
 
 Scénario: le résultat est exploitable en CI
   Étant donné un dépôt dont une maquette validée est conforme et une autre non

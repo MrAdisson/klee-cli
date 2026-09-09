@@ -57,7 +57,7 @@ function docPath(node: GraphNode): string {
  * Eleventy sert un fichier comme un dossier, et **replie** `foo/foo.html` sur `foo/` — d'où
  * `components/button/button.html` en `/components/button/`.
  */
-function mockupPath(node: GraphNode): string {
+export function mockupPath(node: Pick<GraphNode, 'path'>): string {
   const parts = node.path
     .replace(/^mockups\//, '')
     // Le nœud porte le chemin du `.meta.yml`, pas celui de la page : c'est le fichier de

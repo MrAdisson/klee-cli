@@ -55,4 +55,11 @@ export interface ScaffoldPlan {
 export interface ScaffoldGenerator {
   files(context: ScaffoldContext): ScaffoldFile[];
   dependencies?(context: ScaffoldContext): ScaffoldDependency[];
+  /**
+   * Scripts de post-installation qu'apportent les dépendances déclarées ici, et la décision
+   * prise pour chacun (ADR 0012). Porté par le générateur plutôt que par le seul provider :
+   * un module qui apporte une dépendance à post-installation doit pouvoir la trancher sans
+   * la faire porter à un provider qui n'en est pas la cause.
+   */
+  readonly installScripts?: Readonly<Record<string, boolean>>;
 }

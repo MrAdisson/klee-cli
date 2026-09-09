@@ -1,4 +1,6 @@
-import type { ScaffoldContext } from '../scaffold/types.js';
+import { MODULE_IDS } from '../modules.js';
+import { MODULE_GENERATORS } from '../scaffold/modules/index.js';
+import type { ScaffoldContext, ScaffoldGenerator } from '../scaffold/types.js';
 import { PROVIDER_POINT_DEFINITIONS } from './points.js';
 import { PROVIDER_POINTS, type Provider } from './types.js';
 
@@ -21,28 +23,48 @@ function retainedProviders(context: ScaffoldContext): Provider[] {
 }
 
 /**
+ * Tout ce qui peut déclarer : les providers retenus, et les modules retenus.
+ *
+ * Un module apporte lui aussi des dépendances — le gate d'accessibilité du module `mockups`
+ * amène Playwright, dont le script d'installation télécharge un navigateur (ADR 0018). Le
+ * faire déclarer par un provider qui n'en est pas la cause aurait rendu cette exigence
+ * tributaire d'un choix qui n'a rien à voir avec elle.
+ */
+function declarants(context: ScaffoldContext): (Provider | ScaffoldGenerator)[] {
+  const modules = MODULE_IDS.filter((id) => context.config.modules[id]).map(
+    (id) => MODULE_GENERATORS[id],
+  );
+  return [...retainedProviders(context), ...modules];
+}
+
+/** Nom lisible d'un déclarant, pour dire qui contredit qui. */
+function nameOf(declarant: Provider | ScaffoldGenerator): string {
+  return 'id' in declarant ? declarant.id : 'un module';
+}
+
+/**
  * Deux providers qui tranchent différemment la même chose : personne ne peut arbitrer ça
  * silencieusement, et le faire au hasard de l'ordre des points serait pire.
  */
 function merge<T>(
   context: ScaffoldContext,
   what: string,
-  pick: (provider: Provider) => Readonly<Record<string, T>> | undefined,
+  pick: (declarant: Provider | ScaffoldGenerator) => Readonly<Record<string, T>> | undefined,
 ): Record<string, T> {
   const merged: Record<string, T> = {};
   const origins = new Map<string, string>();
 
-  for (const provider of retainedProviders(context)) {
-    for (const [key, value] of Object.entries(pick(provider) ?? {})) {
+  for (const declarant of declarants(context)) {
+    for (const [key, value] of Object.entries(pick(declarant) ?? {})) {
       const previous = origins.get(key);
       if (previous !== undefined && merged[key] !== value) {
         throw new Error(
           `Décisions contradictoires sur ${what} de ${key} : ` +
-            `${previous} et ${provider.id} ne sont pas d'accord.`,
+            `${previous} et ${nameOf(declarant)} ne sont pas d'accord.`,
         );
       }
       merged[key] = value;
-      origins.set(key, provider.id);
+      origins.set(key, nameOf(declarant));
     }
   }
 
@@ -67,5 +89,9 @@ export function installScriptDecisions(context: ScaffoldContext): Record<string,
  * projet qui avertit dès sa première installation.
  */
 export function dependencyOverrideDecisions(context: ScaffoldContext): Record<string, string> {
-  return merge<string>(context, 'la version imposée', (provider) => provider.dependencyOverrides);
+  // Réservé aux providers : corriger un arbre transitif suppose de connaître l'outil qu'on
+  // apporte, ce qui est le propre d'un provider et non d'un module.
+  return merge<string>(context, 'la version imposée', (declarant) =>
+    'dependencyOverrides' in declarant ? declarant.dependencyOverrides : undefined,
+  );
 }

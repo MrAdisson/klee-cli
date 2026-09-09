@@ -75,15 +75,29 @@ describe('buildScaffoldPlan', () => {
     const plan = buildScaffoldPlan({
       config: configFor('full-product'),
       now: FIXED_NOW,
-      modules: ['mockups'],
+      modules: ['tickets'],
       includeRoot: false,
       includeProviders: false,
     });
     expect(plan.files.map((file) => file.path)).toEqual([
-      'mockups/AGENTS.md',
-      'design-system/tokens.json',
-      'design-system/AGENTS.md',
+      'tickets/AGENTS.md',
+      'tickets/PROJ-001-demo-initialisation-du-projet.md',
     ]);
+  });
+
+  it('refuse de planifier `mockups` sans ses providers : ses dépendances seraient orphelines', () => {
+    // Le module apporte Playwright pour le gate d'accessibilité (ADR 0018), mais c'est le
+    // provider de composition qui possède `mockups/package.json`. Les séparer produirait des
+    // dépendances déclarées vers un manifeste absent — mieux vaut le refus que le silence.
+    expect(() =>
+      buildScaffoldPlan({
+        config: configFor('full-product'),
+        now: FIXED_NOW,
+        modules: ['mockups'],
+        includeRoot: false,
+        includeProviders: false,
+      }),
+    ).toThrow(/mockups\/package\.json/);
   });
 
   it('attribue une origine traçable à chaque fichier', () => {

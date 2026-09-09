@@ -1,7 +1,12 @@
 import { MOCKUP_PREFIX } from '../../ids.js';
 import { agentsDoc } from '../agents-doc.js';
 import { jsonContents } from '../format.js';
-import type { ScaffoldContext, ScaffoldFile, ScaffoldGenerator } from '../types.js';
+import type {
+  ScaffoldContext,
+  ScaffoldDependency,
+  ScaffoldFile,
+  ScaffoldGenerator,
+} from '../types.js';
 import { DEFAULT_TOKENS } from './tokens.js';
 
 /**
@@ -40,7 +45,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
               : []),
             'JS uniquement pour illustrer un comportement UI local (menu, onglet) — jamais de logique métier, jamais d’appel réseau.',
             'Navigation entre pages par de simples liens `<a>`, pour simuler le parcours sans framework.',
-            `Accessibilité WCAG 2.1 AA exigée au stade maquette — la vérification est manuelle : Klee ne l'outille pas encore. Idem pour la régression visuelle, dont ${regression.label} est le provider retenu mais pas encore branché.`,
+            `Accessibilité WCAG 2.1 AA vérifiée par \`klee mockups check\` : une maquette \`validated\` ou \`implemented\` qui enfreint une règle fait échouer la commande (ADR 0018). Une dérogation se déclare dans le \`.meta.yml\`, avec sa raison. La régression visuelle, elle, reste à brancher — ${regression.label} est retenu mais pas encore outillé.`,
           ],
           allowed: [
             'Créer et modifier des pages et composants HTML/CSS.',
@@ -49,7 +54,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
           forbidden: [
             'Écrire une valeur de couleur, d’espacement ou de typographie en dur.',
             'Dupliquer le markup d’un composant existant.',
-            'Passer une maquette en `status: validated` sans avoir vérifié son accessibilité — aucun outil ne s’y oppose aujourd’hui, l’exigence tient quand même.',
+            'Passer une maquette en `status: validated` sans que `klee mockups check` soit au vert — ou en écartant une règle sans écrire pourquoi.',
           ],
           references: [
             'DESIGN.md — conventions design, produit et UX.',
@@ -90,6 +95,93 @@ export const mockupsGenerator: ScaffoldGenerator = {
           references: ['DESIGN.md §2 — design tokens.', '`mockups/AGENTS.md`.'],
         }),
       },
+      {
+        path: A11Y_RUNNER_PATH,
+        origin,
+        contents: A11Y_RUNNER,
+      },
     ];
   },
+
+  dependencies(): ScaffoldDependency[] {
+    const origin = 'module:mockups';
+    return [
+      { name: 'playwright', version: PLAYWRIGHT_VERSION, dev: true, target: MANIFEST_PATH, origin },
+      {
+        name: '@axe-core/playwright',
+        version: AXE_PLAYWRIGHT_VERSION,
+        dev: true,
+        target: MANIFEST_PATH,
+        origin,
+      },
+    ];
+  },
+
+  // Le script d'installation de Playwright télécharge le navigateur. L'autoriser ici est ce
+  // qui fait arriver le gate avec les dépendances — au `pnpm install`, ou à la fin de
+  // `klee init` si l'on a accepté l'installation — plutôt que par une étape oubliable.
+  installScripts: { playwright: true },
 };
+
+const MANIFEST_PATH = 'mockups/package.json';
+const A11Y_RUNNER_PATH = 'mockups/a11y-runner.mjs';
+const PLAYWRIGHT_VERSION = '1.63.0';
+const AXE_PLAYWRIGHT_VERSION = '4.13.0';
+
+/**
+ * Auditeur d'accessibilité (ADR 0018), exécuté par `klee mockups check`.
+ *
+ * Il vit dans le projet et non dans klee : c'est lui qui porte le navigateur, que la CLI ne
+ * doit pas imposer aux projets sans maquettes. Il ne juge rien — il constate et rend du JSON,
+ * le verdict appartient au domaine.
+ */
+const A11Y_RUNNER = `// Généré par klee (ADR 0018) — audite les maquettes servies et rend ses constats en JSON.
+// Entrée  (stdin)  : { "pages": [{ "id": "MOCK-001", "url": "http://…" }] }
+// Sortie (stdout)  : { "violations": [{ "mockupId", "rule", "help", "impact", "target" }] }
+import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
+
+// WCAG 2.1 AA, le niveau qu'exige DESIGN.md §6 — ni plus strict, ni plus laxiste.
+const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
+
+async function readInput() {
+  let raw = '';
+  for await (const chunk of process.stdin) raw += chunk;
+  return JSON.parse(raw);
+}
+
+const { pages } = await readInput();
+const browser = await chromium.launch();
+// Contexte explicite : axe-core injecte son script dans les frames de la page, ce que
+// Playwright refuse sur le contexte implicite de \`browser.newPage()\`.
+const context = await browser.newContext();
+const violations = [];
+
+try {
+  for (const entry of pages) {
+    const page = await context.newPage();
+    try {
+      // Le contraste se juge sur des styles calculés : la page doit être vraiment chargée.
+      await page.goto(entry.url, { waitUntil: 'load' });
+      const result = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+      for (const violation of result.violations) {
+        for (const node of violation.nodes) {
+          violations.push({
+            mockupId: entry.id,
+            rule: violation.id,
+            help: violation.help,
+            impact: violation.impact ?? null,
+            target: node.target.join(' '),
+          });
+        }
+      }
+    } finally {
+      await page.close();
+    }
+  }
+} finally {
+  await browser.close();
+}
+
+process.stdout.write(JSON.stringify({ violations }));
+`;

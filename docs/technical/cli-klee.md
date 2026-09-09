@@ -158,6 +158,51 @@ Régénère `design-system/dist/` à partir de `design-system/tokens.json`.
 
 Sert les maquettes en local avec navigation entre les pages, ou en produit la version statique.
 
+## `klee mockups check`
+
+Gate d'accessibilité (ADR 0018, `DESIGN.md` §6) : passe chaque maquette au crible d'axe-core
+en WCAG 2.1 AA, dans un vrai navigateur.
+
+| Statut de la maquette      | Effet d'une violation                  |
+| -------------------------- | -------------------------------------- |
+| `validated`, `implemented` | **erreur** — la commande sort en `1`   |
+| `draft`                    | avertissement, la commande sort en `0` |
+
+La sévérité ne se configure pas : c'est le statut qui décide. Un projet qui explore laisse ses
+maquettes en `draft` et n'est jamais bloqué — le gate ne mord qu'au moment où quelqu'un
+**affirme** qu'une maquette est prête à être implémentée. `--report` affiche l'état des lieux
+sans faire échouer la commande.
+
+La commande construit les maquettes, les sert le temps de l'audit, puis lance l'auditeur du
+projet. Elle les **sert** plutôt que d'ouvrir des fichiers : les feuilles de style ont des
+chemins absolus, et sans styles un contraste ne veut plus rien dire.
+
+### Déroger à une règle
+
+Une maquette peut écarter une règle nommée, à condition d'écrire pourquoi :
+
+```yaml
+# mockups/components/badge/badge.meta.yml
+a11y_exemptions:
+  - rule: color-contrast
+    reason: Logo partenaire, couleurs imposées par leur charte.
+```
+
+Une dérogation sans raison est refusée comme la violation qu'elle prétend couvrir, et elle ne
+couvre que la règle qu'elle nomme. Les dérogations sont listées **même quand tout passe**, et
+celles dont la règle n'est plus enfreinte sont signalées comme devenues inutiles.
+
+Ce n'est pas une échappatoire concédée au gate : `DESIGN.md` §1 veut qu'une maquette validée
+porte 100 % de l'information nécessaire. Sans raison écrite, un contraste faible est
+indiscernable d'un oubli, et celui qui implémente improvise.
+
+### Ce que le gate installe
+
+Le module `mockups` déclare `playwright` et `@axe-core/playwright`, et autorise le script
+d'installation qui télécharge le navigateur. Celui-ci arrive donc avec les dépendances — au
+`pnpm install`, ou à la fin de `klee init` si l'on accepte l'installation. Un projet sans le
+module `mockups` n'installe rien et n'a rien à vérifier.
+
 ### Ce que le projet généré sait faire sans klee
 
 `klee init` produit un workspace autonome, avec ses commandes de racine :
@@ -352,4 +397,5 @@ n'est pas un bug, c'est une réponse à corriger. Une erreur inattendue affiche 
 | `NODE_NOT_FOUND`                                           | `klee links show` sur un identifiant inconnu          |
 | `DOCS_SITE_MISSING`                                        | `klee docs serve` sans site généré                    |
 | `DOC_INVALID` / `MOCKUP_INVALID`                           | Frontmatter de doc ou `.meta.yml` mal formé           |
+| `A11Y_RUNNER_FAILED` / `MOCKUPS_BUILD_FAILED`              | `klee mockups check` : audit ou construction en échec |
 | `UNKNOWN_SHELL`                                            | `klee completion` sur un shell non reconnu            |

@@ -48,6 +48,18 @@ export {
 export { headingTitle, splitFrontmatter, type SplitDocument } from './frontmatter.js';
 
 export {
+  isGated,
+  judgeA11y,
+  type A11yFinding,
+  type A11yReport,
+  type A11ySeverity,
+  type A11yViolation,
+  type AppliedExemption,
+  type InvalidExemption,
+  type JudgeA11yInput,
+} from './a11y/verdict.js';
+
+export {
   DOCS_DIRNAME,
   EDGE_KINDS,
   GRAPH_ISSUE_CODES,
