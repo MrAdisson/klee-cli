@@ -1,11 +1,22 @@
 {
-  "name": "@klee/cli",
+  "name": "@klee-dev/cli",
   "version": "0.1.0",
-  "private": true,
   "description": "klee — la CLI de Klee : scaffolding, modules et providers d'un projet Klee.",
   "type": "module",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/klee.js",
+    "README.md",
+    "LICENSE"
+  ],
   "bin": {
-    "klee": "./dist/bin/klee.js"
+    "klee": "./dist/klee.js"
   },
   "exports": {
     ".": {
@@ -14,19 +25,22 @@
     }
   },
   "scripts": {
-    "build": "tsc --build && node -e \"require('node:fs').chmodSync('dist/bin/klee.js', 0o755)\"",
+    "build": "tsc --build && esbuild dist/bin/klee.js --bundle --platform=node --format=esm --external:@clack/prompts --external:commander --external:picocolors --external:yaml --external:zod --outfile=dist/klee.js && node -e \"require('node:fs').chmodSync('dist/klee.js', 0o755)\"",
     "typecheck": "tsc --build --force && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@clack/prompts": "1.8.0",
-    "@klee/core": "workspace:*",
     "commander": "15.0.0",
-    "picocolors": "1.1.1"
+    "picocolors": "1.1.1",
+    "yaml": "2.9.0",
+    "zod": "4.5.4"
   },
   "devDependencies": {
+    "@klee/core": "workspace:*",
     "@types/node": "26.5.0",
+    "esbuild": "0.27.3",
     "typescript": "6.0.3",
     "vitest": "5.0.0"
   }

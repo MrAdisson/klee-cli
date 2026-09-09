@@ -24,6 +24,7 @@ sidebar_label: Traçabilité
 | KLEE-009 | Lire un ticket depuis le board, pas seulement le déplacer | done | — | `tickets/KLEE-009-lire-un-ticket-depuis-le-board-pas-seulement-le-deplacer.md` |
 | KLEE-010 | Tester le gate a11y avec deux maquettes non conformes | in-review | MOCK-003, MOCK-004 | `tickets/KLEE-010-tester-le-gate-a11y-avec-deux-maquettes-non-conformes.md` |
 | KLEE-011 | Améliorer la documentation initiale du scaffolding | in-review | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
+| KLEE-012 | Rendre klee publiable sur npm | backlog | — | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
 
 ## Maquettes
 
@@ -66,6 +67,7 @@ sidebar_label: Traçabilité
 
 - KLEE-009 — Lire un ticket depuis le board, pas seulement le déplacer
 - KLEE-011 — Améliorer la documentation initiale du scaffolding
+- KLEE-012 — Rendre klee publiable sur npm
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé

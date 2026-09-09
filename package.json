@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test",
-    "klee": "node apps/cli/dist/bin/klee.js"
+    "klee": "node apps/cli/dist/klee.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

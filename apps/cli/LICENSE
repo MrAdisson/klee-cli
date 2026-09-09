@@ -1,0 +1,70 @@
+KLEE SOURCE-AVAILABLE LICENSE
+Version 1.0
+
+Copyright (c) 2026 Klee project
+
+This license governs the Klee command-line package and its bundled components
+(the "Software"). By installing, accessing, or using the Software, you accept
+these terms.
+
+1. Grant of rights
+
+You are granted a worldwide, non-exclusive, royalty-free, non-transferable
+license to:
+
+- install and use the Software in any personal, educational, internal, or
+  commercial project;
+- execute the Software as part of development, build, test, and continuous
+  integration workflows;
+- include the unmodified Software as a dependency of a larger application or
+  product, including a commercial product;
+- make the technical copies required for installation, caching, backup, and
+  deployment of that larger application or product.
+
+2. Restrictions
+
+You may not:
+
+- copy, extract, or incorporate substantial portions of the Software's source
+  code into another project;
+- modify, adapt, translate, reverse engineer, decompile, or create a fork or
+  derivative version of the Software, except to the extent such restriction is
+  prohibited by applicable law;
+- publish, sublicense, sell, rent, lease, or redistribute the Software as a
+  standalone package or as a substantially similar competing tool;
+- remove or obscure copyright, license, or attribution notices;
+- use the Klee name or trademarks to suggest an endorsement of a modified or
+  competing product.
+
+Redistribution of the unmodified Software is permitted only when it is included
+as a dependency of a larger product that adds substantial functionality or
+value. The Software must remain identifiable as Klee and must remain subject to
+this license.
+
+3. Ownership
+
+The Software is licensed, not sold. All rights not expressly granted by this
+license are reserved by the copyright holder.
+
+4. Contributions
+
+No contribution, patch, issue, or other submission grants you any additional
+rights unless the copyright holder agrees to those rights in writing.
+
+5. Disclaimer of warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+6. Limitation of liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDER SHALL
+NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF,
+OR IN CONNECTION WITH THE SOFTWARE OR THE USE OF THE SOFTWARE.
+
+7. Termination
+
+This license terminates automatically if you materially violate its terms. Rights
+that have been properly exercised before termination remain unaffected where
+required by applicable law.
