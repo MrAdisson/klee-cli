@@ -22,12 +22,17 @@ ticket       →  document produit (DOC-018)
 
 ## État du projet
 
-**Phase 0 livrée** — squelette du monorepo, schéma d'identifiants, architecture
-modules/providers, et la commande `klee init` avec mode interactif, `--yes` et presets.
+**Phases 0 et 1 livrées.**
 
-Les phases suivantes (design system et maquettes, ticketing, docs-as-code, cockpit unifié,
-interopérabilité) sont décrites dans [`TECHNICAL.md`](TECHNICAL.md) et se lancent dans
-l'ordre, chacune après validation humaine de la précédente.
+- **Phase 0** — squelette du monorepo, schéma d'identifiants, architecture modules/providers,
+  `klee init` avec mode interactif, `--yes` et presets.
+- **Phase 1** — `design-system/` (tokens W3C DTCG et pipeline de transformation) et
+  `mockups/` (un composant, une page, un catalogue auto-généré) avec leur serveur de
+  navigation local. Les modules déclarent désormais leurs dépendances.
+
+Les phases suivantes (ticketing, docs-as-code, cockpit unifié, interopérabilité) sont décrites
+dans [`TECHNICAL.md`](TECHNICAL.md) et se lancent dans l'ordre, chacune après validation
+humaine de la précédente.
 
 ---
 
@@ -48,6 +53,14 @@ node apps/cli/dist/bin/klee.js init ./mon-projet
 
 # non interactif, pour la CI ou un agent
 node apps/cli/dist/bin/klee.js init ./mon-api --yes --preset api-service
+```
+
+Puis, dans un projet qui a retenu les maquettes :
+
+```bash
+pnpm install          # ou `klee init --install` dès le départ
+klee tokens build     # design-system/tokens.json → dist/css/tokens.css
+klee mockups serve    # navigation locale des maquettes
 ```
 
 Presets disponibles :

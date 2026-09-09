@@ -12,6 +12,8 @@ const plan: ScaffoldPlan = {
     { path: 'README.md', contents: '# demo\n', origin: 'module:root' },
     { path: 'docs/AGENTS.md', contents: 'docs\n', origin: 'module:docs-technical' },
   ],
+  dependencies: [],
+  installCommand: null,
 };
 
 let root: string;
@@ -70,6 +72,8 @@ describe('applyScaffoldPlan', () => {
   it('refuse un chemin qui sortirait de la racine', async () => {
     const escaping: ScaffoldPlan = {
       files: [{ path: '../evade.md', contents: 'x\n', origin: 'test' }],
+      dependencies: [],
+      installCommand: null,
     };
     await expect(applyScaffoldPlan(escaping, { root })).rejects.toThrow(/hors de la racine/);
   });

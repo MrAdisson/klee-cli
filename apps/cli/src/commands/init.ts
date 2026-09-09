@@ -33,9 +33,11 @@ import {
   askOptionalModules,
   askProjectName,
   askProvider,
+  askTargetDirectory,
   askTokenTargets,
 } from '../ui/prompts.js';
 import { fileExists } from '../fs.js';
+import { spawnInherit } from '../spawn.js';
 
 export interface InitOptions {
   readonly name?: string;
@@ -44,11 +46,36 @@ export interface InitOptions {
   readonly yes?: boolean;
   readonly dryRun?: boolean;
   readonly force?: boolean;
+  readonly install?: boolean;
 }
 
 export async function runInit(directory: string | undefined, options: InitOptions): Promise<void> {
-  const root = resolve(directory ?? '.');
   const preset = resolvePreset(options.preset);
+  const interactive = options.yes !== true;
+
+  if (interactive && process.stdin.isTTY !== true) {
+    throw new KeelError('Le mode interactif requiert un terminal.', {
+      code: 'NOT_A_TTY',
+      hint: 'Utilisez `klee init --yes` (éventuellement avec --preset) pour un usage scriptable.',
+    });
+  }
+
+  let root = resolve(directory ?? '.');
+
+  if (interactive) {
+    heading('klee init');
+    info(`Preset de départ : ${preset} — ${PRESETS[preset].description}`);
+    write();
+
+    // Le dossier est demandé avant le nom : c'est lui qui décide où atterrissent les fichiers,
+    // et le nom par défaut en découle. L'inverse — déduire un dossier du nom — ferait muter
+    // l'arborescence au gré d'une réponse, ce qu'aucun usage scriptable ne pourrait prévoir.
+    if (directory === undefined) {
+      root = resolve(await askTargetDirectory());
+    }
+    info(`Cible : ${root}`);
+    write();
+  }
 
   if ((await fileExists(configPath(root))) && options.force !== true) {
     throw new KeelError(`${root} contient déjà un ${CONFIG_FILENAME}.`, {
@@ -57,10 +84,9 @@ export async function runInit(directory: string | undefined, options: InitOption
     });
   }
 
-  const config =
-    options.yes === true
-      ? nonInteractiveConfig(root, preset, options)
-      : await interactiveConfig(root, preset, options);
+  const config = interactive
+    ? await interactiveConfig(root, preset, options)
+    : nonInteractiveConfig(root, preset, options);
 
   const plan = buildScaffoldPlan({ config });
   const result = await applyScaffoldPlan(plan, {
@@ -69,7 +95,7 @@ export async function runInit(directory: string | undefined, options: InitOption
     force: options.force ?? false,
   });
 
-  heading('klee init');
+  heading('Récapitulatif');
   field('Projet', config.name);
   field('Préfixe', `${config.idPrefix}-xxx`);
   field('Modules', MODULE_IDS.filter((id) => config.modules[id]).join(', '));
@@ -82,13 +108,38 @@ export async function runInit(directory: string | undefined, options: InitOption
   write();
   reportApply(result);
 
-  if (!result.dryRun) {
+  if (result.dryRun) return;
+
+  if (plan.dependencies.length > 0) {
     write();
-    info('Prochaines étapes :');
-    info('  • lire AGENTS.md à la racine, puis celui du dossier où vous travaillez ;');
-    info('  • `klee module list` pour voir les modules actifs.');
-    write();
+    info(`${String(plan.dependencies.length)} dépendance(s) déclarée(s) dans les package.json.`);
   }
+
+  if (options.install === true && plan.installCommand !== null) {
+    const [command, ...args] = plan.installCommand;
+    if (command !== undefined) {
+      write();
+      info(`${command} ${args.join(' ')}`);
+      write();
+      const code = await spawnInherit(command, args, root);
+      if (code !== 0) {
+        process.exitCode = code;
+        return;
+      }
+    }
+  }
+
+  write();
+  info('Prochaines étapes :');
+  if (options.install !== true && plan.installCommand !== null) {
+    info(`  • ${plan.installCommand.join(' ')} pour installer les dépendances déclarées ;`);
+  }
+  if (config.modules.mockups) {
+    info('  • `klee tokens build` puis `klee mockups serve` pour voir les maquettes ;');
+  }
+  info('  • lire AGENTS.md à la racine, puis celui du dossier où vous travaillez ;');
+  info('  • `klee module list` pour voir les modules actifs.');
+  write();
 }
 
 function resolvePreset(value: string | undefined): PresetId {
@@ -119,17 +170,6 @@ async function interactiveConfig(
   preset: PresetId,
   options: InitOptions,
 ): Promise<ProjectConfig> {
-  if (process.stdin.isTTY !== true) {
-    throw new KeelError('Le mode interactif requiert un terminal.', {
-      code: 'NOT_A_TTY',
-      hint: 'Utilisez `klee init --yes` (éventuellement avec --preset) pour un usage scriptable.',
-    });
-  }
-
-  heading('klee init');
-  info(`Preset de départ : ${preset} — ${PRESETS[preset].description}`);
-  write();
-
   const name = options.name ?? (await askProjectName(defaultProjectName(root)));
   const idPrefix = options.idPrefix ?? (await askIdPrefix(DEFAULT_TICKET_PREFIX));
 

@@ -3,9 +3,16 @@ import { MODULE_IDS, type ModuleId } from '../modules.js';
 import { providerRegistry } from '../providers/index.js';
 import { PROVIDER_POINT_DEFINITIONS } from '../providers/points.js';
 import type { ProviderRegistry } from '../providers/registry.js';
-import { PROVIDER_POINTS } from '../providers/types.js';
+import { PROVIDER_POINTS, type ProviderPoint } from '../providers/types.js';
+import { mergeDependencies } from './dependencies.js';
 import { MODULE_GENERATORS, rootGenerator } from './modules/index.js';
-import type { ScaffoldContext, ScaffoldFile, ScaffoldPlan } from './types.js';
+import type {
+  ScaffoldContext,
+  ScaffoldDependency,
+  ScaffoldFile,
+  ScaffoldGenerator,
+  ScaffoldPlan,
+} from './types.js';
 
 export interface BuildScaffoldPlanOptions {
   readonly config: ProjectConfig;
@@ -18,6 +25,11 @@ export interface BuildScaffoldPlanOptions {
   readonly includeRoot?: boolean;
   /** Fichiers produits par les providers (workspace, docs, …). */
   readonly includeProviders?: boolean;
+  /**
+   * Restreint aux providers de ces points. Sans ce filtre, `klee module add mockups`
+   * générerait le dossier du module sans la configuration du pipeline qui le fait marcher.
+   */
+  readonly providerPoints?: readonly ProviderPoint[];
 }
 
 /**
@@ -34,28 +46,43 @@ export function buildScaffoldPlan(options: BuildScaffoldPlanOptions): ScaffoldPl
   };
 
   const files: ScaffoldFile[] = [];
+  const dependencies: ScaffoldDependency[] = [];
+
+  const collect = (generator: ScaffoldGenerator): void => {
+    files.push(...generator.files(context));
+    dependencies.push(...(generator.dependencies?.(context) ?? []));
+  };
 
   if (options.includeRoot ?? true) {
-    files.push(...rootGenerator.files(context));
+    collect(rootGenerator);
   }
 
   // Ordre déterministe : MODULE_IDS, pas l'ordre de la sélection utilisateur.
   for (const id of MODULE_IDS) {
     if (!config.modules[id]) continue;
     if (options.modules !== undefined && !options.modules.includes(id)) continue;
-    files.push(...MODULE_GENERATORS[id].files(context));
+    collect(MODULE_GENERATORS[id]);
   }
+
+  let installCommand: readonly string[] | null = null;
 
   if (options.includeProviders ?? true) {
     for (const point of PROVIDER_POINTS) {
+      if (options.providerPoints !== undefined && !options.providerPoints.includes(point)) continue;
       const requires = PROVIDER_POINT_DEFINITIONS[point].requiresModule;
       if (requires !== null && !config.modules[requires]) continue;
-      files.push(...context.registry.resolve(point, config.providers[point]).files(context));
+
+      const provider = context.registry.resolve(point, config.providers[point]);
+      collect(provider);
+
+      if (point === 'workspace' && provider.workspace !== undefined) {
+        installCommand = provider.workspace.install;
+      }
     }
   }
 
   assertNoDuplicatePaths(files);
-  return { files };
+  return { files: mergeDependencies(files, dependencies), dependencies, installCommand };
 }
 
 /**

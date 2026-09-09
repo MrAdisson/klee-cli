@@ -28,6 +28,17 @@ function ensure<T>(value: T | symbol): T {
   return value as T;
 }
 
+export async function askTargetDirectory(): Promise<string> {
+  return ensure(
+    await text({
+      message: 'Où scaffolder le projet ? (`.` pour le dossier courant)',
+      initialValue: '.',
+      validate: (value) =>
+        value !== undefined && value.trim() !== '' ? undefined : 'Indiquez un chemin.',
+    }),
+  );
+}
+
 export async function askProjectName(initialValue: string): Promise<string> {
   return ensure(
     await text({

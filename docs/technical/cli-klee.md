@@ -6,8 +6,8 @@ related_mockups: []
 
 # Référence de la CLI `klee`
 
-État : **phase 0**. Seules les commandes ci-dessous existent ; `klee ticket`, `klee tokens`,
-`klee studio` arrivent aux phases 2, 1 et 4 respectivement (`TECHNICAL.md`).
+État : **phases 0 et 1**. Seules les commandes ci-dessous existent ; `klee ticket` arrive en
+phase 2 et `klee studio` en phase 4 (`TECHNICAL.md`).
 
 ```
 klee [-v | --version] [-h | --help] <commande>
@@ -26,9 +26,16 @@ Crée la structure d'un projet Keel dans `directory` (défaut : le dossier coura
 | `--dry-run`            | Affiche le plan exact sans rien écrire.                                                 |
 | `--force`              | Écrase les fichiers existants dont le contenu diffère.                                  |
 
-**Mode interactif** (défaut) — dans l'ordre imposé par `TECHNICAL.md` §13 : nom, préfixe
-d'identifiants, puis **les modules**, puis, pour chaque module retenu seulement, ses questions
-de provider, puis les cibles de build des tokens si `mockups` est retenu.
+**Mode interactif** (défaut) — dans l'ordre : dossier cible (si l'argument n'a pas été donné),
+nom, préfixe d'identifiants, puis, comme l'impose `TECHNICAL.md` §13, **les modules**, puis,
+pour chaque module retenu seulement, ses questions de provider, et enfin les cibles de build
+des tokens si `mockups` est retenu.
+
+Le dossier est demandé **avant** le nom, et le nom en découle par défaut : c'est le dossier qui
+décide où atterrissent les fichiers. Déduire l'inverse — créer un dossier à partir du nom saisi —
+ferait muter l'arborescence au gré d'une réponse, ce qu'aucun usage scriptable ne pourrait
+prévoir. Pour scaffolder dans un sous-dossier, l'argument suffit : `klee init tutu` crée et
+remplit `./tutu/`, en nommant le projet `tutu`.
 
 **Mode non interactif** (`--yes`) — indispensable pour la CI et pour un agent qui scaffolde
 sans supervision. Sans terminal et sans `--yes`, la commande échoue explicitement plutôt que
@@ -62,7 +69,9 @@ klee init --yes --dry-run                   # inspecter le plan avant d'écrire
 | `klee module remove <module>` | Désactive un module optionnel. **Ne supprime aucun fichier** — il les liste.         |
 
 Options communes à `add` et `remove` : `--dry-run`, et `--refresh-root` pour régénérer les
-fichiers de racine qui énumèrent les modules (`README.md`, `AGENTS.md`).
+fichiers de racine qui énumèrent les modules (`README.md`, `AGENTS.md`). `add` accepte en
+plus `--install` : un module qui arrive apporte ses dépendances, et la commande les liste
+systématiquement avec la commande d'installation à lancer (cf ADR 0006).
 
 ```bash
 klee module add contracts
@@ -72,6 +81,41 @@ klee module add mockups --refresh-root
 Un module du socle ne peut être ni ajouté ni retiré : la commande échoue en le disant.
 Supprimer les fichiers d'un module retiré serait une décision, pas une commodité : `remove`
 signale, il ne détruit pas.
+
+`add` génère aussi les fichiers des providers rattachés au module : ajouter `mockups` installe
+le pipeline de tokens et le serveur de maquettes, pas seulement le dossier.
+
+## `klee tokens build`
+
+Régénère `design-system/dist/` à partir de `design-system/tokens.json`.
+
+## `klee mockups serve` · `klee mockups build`
+
+Sert les maquettes en local avec navigation entre les pages, ou en produit la version statique.
+
+### Ce que le projet généré sait faire sans klee
+
+`klee init` produit un workspace autonome, avec ses commandes de racine :
+
+| Commande                  | Effet                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `pnpm install`            | Installe les dépendances déclarées                                               |
+| `pnpm dev`                | Lance les tâches longues de chaque package — aujourd'hui le serveur de maquettes |
+| `pnpm build`              | Construit tout, dans l'ordre : les tokens avant les maquettes qui les consomment |
+| `pnpm test` · `pnpm lint` | Agrègent les tâches de chaque package                                            |
+
+L'ordre de `build` n'est pas une convention d'écriture : `mockups/` déclare une dépendance de
+workspace vers `design-system/`, et l'orchestrateur en déduit l'arête. Le `package.json` racine
+épingle aussi le gestionnaire de paquets — Turborepo refuse de résoudre un workspace sans ce
+champ.
+
+Ces trois commandes **ne font que lancer les scripts du projet**, avec le gestionnaire de
+paquets déclaré par son provider `workspace` et le bon répertoire de travail. Keel n'embarque
+ni Style Dictionary ni Eleventy : `design-system/` et `mockups/` ont leur propre `package.json`.
+Un projet Keel reste donc utilisable sans klee installé — `pnpm run build` depuis
+`design-system/` fait exactement la même chose (cf ADR 0006).
+
+Elles exigent que le module `mockups` soit retenu, et propagent le code de sortie du script.
 
 ## Codes de sortie et erreurs
 

@@ -7,3 +7,11 @@ export async function fileExists(path: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function directoryExists(path: string): Promise<boolean> {
+  try {
+    return (await stat(path)).isDirectory();
+  } catch {
+    return false;
+  }
+}

@@ -13,7 +13,8 @@ import { reportError } from './ui/output.js';
 export async function runCli(argv: readonly string[]): Promise<number> {
   try {
     await createProgram().parseAsync([...argv]);
-    return 0;
+    // Une commande qui délègue à un sous-processus propage son code de sortie.
+    return typeof process.exitCode === 'number' ? process.exitCode : 0;
   } catch (error) {
     if (isKeelError(error)) {
       reportError(error.message, error.hint);

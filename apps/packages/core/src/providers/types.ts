@@ -7,7 +7,7 @@
  */
 
 import type { ModuleId } from '../modules.js';
-import type { ScaffoldContext, ScaffoldFile } from '../scaffold/types.js';
+import type { ScaffoldGenerator } from '../scaffold/types.js';
 
 export const PROVIDER_POINTS = [
   'workspace',
@@ -45,12 +45,29 @@ export interface ProviderPointDefinition {
  * de toucher au reste du code : il suffit d'implémenter cette interface et de l'enregistrer
  * dans la factory (`registry.ts`).
  */
-export interface Provider {
+export interface Provider extends ScaffoldGenerator {
   readonly id: string;
   readonly point: ProviderPoint;
   readonly label: string;
   readonly description: string;
-  files(context: ScaffoldContext): ScaffoldFile[];
+  /**
+   * Ce que seul un provider du point `workspace` sait du projet généré : avec quoi il
+   * s'installe, comment il lance un script, et sous quelle forme un package en référence un
+   * autre. Keel n'embarque aucun gestionnaire de paquets, il délègue.
+   */
+  readonly workspace?: {
+    readonly install: readonly string[];
+    /** Préfixe d'exécution d'un script ; le nom du script est ajouté à la suite. */
+    readonly run: readonly string[];
+    /**
+     * Portée à écrire pour dépendre d'un autre package du workspace. pnpm exige
+     * `workspace:*` ; npm résout `*` vers le package local. Se tromper envoie le
+     * gestionnaire chercher un paquet privé sur le registre public.
+     */
+    readonly dependencyRange: string;
+    /** Valeur du champ `packageManager`, qu'exige Turborepo pour résoudre le workspace. */
+    readonly packageManager: string;
+  };
 }
 
 export function isProviderPoint(value: string): value is ProviderPoint {

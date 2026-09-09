@@ -8,6 +8,7 @@ import {
   runModuleRemove,
   type ModuleCommandOptions,
 } from './commands/module.js';
+import { runProjectScript } from './commands/project-script.js';
 import { readCliVersion } from './version.js';
 
 /**
@@ -28,13 +29,14 @@ export function createProgram(): Command {
   program
     .command('init')
     .description('Crée la structure d’un projet Keel (modules et providers).')
-    .argument('[directory]', 'dossier cible', '.')
+    .argument('[directory]', 'dossier cible (défaut : le dossier courant)')
     .option('--name <name>', 'nom du projet (défaut : nom du dossier)')
     .option('--id-prefix <prefix>', 'préfixe des identifiants de tickets (défaut : PROJ)')
     .option('--preset <preset>', `preset de modules : ${PRESET_IDS.join(' | ')}`)
     .option('-y, --yes', 'aucune question : preset full-product et providers par défaut')
     .option('--dry-run', 'affiche le plan sans rien écrire')
     .option('--force', 'écrase les fichiers existants qui diffèrent')
+    .option('--install', 'installe les dépendances déclarées après le scaffolding')
     .action(async (directory: string | undefined, options: InitOptions) => {
       await runInit(directory, options);
     });
@@ -56,6 +58,7 @@ export function createProgram(): Command {
     .argument('<module>', 'identifiant du module')
     .option('--dry-run', 'affiche le plan sans rien écrire')
     .option('--refresh-root', 'régénère aussi les fichiers de racine')
+    .option('--install', 'installe les dépendances que le module ajoute')
     .action(async (moduleName: string, options: ModuleCommandOptions) => {
       await runModuleAdd(moduleName, options);
     });
@@ -68,6 +71,39 @@ export function createProgram(): Command {
     .option('--refresh-root', 'régénère aussi les fichiers de racine')
     .action(async (moduleName: string, options: ModuleCommandOptions) => {
       await runModuleRemove(moduleName, options);
+    });
+
+  const tokensCommand = program
+    .command('tokens')
+    .description('Pipeline des design tokens (design-system/).');
+
+  tokensCommand
+    .command('build')
+    .description('Régénère design-system/dist/ à partir de tokens.json.')
+    .action(async () => {
+      await runProjectScript({
+        directory: 'design-system',
+        script: 'build',
+        requiresModule: 'mockups',
+      });
+    });
+
+  const mockupsCommand = program
+    .command('mockups')
+    .description('Serveur de navigation des maquettes (mockups/).');
+
+  mockupsCommand
+    .command('serve')
+    .description('Sert les maquettes en local, avec navigation entre les pages.')
+    .action(async () => {
+      await runProjectScript({ directory: 'mockups', script: 'dev', requiresModule: 'mockups' });
+    });
+
+  mockupsCommand
+    .command('build')
+    .description('Construit la version statique des maquettes.')
+    .action(async () => {
+      await runProjectScript({ directory: 'mockups', script: 'build', requiresModule: 'mockups' });
     });
 
   return program;

@@ -1,3 +1,4 @@
+import type { ModuleId } from '../modules.js';
 import type { ProviderPoint, ProviderPointDefinition } from './types.js';
 import { PROVIDER_POINTS } from './types.js';
 
@@ -75,3 +76,10 @@ export const PROVIDER_POINT_DEFINITIONS: Readonly<Record<ProviderPoint, Provider
 export const PROVIDER_POINT_LIST: readonly ProviderPointDefinition[] = PROVIDER_POINTS.map(
   (point) => PROVIDER_POINT_DEFINITIONS[point],
 );
+
+/** Points de provider rattachés à un module donné — ce que `klee module add` doit générer. */
+export function providerPointsForModule(moduleId: ModuleId): ProviderPoint[] {
+  return PROVIDER_POINTS.filter(
+    (point) => PROVIDER_POINT_DEFINITIONS[point].requiresModule === moduleId,
+  );
+}

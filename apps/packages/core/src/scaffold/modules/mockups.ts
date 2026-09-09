@@ -1,7 +1,8 @@
 import { MOCKUP_PREFIX } from '../../ids.js';
 import { agentsDoc } from '../agents-doc.js';
-import { textContents } from '../format.js';
+import { jsonContents } from '../format.js';
 import type { ScaffoldContext, ScaffoldFile, ScaffoldGenerator } from '../types.js';
+import { DEFAULT_TOKENS } from './tokens.js';
 
 /**
  * `mockups/` — UI figée en HTML/CSS (TECHNICAL.md §4) et `design-system/` — tokens DTCG
@@ -30,6 +31,12 @@ export const mockupsGenerator: ScaffoldGenerator = {
             `Chaque page ou composant a un \`.meta.yml\` : \`id: ${MOCKUP_PREFIX}-xxx\`, \`ticket\`, \`status: draft | validated | implemented\`, \`implemented_in\`.`,
             'Chaque composant documente ses états (default, hover, disabled, loading, erreur) : un état non maquetté est un état qui sera improvisé en implémentation.',
             `Aucun copier-coller de markup entre pages : une page inclut un composant via ${composition.label}, elle ne le réécrit jamais.`,
+            ...(composition.id === 'eleventy'
+              ? [
+                  'Les `.html` sont rendus en **Nunjucks** (et non en Liquid, le défaut d’Eleventy) : cf `docs/decisions/0007-langage-de-template-des-maquettes.md`.',
+                  'Un composant s’écrit comme une **macro** (`{% macro %}` / `{% from … import %}`), jamais comme un include qui lit des variables posées par la page : la portée reste isolée et les paramètres explicites.',
+                ]
+              : []),
             'JS uniquement pour illustrer un comportement UI local (menu, onglet) — jamais de logique métier, jamais d’appel réseau.',
             'Navigation entre pages par de simples liens `<a>`, pour simuler le parcours sans framework.',
             `Accessibilité WCAG 2.1 AA vérifiée au stade maquette ; la régression visuelle est assurée par ${regression.label}.`,
@@ -49,8 +56,14 @@ export const mockupsGenerator: ScaffoldGenerator = {
           ],
         }),
       },
-      { path: 'mockups/components/.gitkeep', origin, contents: textContents('') },
-      { path: 'mockups/pages/.gitkeep', origin, contents: textContents('') },
+      {
+        // Source unique des tokens. Le *format* DTCG est imposé sans alternative
+        // (DESIGN.md §2) : il ne dépend donc pas du provider de pipeline, contrairement
+        // à la configuration de transformation qui, elle, en dépend.
+        path: 'design-system/tokens.json',
+        origin,
+        contents: jsonContents(DEFAULT_TOKENS),
+      },
       {
         path: 'design-system/AGENTS.md',
         origin,

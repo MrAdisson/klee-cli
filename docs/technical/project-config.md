@@ -77,13 +77,13 @@ Un module à `false` ne génère aucun fichier, aucune dépendance, aucune secti
 
 | Point                 | Dépend du module | Valeurs                                | Défaut             | Génération |
 | --------------------- | ---------------- | -------------------------------------- | ------------------ | ---------- |
-| `workspace`           | `apps`           | `pnpm-turborepo`, `nx`                 | `pnpm-turborepo`   | phase 0    |
+| `workspace`           | `apps`           | `pnpm-turborepo`, `nx`                 | `pnpm-turborepo`   | ✅ livré   |
 | `docs`                | — (socle)        | `docusaurus`, `vitepress`, `starlight` | `docusaurus`       | phase 3    |
 | `contracts`           | `contracts`      | `openapi`, `graphql`, `protobuf`       | `openapi`          | phase 3    |
 | `tickets-index`       | `tickets`        | `markdown-sqlite`, `markdown-only`     | `markdown-sqlite`  | phase 2    |
-| `mockups-composition` | `mockups`        | `eleventy`, `web-components`           | `eleventy`         | phase 1    |
+| `mockups-composition` | `mockups`        | `eleventy`, `web-components`           | `eleventy`         | ✅ livré   |
 | `visual-regression`   | `mockups`        | `playwright`, `backstopjs`, `percy`    | `playwright`       | phase 1    |
-| `tokens-pipeline`     | `mockups`        | `style-dictionary`, `terrazzo`         | `style-dictionary` | phase 1    |
+| `tokens-pipeline`     | `mockups`        | `style-dictionary`, `terrazzo`         | `style-dictionary` | ✅ livré   |
 
 La colonne « génération » indique la phase à laquelle le provider produit réellement des
 fichiers. Avant cette phase, le choix est enregistré et cité dans les `AGENTS.md` générés, mais

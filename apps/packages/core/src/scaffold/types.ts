@@ -23,11 +23,36 @@ export interface ScaffoldFile {
   readonly origin: string;
 }
 
-export interface ScaffoldPlan {
-  readonly files: readonly ScaffoldFile[];
+/**
+ * Une dépendance qu'un module retenu apporte au projet généré (TECHNICAL.md §13 :
+ * « un module non retenu ne génère aucun fichier, **aucune dépendance** »).
+ *
+ * Elle est *déclarée*, pas installée : le plan la fusionne dans le `package.json` cible, et
+ * l'installation reste une étape explicite (`klee init --install`). Un scaffolding qui
+ * télécharge le réseau sans qu'on le lui demande n'est plus inspectable en `--dry-run`.
+ */
+export interface ScaffoldDependency {
+  readonly name: string;
+  /** Version épinglée par le provider — pas de résolution surprise entre deux exécutions. */
+  readonly version: string;
+  readonly dev: boolean;
+  /** `package.json` qui la reçoit, chemin POSIX relatif à la racine. */
+  readonly target: string;
+  readonly origin: string;
 }
 
-/** Générateur de fichiers : implémenté par les modules comme par les providers. */
+export interface ScaffoldPlan {
+  readonly files: readonly ScaffoldFile[];
+  readonly dependencies: readonly ScaffoldDependency[];
+  /** Commande d'installation déclarée par le provider `workspace`, si le module `apps` est retenu. */
+  readonly installCommand: readonly string[] | null;
+}
+
+/**
+ * Générateur : implémenté par les modules comme par les providers. `files` est obligatoire,
+ * `dependencies` ne l'est que pour ceux qui en apportent réellement.
+ */
 export interface ScaffoldGenerator {
   files(context: ScaffoldContext): ScaffoldFile[];
+  dependencies?(context: ScaffoldContext): ScaffoldDependency[];
 }

@@ -7,6 +7,8 @@ import {
   buildScaffoldPlan,
   findProjectRoot,
   isModuleId,
+  providerPointsForModule,
+  providerRegistry,
   readProjectConfig,
   writeProjectConfig,
   type ModuleId,
@@ -14,11 +16,14 @@ import {
 } from '@keel/core';
 
 import { field, heading, info, reportApply, success, warn, write } from '../ui/output.js';
+import { spawnInherit } from '../spawn.js';
 
 export interface ModuleCommandOptions {
   readonly dryRun?: boolean;
   /** Régénère aussi les fichiers de racine, qui énumèrent les modules retenus. */
   readonly refreshRoot?: boolean;
+  /** Installe les dépendances que le module ajoute. */
+  readonly install?: boolean;
 }
 
 interface ProjectHandle {
@@ -78,7 +83,9 @@ export async function runModuleAdd(
     config: next,
     modules: [moduleId],
     includeRoot: false,
-    includeProviders: false,
+    // Le module vient avec les providers qui le font fonctionner : ajouter `mockups` sans
+    // le pipeline de tokens ni le serveur de maquettes ne produirait qu'une coquille.
+    providerPoints: providerPointsForModule(moduleId),
   });
 
   const result = await applyScaffoldPlan(plan, { root, dryRun: options.dryRun ?? false });
@@ -89,6 +96,34 @@ export async function runModuleAdd(
 
   heading(`klee module add ${moduleId}`);
   reportApply(result);
+
+  // Un module qui arrive apporte ses dépendances (ADR 0006) : les taire reviendrait à livrer
+  // un dossier qui ne peut pas fonctionner tant que personne n'a deviné quoi installer.
+  if (plan.dependencies.length > 0 && options.dryRun !== true) {
+    write();
+    info(`${String(plan.dependencies.length)} dépendance(s) déclarée(s) :`);
+    for (const dependency of plan.dependencies) {
+      write(`      ${dependency.name}@${dependency.version} → ${dependency.target}`);
+    }
+
+    const installCommand = workspaceInstallCommand(next);
+    if (options.install === true) {
+      const [command, ...args] = installCommand;
+      if (command !== undefined) {
+        write();
+        info(`${command} ${args.join(' ')}`);
+        write();
+        const code = await spawnInherit(command, args, root);
+        if (code !== 0) {
+          process.exitCode = code;
+          return;
+        }
+      }
+    } else {
+      write();
+      info(`Lancez \`${installCommand.join(' ')}\` (ou \`--install\`) pour les installer.`);
+    }
+  }
 
   if (options.refreshRoot === true) {
     await refreshRootFiles(root, next, options.dryRun ?? false);
@@ -151,6 +186,16 @@ async function refreshRootFiles(
   write();
   info('Fichiers de racine régénérés :');
   reportApply(result);
+}
+
+/** Commande d'installation déclarée par le provider `workspace` du projet. */
+function workspaceInstallCommand(config: ProjectConfig): readonly string[] {
+  return (
+    providerRegistry.resolve('workspace', config.providers.workspace).workspace?.install ?? [
+      'pnpm',
+      'install',
+    ]
+  );
 }
 
 function parseOptionalModuleId(value: string): ModuleId {

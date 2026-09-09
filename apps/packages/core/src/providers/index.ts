@@ -23,7 +23,11 @@ export const providerRegistry = new ProviderRegistry([
 
 export { ProviderRegistry } from './registry.js';
 export { declarativeProvider } from './declarative.js';
-export { PROVIDER_POINT_DEFINITIONS, PROVIDER_POINT_LIST } from './points.js';
+export {
+  PROVIDER_POINT_DEFINITIONS,
+  PROVIDER_POINT_LIST,
+  providerPointsForModule,
+} from './points.js';
 export {
   PROVIDER_POINTS,
   isProviderPoint,

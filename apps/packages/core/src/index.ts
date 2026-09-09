@@ -59,6 +59,7 @@ export {
   ProviderRegistry,
   declarativeProvider,
   isProviderPoint,
+  providerPointsForModule,
   providerRegistry,
   type Provider,
   type ProviderPoint,
