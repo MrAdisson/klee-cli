@@ -22,7 +22,7 @@ ticket       →  document produit (DOC-018)
 
 ## État du projet
 
-**Phases 0 à 3 livrées.**
+**Phases 0 à 4 livrées.**
 
 - **Phase 0** — squelette du monorepo, schéma d'identifiants, architecture modules/providers,
   `klee init` avec mode interactif, `--yes` et presets.
@@ -37,7 +37,13 @@ ticket       →  document produit (DOC-018)
   natures d'artefact, des arêtes résolues dans les deux sens, `klee links check` qui refuse
   tout lien cassé, et le site **docs-as-code** que ce dépôt sert désormais lui-même.
 
-Les phases suivantes (cockpit unifié, interopérabilité, observabilité) sont décrites
+- **Phase 4** — le cockpit `klee studio` : board, docs et maquettes derrière une seule
+  origine, chaque identifiant cliquable renvoyant vers l'artefact réel. Les maquettes ont
+  un gate d'accessibilité WCAG 2.1 AA mécanique avant `validated`, les design tokens ont un
+  catalogue de huit starters (`klee tokens set-starter`), et le graphe se régénère
+  (`klee links report`) à chaque changement fait depuis le board.
+
+Les phases suivantes (interopérabilité, observabilité, environnements) sont décrites
 dans [`TECHNICAL.md`](TECHNICAL.md) et se lancent dans l'ordre, chacune après validation
 humaine de la précédente.
 
@@ -85,7 +91,14 @@ Le graphe qui relie tout ça, et la documentation qui le publie :
 klee links            # tickets ↔ maquettes ↔ docs, par nature d'artefact
 klee links show DOC-014
 klee links check      # sort en 1 sur un lien déclaré vers un artefact inexistant
+klee links report     # (ré)écrit docs/_generated/tracabilite.md
 klee docs serve       # le site de documentation, sur http://localhost:3000
+```
+
+Et le cockpit qui réunit tout ça derrière une seule adresse :
+
+```bash
+klee studio            # board + docs + maquettes, identifiants cliquables entre les trois
 ```
 
 Presets disponibles :
