@@ -1,4 +1,4 @@
-import { PRESET_IDS, TICKET_STATUSES } from '@klee/core';
+import { DEFAULT_TOKEN_STARTER_ID, PRESET_IDS, TICKET_STATUSES } from '@klee/core';
 import { Command } from 'commander';
 
 import { runInit, type InitOptions } from './commands/init.js';
@@ -33,6 +33,7 @@ import {
 import { SHELL_IDS } from './completion/candidates.js';
 import { runMockupsCheck, type MockupsCheckOptions } from './commands/mockups-check.js';
 import { runProjectScript } from './commands/project-script.js';
+import { runTokensSetStarter, type TokensSetStarterOptions } from './commands/tokens.js';
 import {
   runTicketCreate,
   runTicketList,
@@ -68,6 +69,10 @@ export function createProgram(): Command {
     .option(
       '--provider <point=id...>',
       'impose un provider, ex. --provider docs=markdown-only (passe avant le preset)',
+    )
+    .option(
+      '--token-starter <id>',
+      `starter de couleurs des design tokens (défaut : ${DEFAULT_TOKEN_STARTER_ID})`,
     )
     .option('-y, --yes', 'aucune question : preset full-product et providers par défaut')
     .option('--dry-run', 'affiche le plan sans rien écrire')
@@ -202,6 +207,7 @@ export function createProgram(): Command {
     .command('report')
     .description('Régénère la vue du graphe dans docs/_generated/.')
     .option('--dry-run', 'affiche le contenu sans l’écrire')
+    .option('--check', 'échoue si le fichier généré ne reflète plus le graphe, sans l’écrire')
     .action(async (options: LinksReportOptions) => {
       await runLinksReport(options);
     });
@@ -247,6 +253,15 @@ export function createProgram(): Command {
         script: 'build',
         requiresModule: 'mockups',
       });
+    });
+
+  tokensCommand
+    .command('set-starter <id>')
+    .description('Change de starter de tokens sans repasser par tout le scaffolding.')
+    .option('-y, --yes', 'écrase tokens.json sans confirmation — usage scriptable')
+    .option('--dry-run', 'affiche ce qui changerait sans rien écrire')
+    .action(async (id: string, options: TokensSetStarterOptions) => {
+      await runTokensSetStarter(id, options);
     });
 
   const mockupsCommand = program

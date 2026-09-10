@@ -18,13 +18,18 @@ sidebar_label: Traçabilité
 | KLEE-003 | Ouvrir une sortie au site de documentation pour les projets légers | done | DOC-013, DOC-015, KLEE-002 | `tickets/KLEE-003-ouvrir-une-sortie-au-site-de-documentation-pour-les-projets.md` |
 | KLEE-004 | Le scaffolding n'écrase plus les fichiers de racine rédigés | done | DOC-016 | `tickets/KLEE-004-le-scaffolding-n-ecrase-plus-les-fichiers-de-racine-rediges.md` |
 | KLEE-005 | Cockpit klee studio : une app unique par-dessus des serveurs indépendants | done | DOC-017, DOC-019 | `tickets/KLEE-005-cockpit-klee-studio-une-app-unique-par-dessus-des-serveurs-i.md` |
-| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | in-review | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
-| KLEE-007 | Webhooks internes : réactions locales aux transitions | in-review | DOC-022, KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
+| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | done | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
+| KLEE-007 | Webhooks internes : réactions locales aux transitions | done | DOC-022, KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
 | KLEE-008 | Gate d'accessibilité : axe-core avant qu'une maquette passe validated | done | DOC-021, KLEE-007 | `tickets/KLEE-008-gate-d-accessibilite-axe-core-avant-qu-une-maquette-passe-va.md` |
 | KLEE-009 | Lire un ticket depuis le board, pas seulement le déplacer | done | — | `tickets/KLEE-009-lire-un-ticket-depuis-le-board-pas-seulement-le-deplacer.md` |
-| KLEE-010 | Tester le gate a11y avec deux maquettes non conformes | in-review | MOCK-003, MOCK-004 | `tickets/KLEE-010-tester-le-gate-a11y-avec-deux-maquettes-non-conformes.md` |
-| KLEE-011 | Améliorer la documentation initiale du scaffolding | in-review | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
-| KLEE-012 | Rendre klee publiable sur npm | backlog | — | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
+| KLEE-010 | Tester le gate a11y avec deux maquettes non conformes | done | MOCK-003, MOCK-004 | `tickets/KLEE-010-tester-le-gate-a11y-avec-deux-maquettes-non-conformes.md` |
+| KLEE-011 | Améliorer la documentation initiale du scaffolding | done | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
+| KLEE-012 | Rendre klee publiable sur npm | done | KLEE-013 | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
+| KLEE-013 | Automatiser le versioning et la publication npm avec Changesets | done | KLEE-012 | `tickets/KLEE-013-automatiser-le-versioning-et-la-publication-npm-avec-changes.md` |
+| KLEE-014 | Distinguer tokens primitifs et sémantiques dans tokens.json | done | DOC-023, KLEE-015 | `tickets/KLEE-014-distinguer-tokens-primitifs-et-semantiques-dans-tokens-json.md` |
+| KLEE-015 | Exposer le choix de starter de tokens à klee init | done | DOC-024, KLEE-014, KLEE-016, KLEE-017 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
+| KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | done | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
+| KLEE-017 | Changer de starter de tokens sans tout ré-scaffolder | done | DOC-026, KLEE-015 | `tickets/KLEE-017-changer-de-starter-de-tokens-sans-tout-re-scaffolder.md` |
 
 ## Maquettes
 
@@ -61,13 +66,16 @@ sidebar_label: Traçabilité
 | DOC-020 | 0017 — Le premier ticket d'un projet est un compte rendu, pas une tâche | — | — | `docs/decisions/0017-le-premier-ticket-est-un-compte-rendu.md` |
 | DOC-021 | 0018 — L'accessibilité est un gate sur `validated`, avec des dérogations motivées | — | KLEE-008 | `docs/decisions/0018-gate-accessibilite-et-derogations.md` |
 | DOC-022 | 0019 — Les webhooks internes et la régression visuelle sortent du périmètre | — | KLEE-007 | `docs/decisions/0019-webhooks-internes-et-regression-visuelle-hors-scope.md` |
+| DOC-023 | 0020 — Tokens primitifs et sémantiques, dans le même `tokens.json` | — | KLEE-014 | `docs/decisions/0020-tokens-primitifs-et-semantiques.md` |
+| DOC-024 | 0021 — Cinq starters de plus, et le choix arrive enfin à `klee init` | — | KLEE-015 | `docs/decisions/0021-catalogue-de-starters-et-choix-a-linit.md` |
+| DOC-025 | 0022 — Un starter porte une personnalité complète, pas seulement une couleur | — | KLEE-016 | `docs/decisions/0022-personnalite-des-starters-au-dela-de-la-couleur.md` |
+| DOC-026 | 0023 — Changer de starter sans repasser par tout le scaffolding | — | KLEE-017 | `docs/decisions/0023-changer-de-starter-sans-tout-rescaffolder.md` |
 
 
 ## Sans lien déclaré
 
 - KLEE-009 — Lire un ticket depuis le board, pas seulement le déplacer
 - KLEE-011 — Améliorer la documentation initiale du scaffolding
-- KLEE-012 — Rendre klee publiable sur npm
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé

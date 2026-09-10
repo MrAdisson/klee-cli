@@ -26,14 +26,16 @@ Crée la structure d'un projet Klee dans `directory` (défaut : le dossier coura
 | `--id-prefix <prefix>` | Préfixe des identifiants de tickets. Défaut : `PROJ`.                                                |
 | `--preset <preset>`    | `full-product` \| `api-service` \| `internal-lib`. Fixe les modules, et peut _proposer_ un provider. |
 | `--provider <p>=<id>`  | Impose un provider, répétable. Passe avant le preset (ADR 0012).                                     |
+| `--token-starter <id>` | Impose le starter de couleurs des design tokens (ADR 0020, 0021). Défaut : `klee-default`.           |
 | `-y`, `--yes`          | Aucune question : preset `full-product` (ou celui demandé) et providers par défaut.                  |
 | `--dry-run`            | Affiche le plan exact sans rien écrire.                                                              |
 | `--force`              | Écrase les fichiers existants dont le contenu diffère.                                               |
 
 **Mode interactif** (défaut) — dans l'ordre : dossier cible (si l'argument n'a pas été donné),
 nom, préfixe d'identifiants, puis, comme l'impose `TECHNICAL.md` §13, **les modules**, puis,
-pour chaque module retenu seulement, ses questions de provider, et enfin les cibles de build
-des tokens si `mockups` est retenu.
+pour chaque module retenu seulement, ses questions de provider, et enfin, si `mockups` est
+retenu, les cibles de build des tokens et le starter de couleurs (huit au catalogue, ADR
+0021 — `klee-default` présélectionné).
 
 Le dossier est demandé **avant** le nom, et le nom en découle par défaut : c'est le dossier qui
 décide où atterrissent les fichiers. Déduire l'inverse — créer un dossier à partir du nom saisi —
@@ -154,6 +156,27 @@ plutôt que d'échouer sur un fichier manquant (ADR 0011).
 ## `klee tokens build`
 
 Régénère `design-system/dist/` à partir de `design-system/tokens.json`.
+
+## `klee tokens set-starter <id>`
+
+Change de starter de couleurs sur un projet déjà scaffoldé (ADR 0023), sans repasser par tout
+le plan de `klee init --force` — seul `design-system/tokens.json` est régénéré (via la même
+fonction que le scaffolding initial), puis `design-system/dist/` est reconstruit.
+
+`tokens.json` étant un fichier que `design-system/AGENTS.md` autorise à éditer à la main,
+l'écrasement demande toujours confirmation, sauf `--yes` (usage scriptable). Hors terminal et
+sans `--yes`, la commande échoue plutôt que de deviner — même discipline que `klee init`.
+
+| Option        | Effet                                       |
+| ------------- | ------------------------------------------- |
+| `-y`, `--yes` | Écrase sans confirmation.                   |
+| `--dry-run`   | Affiche ce qui changerait sans rien écrire. |
+
+```bash
+klee tokens set-starter klee-mono            # interactif : demande confirmation
+klee tokens set-starter klee-mono --yes      # scriptable
+klee tokens set-starter klee-mono --dry-run  # inspecter avant d'écraser
+```
 
 ## `klee mockups serve` · `klee mockups build`
 

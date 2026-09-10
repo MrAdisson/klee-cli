@@ -19,7 +19,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test",
+    "links:check": "node apps/cli/dist/klee.js links check",
+    "links:report:check": "node apps/cli/dist/klee.js links report --check",
+    "verify": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run links:check && pnpm run links:report:check",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "klee": "node apps/cli/dist/klee.js"

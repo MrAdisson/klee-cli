@@ -52,6 +52,8 @@ export const providerSelectionSchema = z.strictObject(providerSelectionShape);
 
 export const designSystemSchema = z.strictObject({
   targets: z.array(z.enum(TOKEN_TARGETS)).min(1),
+  /** Starter de primitifs de tokens retenu (ADR 0020) — validé contre le registre, pas ici. */
+  tokenStarter: z.string().min(1),
 });
 
 export const projectConfigSchema = z.strictObject({

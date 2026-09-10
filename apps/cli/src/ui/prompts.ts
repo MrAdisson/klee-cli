@@ -5,6 +5,7 @@ import {
   PROJECT_NAME_PATTERN,
   PROVIDER_POINT_DEFINITIONS,
   REQUIRED_TOKEN_TARGET,
+  TOKEN_STARTERS,
   TOKEN_TARGETS,
   isValidIdPrefix,
   type ModuleId,
@@ -33,6 +34,21 @@ export async function askInstallDependencies(command: string): Promise<boolean> 
     await confirm({
       message: `Installer les dépendances maintenant (${command}) ?`,
       initialValue: true,
+    }),
+  );
+}
+
+/**
+ * `klee tokens set-starter` écrase `design-system/tokens.json` : un token qui y a été
+ * modifié à la main (`design-system/AGENTS.md` l'autorise explicitement) se perdrait sans
+ * confirmation — jamais de défaut à `true` ici, contrairement aux prompts qui ne font que
+ * proposer une valeur.
+ */
+export async function askOverwriteTokens(starterId: string): Promise<boolean> {
+  return ensure(
+    await confirm({
+      message: `Remplacer design-system/tokens.json par le starter "${starterId}" ? Toute modification manuelle du fichier sera perdue.`,
+      initialValue: false,
     }),
   );
 }
@@ -134,4 +150,22 @@ export async function askTokenTargets(): Promise<TokenTarget[]> {
   );
 
   return selected;
+}
+
+/**
+ * `proposed` : id présélectionné (défaut ou imposé en ligne de commande) — la liste complète
+ * reste offerte, même schéma que `askProvider` (ADR 0012, ADR 0021).
+ */
+export async function askTokenStarter(proposed: string): Promise<string> {
+  return ensure(
+    await select<string>({
+      message: 'Starter de couleurs pour design-system/tokens.json (ADR 0020, 0021)',
+      initialValue: proposed,
+      options: TOKEN_STARTERS.map((starter) => ({
+        value: starter.id,
+        label: starter.label,
+        hint: starter.description,
+      })),
+    }),
+  );
 }

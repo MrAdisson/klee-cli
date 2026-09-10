@@ -147,12 +147,26 @@ export {
 } from './config/schema.js';
 
 export {
+  DEFAULT_TOKEN_STARTER_ID,
+  TOKEN_STARTERS,
+  findTokenStarter,
+  resolveTokenStarter,
+  resolveTokenValue,
+  type TokenDocument,
+  type TokenStarter,
+} from './token-starters.js';
+
+export { buildTokens } from './scaffold/modules/tokens.js';
+
+export {
   createProjectConfig,
   defaultProviderSelection,
   type CreateProjectConfigInput,
 } from './config/defaults.js';
 
 export { configPath, findProjectRoot, readProjectConfig, writeProjectConfig } from './config/io.js';
+
+export { jsonContents } from './scaffold/format.js';
 
 export { validateProjectConfig } from './config/validate.js';
 

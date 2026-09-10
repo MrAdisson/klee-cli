@@ -166,6 +166,7 @@ export async function runLinksCheck(): Promise<void> {
 
 export interface LinksReportOptions {
   readonly dryRun?: boolean;
+  readonly check?: boolean;
 }
 
 /**
@@ -194,6 +195,20 @@ export async function runLinksReport(options: LinksReportOptions): Promise<void>
     write();
     info('Inchangé.');
     write();
+    return;
+  }
+
+  if (options.check === true) {
+    field('Cible', GRAPH_REPORT_PATH);
+    write();
+    warn(
+      existing === null
+        ? `${GRAPH_REPORT_PATH} n'existe pas encore.`
+        : `${GRAPH_REPORT_PATH} ne reflète plus le graphe (tickets/docs/maquettes ont bougé sans régénération).`,
+    );
+    info('Lancez `klee links report` pour la régénérer, puis committez le résultat.');
+    write();
+    process.exitCode = 1;
     return;
   }
 

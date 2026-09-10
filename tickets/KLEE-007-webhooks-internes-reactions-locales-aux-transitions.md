@@ -1,10 +1,10 @@
 ---
 id: KLEE-007
 title: 'Webhooks internes : réactions locales aux transitions'
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 depends_on:
   - KLEE-008
 related_mockups: []
