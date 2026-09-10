@@ -156,6 +156,8 @@ export {
   type TokenStarter,
 } from './token-starters.js';
 
+export { buildTokens } from './scaffold/modules/tokens.js';
+
 export {
   createProjectConfig,
   defaultProviderSelection,
@@ -163,6 +165,8 @@ export {
 } from './config/defaults.js';
 
 export { configPath, findProjectRoot, readProjectConfig, writeProjectConfig } from './config/io.js';
+
+export { jsonContents } from './scaffold/format.js';
 
 export { validateProjectConfig } from './config/validate.js';
 

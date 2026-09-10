@@ -65,9 +65,10 @@ node apps/cli/dist/bin/klee.js init ./mon-api --yes --preset api-service
 Puis, dans un projet qui a retenu les maquettes :
 
 ```bash
-pnpm install          # ou `klee init --install` dès le départ
-klee tokens build     # design-system/tokens.json → dist/css/tokens.css
-klee mockups serve    # navigation locale des maquettes
+pnpm install                     # ou `klee init --install` dès le départ
+klee tokens build                # design-system/tokens.json → dist/css/tokens.css
+klee tokens set-starter klee-mono  # change de starter sans tout ré-scaffolder (confirmation requise)
+klee mockups serve               # navigation locale des maquettes
 ```
 
 Et pour les tickets, dans n'importe quel projet :

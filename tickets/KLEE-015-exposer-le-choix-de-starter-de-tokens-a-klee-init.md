@@ -1,7 +1,7 @@
 ---
 id: KLEE-015
 title: Exposer le choix de starter de tokens à klee init
-status: in-review
+status: done
 assignee: null
 created: 2026-09-10
 updated: 2026-09-10

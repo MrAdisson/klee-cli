@@ -1,7 +1,7 @@
 ---
 id: KLEE-013
 title: Automatiser le versioning et la publication npm avec Changesets
-status: in-review
+status: done
 assignee: null
 created: 2026-09-10
 updated: 2026-09-10

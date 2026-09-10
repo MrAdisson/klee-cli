@@ -1,7 +1,7 @@
 ---
 id: KLEE-016
 title: Élargir les starters à la typographie, l'espacement, les rayons et les ombres
-status: in-review
+status: done
 assignee: null
 created: 2026-09-10
 updated: 2026-09-10

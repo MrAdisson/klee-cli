@@ -33,6 +33,7 @@ import {
 import { SHELL_IDS } from './completion/candidates.js';
 import { runMockupsCheck, type MockupsCheckOptions } from './commands/mockups-check.js';
 import { runProjectScript } from './commands/project-script.js';
+import { runTokensSetStarter, type TokensSetStarterOptions } from './commands/tokens.js';
 import {
   runTicketCreate,
   runTicketList,
@@ -252,6 +253,15 @@ export function createProgram(): Command {
         script: 'build',
         requiresModule: 'mockups',
       });
+    });
+
+  tokensCommand
+    .command('set-starter <id>')
+    .description('Change de starter de tokens sans repasser par tout le scaffolding.')
+    .option('-y, --yes', 'écrase tokens.json sans confirmation — usage scriptable')
+    .option('--dry-run', 'affiche ce qui changerait sans rien écrire')
+    .action(async (id: string, options: TokensSetStarterOptions) => {
+      await runTokensSetStarter(id, options);
     });
 
   const mockupsCommand = program

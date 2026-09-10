@@ -1,7 +1,7 @@
 ---
 id: KLEE-014
 title: Distinguer tokens primitifs et sémantiques dans tokens.json
-status: in-review
+status: done
 assignee: null
 created: 2026-09-10
 updated: 2026-09-10

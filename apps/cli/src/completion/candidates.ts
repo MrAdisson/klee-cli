@@ -2,6 +2,7 @@ import {
   OPTIONAL_MODULE_IDS,
   PRESET_IDS,
   TICKET_STATUSES,
+  TOKEN_STARTERS,
   buildTraceGraph,
   findProjectRoot,
   readProjectConfig,
@@ -62,6 +63,7 @@ const optionalModules =
 
 const ticketIds = entityIds('ticket');
 const statuses = constant(TICKET_STATUSES);
+const tokenStarters = constant(TOKEN_STARTERS.map((starter) => starter.id));
 
 /** Valeurs des arguments positionnels, par chemin de commande puis par position. */
 const ARGUMENT_SOURCES: Readonly<Record<string, readonly Source[]>> = {
@@ -70,6 +72,7 @@ const ARGUMENT_SOURCES: Readonly<Record<string, readonly Source[]>> = {
   'links show': [entityIds()],
   'module add': [optionalModules(false)],
   'module remove': [optionalModules(true)],
+  'tokens set-starter': [tokenStarters],
   completion: [constant(SHELL_IDS)],
   'completion install': [constant(SHELL_IDS)],
 };
@@ -79,6 +82,7 @@ const OPTION_SOURCES: Readonly<Record<string, Source>> = {
   'ticket create --status': statuses,
   'ticket list --status': statuses,
   'init --preset': constant(PRESET_IDS),
+  'init --token-starter': tokenStarters,
 };
 
 export async function completionCandidates(

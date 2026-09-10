@@ -27,8 +27,9 @@ sidebar_label: Traçabilité
 | KLEE-012 | Rendre klee publiable sur npm | done | KLEE-013 | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
 | KLEE-013 | Automatiser le versioning et la publication npm avec Changesets | in-review | KLEE-012 | `tickets/KLEE-013-automatiser-le-versioning-et-la-publication-npm-avec-changes.md` |
 | KLEE-014 | Distinguer tokens primitifs et sémantiques dans tokens.json | in-review | DOC-023, KLEE-015 | `tickets/KLEE-014-distinguer-tokens-primitifs-et-semantiques-dans-tokens-json.md` |
-| KLEE-015 | Exposer le choix de starter de tokens à klee init | in-review | DOC-024, KLEE-014, KLEE-016 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
-| KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | in-progress | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
+| KLEE-015 | Exposer le choix de starter de tokens à klee init | in-review | DOC-024, KLEE-014, KLEE-016, KLEE-017 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
+| KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | in-review | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
+| KLEE-017 | Changer de starter de tokens sans tout ré-scaffolder | in-progress | DOC-026, KLEE-015 | `tickets/KLEE-017-changer-de-starter-de-tokens-sans-tout-re-scaffolder.md` |
 
 ## Maquettes
 
@@ -68,6 +69,7 @@ sidebar_label: Traçabilité
 | DOC-023 | 0020 — Tokens primitifs et sémantiques, dans le même `tokens.json` | — | KLEE-014 | `docs/decisions/0020-tokens-primitifs-et-semantiques.md` |
 | DOC-024 | 0021 — Cinq starters de plus, et le choix arrive enfin à `klee init` | — | KLEE-015 | `docs/decisions/0021-catalogue-de-starters-et-choix-a-linit.md` |
 | DOC-025 | 0022 — Un starter porte une personnalité complète, pas seulement une couleur | — | KLEE-016 | `docs/decisions/0022-personnalite-des-starters-au-dela-de-la-couleur.md` |
+| DOC-026 | 0023 — Changer de starter sans repasser par tout le scaffolding | — | KLEE-017 | `docs/decisions/0023-changer-de-starter-sans-tout-rescaffolder.md` |
 
 
 ## Sans lien déclaré

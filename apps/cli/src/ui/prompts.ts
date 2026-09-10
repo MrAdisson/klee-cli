@@ -38,6 +38,21 @@ export async function askInstallDependencies(command: string): Promise<boolean> 
   );
 }
 
+/**
+ * `klee tokens set-starter` écrase `design-system/tokens.json` : un token qui y a été
+ * modifié à la main (`design-system/AGENTS.md` l'autorise explicitement) se perdrait sans
+ * confirmation — jamais de défaut à `true` ici, contrairement aux prompts qui ne font que
+ * proposer une valeur.
+ */
+export async function askOverwriteTokens(starterId: string): Promise<boolean> {
+  return ensure(
+    await confirm({
+      message: `Remplacer design-system/tokens.json par le starter "${starterId}" ? Toute modification manuelle du fichier sera perdue.`,
+      initialValue: false,
+    }),
+  );
+}
+
 export async function askTargetDirectory(): Promise<string> {
   return ensure(
     await text({
