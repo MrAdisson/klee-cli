@@ -1,4 +1,5 @@
 import { MOCKUP_PREFIX } from '../../ids.js';
+import { DEFAULT_TOKEN_STARTER_ID } from '../../token-starters.js';
 import { agentsDoc } from '../agents-doc.js';
 import { jsonContents } from '../format.js';
 import type {
@@ -7,7 +8,7 @@ import type {
   ScaffoldFile,
   ScaffoldGenerator,
 } from '../types.js';
-import { DEFAULT_TOKENS } from './tokens.js';
+import { buildTokens } from './tokens.js';
 
 /**
  * `mockups/` — UI figée en HTML/CSS (TECHNICAL.md §4) et `design-system/` — tokens DTCG
@@ -22,6 +23,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
     const regression = registry.resolve('visual-regression', providers['visual-regression']);
     const pipeline = registry.resolve('tokens-pipeline', providers['tokens-pipeline']);
     const targets = context.config.designSystem?.targets ?? ['css'];
+    const tokenStarter = context.config.designSystem?.tokenStarter ?? DEFAULT_TOKEN_STARTER_ID;
 
     return [
       {
@@ -68,7 +70,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
         // à la configuration de transformation qui, elle, en dépend.
         path: 'design-system/tokens.json',
         origin,
-        contents: jsonContents(DEFAULT_TOKENS),
+        contents: jsonContents(buildTokens(tokenStarter)),
       },
       {
         path: 'design-system/AGENTS.md',
@@ -81,6 +83,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
             `\`dist/\` est **généré** par ${pipeline.label} et n'est jamais édité à la main. Cibles actives : ${targets.join(', ')}.`,
             'Sens de la dépendance imposé : `mockups/` et `apps/` importent `design-system/dist/`, jamais l’inverse.',
             'Nommage sémantique avant tout (`--color-text-primary`, pas `--color-gray-900`) : changer une valeur ne doit pas casser la signification.',
+            'Deux niveaux dans le même fichier (ADR 0020) : `primitive.*` porte les valeurs brutes du starter retenu, tout le reste y fait référence par alias (`$value: "{primitive.color.gray.900}"`), jamais de valeur littérale hors de `primitive`.',
             'Un changement de token est un ticket, jamais une édition silencieuse : il touche toutes les pages qui l’utilisent, et rien ne le rattrape encore automatiquement.',
           ],
           allowed: [
@@ -91,6 +94,7 @@ export const mockupsGenerator: ScaffoldGenerator = {
             'Éditer quoi que ce soit dans `design-system/dist/`.',
             'Introduire une dépendance de `design-system/` vers `mockups/` ou `apps/`.',
             'Ajouter un token purement descriptif (`--blue-500`) sans token sémantique correspondant.',
+            'Utiliser un token `primitive.*` directement dans une maquette ou un composant — toujours passer par son alias sémantique.',
           ],
           references: ['`docs/technical/index.md` — design tokens.', '`mockups/AGENTS.md`.'],
         }),

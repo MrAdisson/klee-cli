@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ConfigError } from '../errors.js';
 import { moduleSelectionFromPreset } from '../presets.js';
+import { DEFAULT_TOKEN_STARTER_ID } from '../token-starters.js';
 import { createProjectConfig, defaultProviderSelection } from './defaults.js';
 import { validateProjectConfig } from './validate.js';
 import type { ProjectConfig } from './schema.js';
@@ -18,8 +19,20 @@ describe('createProjectConfig', () => {
   });
 
   it('n’émet la section designSystem que si le module mockups est retenu', () => {
-    expect(baseConfig('full-product').designSystem).toEqual({ targets: ['css'] });
+    expect(baseConfig('full-product').designSystem).toEqual({
+      targets: ['css'],
+      tokenStarter: DEFAULT_TOKEN_STARTER_ID,
+    });
     expect(baseConfig('internal-lib').designSystem).toBeUndefined();
+  });
+
+  it('applique le starter par défaut, remplaçable explicitement', () => {
+    const config = createProjectConfig({
+      name: 'demo',
+      modules: moduleSelectionFromPreset('full-product'),
+      tokenStarter: DEFAULT_TOKEN_STARTER_ID,
+    });
+    expect(config.designSystem?.tokenStarter).toBe(DEFAULT_TOKEN_STARTER_ID);
   });
 
   it('force la cible css même si elle n’est pas demandée', () => {
@@ -65,7 +78,7 @@ describe('validateProjectConfig', () => {
   it('refuse une section designSystem sans le module mockups', () => {
     const config: ProjectConfig = {
       ...baseConfig('internal-lib'),
-      designSystem: { targets: ['css'] },
+      designSystem: { targets: ['css'], tokenStarter: DEFAULT_TOKEN_STARTER_ID },
     };
     expect(() => {
       validateProjectConfig(config);
@@ -73,9 +86,22 @@ describe('validateProjectConfig', () => {
   });
 
   it('refuse le retrait de la cible css, socle universel', () => {
-    const config: ProjectConfig = { ...baseConfig(), designSystem: { targets: ['tailwind'] } };
+    const config: ProjectConfig = {
+      ...baseConfig(),
+      designSystem: { targets: ['tailwind'], tokenStarter: DEFAULT_TOKEN_STARTER_ID },
+    };
     expect(() => {
       validateProjectConfig(config);
     }).toThrow(/css/);
+  });
+
+  it('refuse un starter de tokens inconnu', () => {
+    const config: ProjectConfig = {
+      ...baseConfig(),
+      designSystem: { targets: ['css'], tokenStarter: 'inconnu' },
+    };
+    expect(() => {
+      validateProjectConfig(config);
+    }).toThrow(/starter de tokens inconnu/);
   });
 });

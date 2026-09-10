@@ -3,6 +3,7 @@ import { CORE_MODULE_IDS, MODULES } from '../modules.js';
 import { providerRegistry } from '../providers/index.js';
 import type { ProviderRegistry } from '../providers/registry.js';
 import { PROVIDER_POINTS } from '../providers/types.js';
+import { TOKEN_STARTERS, findTokenStarter } from '../token-starters.js';
 import { REQUIRED_TOKEN_TARGET, type ProjectConfig } from './schema.js';
 
 /**
@@ -34,10 +35,17 @@ export function validateProjectConfig(
   if (config.modules.mockups) {
     if (config.designSystem === undefined) {
       problems.push('le module « mockups » impose une section `designSystem` (cf TECHNICAL.md §3)');
-    } else if (!config.designSystem.targets.includes(REQUIRED_TOKEN_TARGET)) {
-      problems.push(
-        `la cible de tokens « ${REQUIRED_TOKEN_TARGET} » est le socle universel et ne peut pas être retirée`,
-      );
+    } else {
+      if (!config.designSystem.targets.includes(REQUIRED_TOKEN_TARGET)) {
+        problems.push(
+          `la cible de tokens « ${REQUIRED_TOKEN_TARGET} » est le socle universel et ne peut pas être retirée`,
+        );
+      }
+      if (findTokenStarter(config.designSystem.tokenStarter) === undefined) {
+        problems.push(
+          `starter de tokens inconnu : "${config.designSystem.tokenStarter}" (disponibles : ${TOKEN_STARTERS.map((starter) => starter.id).join(', ')})`,
+        );
+      }
     }
   } else if (config.designSystem !== undefined) {
     problems.push(

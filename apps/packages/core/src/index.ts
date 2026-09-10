@@ -147,6 +147,16 @@ export {
 } from './config/schema.js';
 
 export {
+  DEFAULT_TOKEN_STARTER_ID,
+  TOKEN_STARTERS,
+  findTokenStarter,
+  resolveTokenStarter,
+  resolveTokenValue,
+  type TokenDocument,
+  type TokenStarter,
+} from './token-starters.js';
+
+export {
   createProjectConfig,
   defaultProviderSelection,
   type CreateProjectConfigInput,

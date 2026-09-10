@@ -4,6 +4,7 @@ import type { ModuleSelection } from '../modules.js';
 import { providerDefaultsFromPreset, type PresetId } from '../presets.js';
 import { PROVIDER_POINT_DEFINITIONS } from '../providers/points.js';
 import { PROVIDER_POINTS } from '../providers/types.js';
+import { DEFAULT_TOKEN_STARTER_ID } from '../token-starters.js';
 import {
   CONFIG_VERSION,
   REQUIRED_TOKEN_TARGET,
@@ -38,6 +39,8 @@ export interface CreateProjectConfigInput {
   readonly modules: ModuleSelection;
   readonly providers?: Partial<ProviderSelectionConfig>;
   readonly tokenTargets?: readonly TokenTarget[];
+  /** Starter de primitifs de tokens (ADR 0020). Défaut : le seul starter du registre. */
+  readonly tokenStarter?: string;
 }
 
 /**
@@ -54,7 +57,9 @@ export function createProjectConfig(input: CreateProjectConfigInput): ProjectCon
     idPrefix: input.idPrefix ?? DEFAULT_TICKET_PREFIX,
     modules: { ...input.modules },
     providers: { ...defaultProviderSelection(), ...input.providers },
-    ...(input.modules.mockups ? { designSystem: { targets } } : {}),
+    ...(input.modules.mockups
+      ? { designSystem: { targets, tokenStarter: input.tokenStarter ?? DEFAULT_TOKEN_STARTER_ID } }
+      : {}),
   };
 
   const parsed = projectConfigSchema.safeParse(candidate);

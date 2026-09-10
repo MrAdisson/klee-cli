@@ -1,4 +1,5 @@
 import {
+  DEFAULT_TOKEN_STARTER_ID,
   KleeError,
   MODULES,
   MODULE_IDS,
@@ -60,7 +61,9 @@ export async function runModuleAdd(
   const next: ProjectConfig = {
     ...config,
     modules: { ...config.modules, [moduleId]: true },
-    ...(moduleId === 'mockups' ? { designSystem: { targets: ['css' as const] } } : {}),
+    ...(moduleId === 'mockups'
+      ? { designSystem: { targets: ['css' as const], tokenStarter: DEFAULT_TOKEN_STARTER_ID } }
+      : {}),
   };
 
   const plan = buildScaffoldPlan({

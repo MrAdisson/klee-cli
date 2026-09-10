@@ -33,6 +33,8 @@ Les tokens vivent dans `design-system/` (cf `TECHNICAL.md` §3), pas dans `mocku
 
 **Règle de nommage :** sémantique avant tout (`--color-text-primary`, pas `--color-gray-900`) pour que changer une valeur ne casse pas la signification.
 
+**Primitifs et sémantique (ADR 0020) :** le groupe `color` de `tokens.json` porte deux niveaux, dans le même fichier. `primitive.color.*` porte les valeurs brutes, nommées par échelle (`primitive.color.gray.900`) — c'est la seule partie qui varie d'un projet à l'autre selon le starter retenu à l'init. Tout le reste (`color.text.*`, `color.primary.*`, etc.) référence un primitif par alias DTCG plutôt qu'une valeur littérale : `{ "$value": "{primitive.color.gray.900}" }`. Un token hors du groupe `primitive` ne porte jamais de valeur littérale. `font`, `space`, `radius` et `shadow` restent à valeur littérale : seule la couleur a aujourd'hui plusieurs starters envisagés.
+
 **Gouvernance :**
 - Toute modification d'un token déclenche une régression visuelle automatique sur les pages qui l'utilisent (cf `TECHNICAL.md` §7 et §13 pour l'outil par défaut).
 - Versionner les tokens comme du code : un changement de token = un ticket, jamais une édition silencieuse.
