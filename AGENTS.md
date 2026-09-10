@@ -29,15 +29,17 @@ Détail de la phase 4, close par ADR 0019 :
 | Chantier              | Ticket   | État                                                               |
 | --------------------- | -------- | ------------------------------------------------------------------ |
 | Cockpit `klee studio` | KLEE-005 | done — ADR 0014, 0016                                              |
-| Recherche transverse  | KLEE-006 | in-review, écrite — ADR 0019                                       |
+| Recherche transverse  | KLEE-006 | done — ADR 0019                                                    |
 | Webhooks internes     | KLEE-007 | clos sans implémentation — aucune des 3 règles ne tenait, ADR 0019 |
 | Détection de dérive   | —        | écartée du périmètre — ADR 0015                                    |
 
 Entre la clôture de la phase 4 et le démarrage de la phase 5, des tickets transverses
-(hors numérotation de phase) sont en cours : KLEE-008/009/010 (gate a11y, lecture de ticket
-sur le board), KLEE-011 (doc initiale du scaffolding), et **KLEE-012 — rendre klee publiable
-sur npm** (in-review), qui motive l'ajout récent de Changesets au dépôt. Ce n'est pas une
-anticipation de la phase 5 : c'est un lot séparé, délibérément isolé du reste (cf le ticket).
+(hors numérotation de phase) ont été livrés : KLEE-008/009/010 (gate a11y, lecture de ticket
+sur le board), KLEE-011 (doc initiale du scaffolding), KLEE-012 (rendre klee publiable sur
+npm, qui a motivé l'ajout de Changesets), KLEE-013 (le ticket que ce dernier point aurait dû
+ouvrir), et KLEE-014/015 (primitifs de tokens par rôle + catalogue de starters + choix à
+l'init, ADR 0020/0021). Ce n'est pas une anticipation de la phase 5 : chaque lot reste séparé,
+délibérément isolé du reste (cf. chaque ticket).
 
 La roadmap complète est en fin de `TECHNICAL.md`. **Chaque phase se lance après validation
 humaine de la précédente** — n'anticipez pas la phase 5.
@@ -122,7 +124,7 @@ eval "$(klee completion zsh)"   # complétion : commandes, options, et identifia
 
 ## Décisions déjà prises
 
-Dix-neuf ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
+Vingt-et-une ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
 
 | ADR  | Sujet                                                                           |
 | ---- | ------------------------------------------------------------------------------- |
@@ -145,6 +147,8 @@ Dix-neuf ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils c
 | 0017 | Le premier ticket d'un projet est un compte rendu, pas une tâche                |
 | 0018 | L'accessibilité est un gate sur `validated`, avec dérogations motivées          |
 | 0019 | Webhooks internes et régression visuelle hors périmètre — phase 4 close         |
+| 0020 | Tokens primitifs et sémantiques, dans le même `tokens.json`                     |
+| 0021 | Catalogue de starters (6) et choix exposé à `klee init`                         |
 
 ## Références
 

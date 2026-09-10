@@ -5,6 +5,7 @@ import {
   PROJECT_NAME_PATTERN,
   PROVIDER_POINT_DEFINITIONS,
   REQUIRED_TOKEN_TARGET,
+  TOKEN_STARTERS,
   TOKEN_TARGETS,
   isValidIdPrefix,
   type ModuleId,
@@ -134,4 +135,22 @@ export async function askTokenTargets(): Promise<TokenTarget[]> {
   );
 
   return selected;
+}
+
+/**
+ * `proposed` : id présélectionné (défaut ou imposé en ligne de commande) — la liste complète
+ * reste offerte, même schéma que `askProvider` (ADR 0012, ADR 0021).
+ */
+export async function askTokenStarter(proposed: string): Promise<string> {
+  return ensure(
+    await select<string>({
+      message: 'Starter de couleurs pour design-system/tokens.json (ADR 0020, 0021)',
+      initialValue: proposed,
+      options: TOKEN_STARTERS.map((starter) => ({
+        value: starter.id,
+        label: starter.label,
+        hint: starter.description,
+      })),
+    }),
+  );
 }

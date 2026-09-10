@@ -1,4 +1,4 @@
-import { PRESET_IDS, TICKET_STATUSES } from '@klee/core';
+import { DEFAULT_TOKEN_STARTER_ID, PRESET_IDS, TICKET_STATUSES } from '@klee/core';
 import { Command } from 'commander';
 
 import { runInit, type InitOptions } from './commands/init.js';
@@ -68,6 +68,10 @@ export function createProgram(): Command {
     .option(
       '--provider <point=id...>',
       'impose un provider, ex. --provider docs=markdown-only (passe avant le preset)',
+    )
+    .option(
+      '--token-starter <id>',
+      `starter de couleurs des design tokens (défaut : ${DEFAULT_TOKEN_STARTER_ID})`,
     )
     .option('-y, --yes', 'aucune question : preset full-product et providers par défaut')
     .option('--dry-run', 'affiche le plan sans rien écrire')

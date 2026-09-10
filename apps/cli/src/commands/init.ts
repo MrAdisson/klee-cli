@@ -4,6 +4,7 @@ import {
   CONFIG_FILENAME,
   DEFAULT_PRESET_ID,
   DEFAULT_TICKET_PREFIX,
+  DEFAULT_TOKEN_STARTER_ID,
   KleeError,
   MODULE_IDS,
   PRESETS,
@@ -11,11 +12,13 @@ import {
   PROVIDER_POINTS,
   PROVIDER_POINT_DEFINITIONS,
   REQUIRED_TOKEN_TARGET,
+  TOKEN_STARTERS,
   applyScaffoldPlan,
   buildScaffoldPlan,
   configPath,
   createProjectConfig,
   defaultProviderSelection,
+  findTokenStarter,
   isPresetId,
   isProviderPoint,
   moduleSelectionFromOptional,
@@ -39,6 +42,7 @@ import {
   askProjectName,
   askProvider,
   askTargetDirectory,
+  askTokenStarter,
   askTokenTargets,
 } from '../ui/prompts.js';
 import { fileExists, isInsideGitRepository } from '../fs.js';
@@ -54,8 +58,24 @@ export interface InitOptions {
   readonly install?: boolean;
   /** `--provider <point>=<id>`, répétable : impose un provider, quel que soit le preset. */
   readonly provider?: string[];
+  /** `--token-starter <id>` : impose le starter de couleurs (ADR 0020, 0021). */
+  readonly tokenStarter?: string;
   /** `--no-git` : ne pas initialiser de dépôt. */
   readonly git?: boolean;
+}
+
+/** Résout `--token-starter`, en échouant tôt si l'id ne correspond à rien du registre. */
+function explicitTokenStarter(options: InitOptions): string | undefined {
+  if (options.tokenStarter === undefined) return undefined;
+
+  if (findTokenStarter(options.tokenStarter) === undefined) {
+    throw new KleeError(`Starter de tokens inconnu : "${options.tokenStarter}".`, {
+      code: 'TOKEN_STARTER_OPTION_INVALID',
+      hint: `Starters disponibles : ${TOKEN_STARTERS.map((starter) => starter.id).join(', ')}.`,
+    });
+  }
+
+  return options.tokenStarter;
 }
 
 /**
@@ -288,6 +308,7 @@ function nonInteractiveConfig(root: string, preset: PresetId, options: InitOptio
     modules,
     providers: { ...defaultProviderSelection(preset), ...explicitProviders(options) },
     tokenTargets: [REQUIRED_TOKEN_TARGET],
+    tokenStarter: explicitTokenStarter(options) ?? DEFAULT_TOKEN_STARTER_ID,
   });
 }
 
@@ -316,7 +337,12 @@ async function interactiveConfig(
     ? await askTokenTargets()
     : [REQUIRED_TOKEN_TARGET];
 
-  return createProjectConfig({ name, idPrefix, modules, providers, tokenTargets });
+  const imposedTokenStarter = explicitTokenStarter(options);
+  const tokenStarter = modules.mockups
+    ? (imposedTokenStarter ?? (await askTokenStarter(DEFAULT_TOKEN_STARTER_ID)))
+    : DEFAULT_TOKEN_STARTER_ID;
+
+  return createProjectConfig({ name, idPrefix, modules, providers, tokenTargets, tokenStarter });
 }
 
 /** Un point de provider n'est demandé que si le module dont il dépend est retenu (§13). */

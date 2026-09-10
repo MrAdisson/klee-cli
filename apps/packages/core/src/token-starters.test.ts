@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { KleeError } from './errors.js';
 import {
   DEFAULT_TOKEN_STARTER_ID,
+  MIN_READABLE_FONT_SIZE,
   TOKEN_STARTERS,
   contrastRatio,
   findTokenStarter,
@@ -79,10 +80,34 @@ describe('contrastRatio', () => {
 });
 
 describe('registre', () => {
-  it('n’a qu’un starter pour l’instant — §13 exige deux alternatives pour justifier un choix', () => {
-    // Documente la décision de ne pas exposer de question d'init tant qu'il n'y a pas de
-    // second starter (ADR 0020) : ce test casse volontairement le jour où on en ajoute un,
-    // pour rappeler qu'exposer le choix côté CLI devient alors légitime.
-    expect(TOKEN_STARTERS).toHaveLength(1);
+  it('a au moins deux starters — condition posée par §13 pour justifier une question à l’init', () => {
+    // ADR 0020 : en dessous de deux alternatives, poser la question serait un faux choix.
+    // ADR 0021 en ajoute cinq justement pour franchir ce seuil.
+    expect(TOKEN_STARTERS.length).toBeGreaterThanOrEqual(2);
   });
+
+  it('n’a que des id uniques', () => {
+    const ids = TOKEN_STARTERS.map((starter) => starter.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it.each(TOKEN_STARTERS.map((starter) => starter.id))(
+    'le starter "%s" ne descend jamais sous la taille de police minimale lisible',
+    (id) => {
+      const starter = resolveTokenStarter(id);
+      for (const size of Object.values(starter.font.size)) {
+        expect(size).toBeGreaterThanOrEqual(MIN_READABLE_FONT_SIZE);
+      }
+    },
+  );
+
+  it.each(TOKEN_STARTERS.map((starter) => starter.id))(
+    'le starter "%s" a une échelle de tailles strictement croissante',
+    (id) => {
+      const { sm, md, lg, xl } = resolveTokenStarter(id).font.size;
+      expect(sm).toBeLessThan(md);
+      expect(md).toBeLessThan(lg);
+      expect(lg).toBeLessThan(xl);
+    },
+  );
 });

@@ -2,28 +2,30 @@ import {
   contrastRatio,
   resolveTokenStarter,
   resolveTokenValue,
+  type TokenStarter,
   type TokenDocument,
 } from '../../token-starters.js';
 
 /**
  * Socle de tokens au format W3C DTCG (DESIGN.md §2).
  *
- * Deux niveaux, dans le même fichier `tokens.json` (ADR 0020) :
+ * Deux niveaux, dans le même fichier `tokens.json` (ADR 0020, ADR 0022) :
  *
- * - **`primitive`** : les valeurs brutes, nommées par échelle (`primitive.color.gray.900`).
- *   Fourni par le starter choisi (`token-starters.ts`) — c'est la seule partie qui varie
- *   d'un projet à l'autre.
+ * - **`primitive`** : les valeurs de couleur brutes, nommées par rôle
+ *   (`primitive.color.accent.600`). Fourni par le starter choisi (`token-starters.ts`).
  * - **Tout le reste** (`color`, `font`, `space`, `radius`, `shadow`) : la forme sémantique,
  *   fixe. `color` référence `primitive.color.*` par alias DTCG (`$value: "{primitive...}"`),
  *   jamais une valeur littérale — c'est ce qui rend un starter substituable sans casser un
  *   mockup qui consomme `--color-text-primary`.
  *
- * **Couverture minimale de la phase 1** : couleurs sémantiques, typographie (famille,
- * échelle, poids), espacement sur une base de 4, rayons et ombres.
+ * `font`/`space`/`radius`/`shadow` varient aussi par starter (ADR 0022), mais en valeur
+ * directe plutôt que par alias : contrairement à la couleur, aucun de ces rôles n'est
+ * réutilisé sous deux noms sémantiques différents — l'indirection n'apporterait rien.
  *
- * Les paires d'usage listées dans `token-starters.test.ts` (texte sur surface, texte
- * inverse sur primaire/danger/succès) respectent WCAG 2.1 AA pour tout starter du registre
- * — l'accessibilité se valide au stade maquette, pas après implémentation (DESIGN.md §6).
+ * Les paires d'usage listées dans `SEMANTIC_CONTRAST_PAIRS` (texte sur surface, texte
+ * inverse sur primaire/danger/succès) respectent WCAG 2.1 AA pour tout starter du registre,
+ * et aucune taille de police ne descend sous `MIN_READABLE_FONT_SIZE` — la personnalité
+ * visuelle d'un starter ne doit jamais coûter la lisibilité (DESIGN.md §6).
  */
 
 function px(value: number): { value: number; unit: string } {
@@ -34,102 +36,121 @@ function alias(path: string, description: string): { $value: string; $descriptio
   return { $value: `{${path}}`, $description: description };
 }
 
-function semanticTokens(): TokenDocument {
+function colorTokens(): TokenDocument {
   return {
-    color: {
-      $type: 'color',
-      text: {
-        primary: alias('primitive.color.gray.900', 'Texte principal sur une surface claire.'),
-        muted: alias('primitive.color.gray.600', 'Texte secondaire : métadonnées, aides.'),
-        inverse: alias('primitive.color.white', 'Texte posé sur un fond plein et saturé.'),
-      },
-      surface: {
-        page: alias('primitive.color.gray.50', 'Fond de page.'),
-        raised: alias('primitive.color.white', 'Surface en avant : carte, panneau, champ.'),
-        sunken: alias(
-          'primitive.color.gray.100',
-          'Surface en retrait : zone désactivée, fond de section.',
-        ),
-      },
-      border: {
-        default: alias('primitive.color.gray.300', 'Bordure neutre.'),
-        strong: alias('primitive.color.gray.400', 'Bordure appuyée : survol, élément actif.'),
-        focus: alias('primitive.color.blue.600', 'Anneau de focus clavier — jamais supprimé.'),
-      },
-      primary: {
-        default: alias('primitive.color.blue.600', 'Action principale.'),
-        hover: alias('primitive.color.blue.700', 'Action principale survolée.'),
-        active: alias('primitive.color.blue.800', 'Action principale enfoncée.'),
-        disabled: alias('primitive.color.blue.300', 'Action principale indisponible.'),
-      },
-      danger: {
-        default: alias('primitive.color.red.700', 'Erreur, action destructrice.'),
-        surface: alias('primitive.color.red.50', 'Fond de message d’erreur.'),
-      },
-      success: {
-        default: alias('primitive.color.green.700', 'Confirmation, état valide.'),
-        surface: alias('primitive.color.green.50', 'Fond de message de succès.'),
-      },
+    $type: 'color',
+    text: {
+      primary: alias('primitive.color.gray.900', 'Texte principal sur une surface claire.'),
+      muted: alias('primitive.color.gray.600', 'Texte secondaire : métadonnées, aides.'),
+      inverse: alias('primitive.color.white', 'Texte posé sur un fond plein et saturé.'),
     },
-    font: {
-      family: {
-        $type: 'fontFamily',
-        sans: {
-          $value: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-          $description: 'Famille d’interface par défaut.',
-        },
-        mono: {
-          $value: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
-          $description: 'Code, identifiants, valeurs techniques.',
-        },
-      },
-      size: {
-        $type: 'dimension',
-        sm: { $value: px(13), $description: 'Métadonnée, légende.' },
-        md: { $value: px(15), $description: 'Texte courant.' },
-        lg: { $value: px(19), $description: 'Sous-titre.' },
-        xl: { $value: px(25), $description: 'Titre de page.' },
-      },
-      weight: {
-        $type: 'fontWeight',
-        regular: { $value: 400, $description: 'Texte courant.' },
-        medium: { $value: 500, $description: 'Libellé, accentuation légère.' },
-        bold: { $value: 700, $description: 'Titre.' },
-      },
+    surface: {
+      page: alias('primitive.color.gray.50', 'Fond de page.'),
+      raised: alias('primitive.color.white', 'Surface en avant : carte, panneau, champ.'),
+      sunken: alias(
+        'primitive.color.gray.100',
+        'Surface en retrait : zone désactivée, fond de section.',
+      ),
     },
-    space: {
-      $type: 'dimension',
-      $description: 'Échelle d’espacement en base 4.',
-      xs: { $value: px(4) },
-      sm: { $value: px(8) },
-      md: { $value: px(16) },
-      lg: { $value: px(24) },
-      xl: { $value: px(40) },
+    border: {
+      default: alias('primitive.color.gray.300', 'Bordure neutre.'),
+      strong: alias('primitive.color.gray.400', 'Bordure appuyée : survol, élément actif.'),
+      focus: alias('primitive.color.accent.600', 'Anneau de focus clavier — jamais supprimé.'),
     },
-    radius: {
-      $type: 'dimension',
-      sm: { $value: px(4), $description: 'Champ, bouton.' },
-      md: { $value: px(8), $description: 'Carte, panneau.' },
-      full: { $value: px(9999), $description: 'Pastille, avatar.' },
+    primary: {
+      default: alias('primitive.color.accent.600', 'Action principale.'),
+      hover: alias('primitive.color.accent.700', 'Action principale survolée.'),
+      active: alias('primitive.color.accent.800', 'Action principale enfoncée.'),
+      disabled: alias('primitive.color.accent.300', 'Action principale indisponible.'),
     },
-    shadow: {
-      $type: 'shadow',
-      sm: {
-        $value: { color: '#0f172a1a', offsetX: px(0), offsetY: px(1), blur: px(2), spread: px(0) },
-        $description: 'Élévation discrète : bouton, champ.',
-      },
-      md: {
-        $value: { color: '#0f172a26', offsetX: px(0), offsetY: px(4), blur: px(12), spread: px(0) },
-        $description: 'Élévation marquée : carte, popover.',
-      },
+    danger: {
+      default: alias('primitive.color.danger.700', 'Erreur, action destructrice.'),
+      surface: alias('primitive.color.danger.50', 'Fond de message d’erreur.'),
+    },
+    success: {
+      default: alias('primitive.color.success.700', 'Confirmation, état valide.'),
+      surface: alias('primitive.color.success.50', 'Fond de message de succès.'),
     },
   };
 }
 
-/** Compose `tokens.json` : le groupe `primitive` du starter + la forme sémantique fixe. */
+function fontTokens(font: TokenStarter['font']): TokenDocument {
+  return {
+    family: {
+      $type: 'fontFamily',
+      sans: { $value: [...font.sansFamily], $description: 'Famille d’interface par défaut.' },
+      mono: {
+        $value: [...font.monoFamily],
+        $description: 'Code, identifiants, valeurs techniques.',
+      },
+    },
+    size: {
+      $type: 'dimension',
+      sm: { $value: px(font.size.sm), $description: 'Métadonnée, légende.' },
+      md: { $value: px(font.size.md), $description: 'Texte courant.' },
+      lg: { $value: px(font.size.lg), $description: 'Sous-titre.' },
+      xl: { $value: px(font.size.xl), $description: 'Titre de page.' },
+    },
+    weight: {
+      $type: 'fontWeight',
+      regular: { $value: font.weight.regular, $description: 'Texte courant.' },
+      medium: { $value: font.weight.medium, $description: 'Libellé, accentuation légère.' },
+      bold: { $value: font.weight.bold, $description: 'Titre.' },
+    },
+  };
+}
+
+function spaceTokens(space: TokenStarter['space']): TokenDocument {
+  return {
+    $type: 'dimension',
+    $description: 'Échelle d’espacement.',
+    xs: { $value: px(space.xs) },
+    sm: { $value: px(space.sm) },
+    md: { $value: px(space.md) },
+    lg: { $value: px(space.lg) },
+    xl: { $value: px(space.xl) },
+  };
+}
+
+function radiusTokens(radius: TokenStarter['radius']): TokenDocument {
+  return {
+    $type: 'dimension',
+    sm: { $value: px(radius.sm), $description: 'Champ, bouton.' },
+    md: { $value: px(radius.md), $description: 'Carte, panneau.' },
+    full: { $value: px(radius.full), $description: 'Pastille, avatar.' },
+  };
+}
+
+function shadowTokens(shadow: TokenStarter['shadow']): TokenDocument {
+  const step = (value: { color: string; offsetY: number; blur: number }) => ({
+    color: value.color,
+    offsetX: px(0),
+    offsetY: px(value.offsetY),
+    blur: px(value.blur),
+    spread: px(0),
+  });
+
+  return {
+    $type: 'shadow',
+    sm: { $value: step(shadow.sm), $description: 'Élévation discrète : bouton, champ.' },
+    md: { $value: step(shadow.md), $description: 'Élévation marquée : carte, popover.' },
+  };
+}
+
+function semanticTokens(starter: TokenStarter): TokenDocument {
+  return {
+    color: colorTokens(),
+    font: fontTokens(starter.font),
+    space: spaceTokens(starter.space),
+    radius: radiusTokens(starter.radius),
+    shadow: shadowTokens(starter.shadow),
+  };
+}
+
+/** Compose `tokens.json` : le groupe `primitive` de couleur du starter + sa forme sémantique. */
 export function buildTokens(starterId: string): TokenDocument {
   const starter = resolveTokenStarter(starterId);
-  return { primitive: starter.primitives, ...semanticTokens() };
+  return { primitive: starter.primitives, ...semanticTokens(starter) };
 }
 
 /** Seuil AA (texte normal) — WCAG 2.1, § 1.4.3. */

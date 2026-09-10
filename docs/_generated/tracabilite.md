@@ -26,7 +26,9 @@ sidebar_label: Traçabilité
 | KLEE-011 | Améliorer la documentation initiale du scaffolding | done | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
 | KLEE-012 | Rendre klee publiable sur npm | done | KLEE-013 | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
 | KLEE-013 | Automatiser le versioning et la publication npm avec Changesets | in-review | KLEE-012 | `tickets/KLEE-013-automatiser-le-versioning-et-la-publication-npm-avec-changes.md` |
-| KLEE-014 | Distinguer tokens primitifs et sémantiques dans tokens.json | in-progress | DOC-023 | `tickets/KLEE-014-distinguer-tokens-primitifs-et-semantiques-dans-tokens-json.md` |
+| KLEE-014 | Distinguer tokens primitifs et sémantiques dans tokens.json | in-review | DOC-023, KLEE-015 | `tickets/KLEE-014-distinguer-tokens-primitifs-et-semantiques-dans-tokens-json.md` |
+| KLEE-015 | Exposer le choix de starter de tokens à klee init | in-review | DOC-024, KLEE-014, KLEE-016 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
+| KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | in-progress | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
 
 ## Maquettes
 
@@ -64,6 +66,8 @@ sidebar_label: Traçabilité
 | DOC-021 | 0018 — L'accessibilité est un gate sur `validated`, avec des dérogations motivées | — | KLEE-008 | `docs/decisions/0018-gate-accessibilite-et-derogations.md` |
 | DOC-022 | 0019 — Les webhooks internes et la régression visuelle sortent du périmètre | — | KLEE-007 | `docs/decisions/0019-webhooks-internes-et-regression-visuelle-hors-scope.md` |
 | DOC-023 | 0020 — Tokens primitifs et sémantiques, dans le même `tokens.json` | — | KLEE-014 | `docs/decisions/0020-tokens-primitifs-et-semantiques.md` |
+| DOC-024 | 0021 — Cinq starters de plus, et le choix arrive enfin à `klee init` | — | KLEE-015 | `docs/decisions/0021-catalogue-de-starters-et-choix-a-linit.md` |
+| DOC-025 | 0022 — Un starter porte une personnalité complète, pas seulement une couleur | — | KLEE-016 | `docs/decisions/0022-personnalite-des-starters-au-dela-de-la-couleur.md` |
 
 
 ## Sans lien déclaré
