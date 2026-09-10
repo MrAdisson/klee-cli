@@ -25,11 +25,11 @@ sidebar_label: Traçabilité
 | KLEE-010 | Tester le gate a11y avec deux maquettes non conformes | done | MOCK-003, MOCK-004 | `tickets/KLEE-010-tester-le-gate-a11y-avec-deux-maquettes-non-conformes.md` |
 | KLEE-011 | Améliorer la documentation initiale du scaffolding | done | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
 | KLEE-012 | Rendre klee publiable sur npm | done | KLEE-013 | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
-| KLEE-013 | Automatiser le versioning et la publication npm avec Changesets | in-review | KLEE-012 | `tickets/KLEE-013-automatiser-le-versioning-et-la-publication-npm-avec-changes.md` |
-| KLEE-014 | Distinguer tokens primitifs et sémantiques dans tokens.json | in-review | DOC-023, KLEE-015 | `tickets/KLEE-014-distinguer-tokens-primitifs-et-semantiques-dans-tokens-json.md` |
-| KLEE-015 | Exposer le choix de starter de tokens à klee init | in-review | DOC-024, KLEE-014, KLEE-016, KLEE-017 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
-| KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | in-review | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
-| KLEE-017 | Changer de starter de tokens sans tout ré-scaffolder | in-progress | DOC-026, KLEE-015 | `tickets/KLEE-017-changer-de-starter-de-tokens-sans-tout-re-scaffolder.md` |
+| KLEE-013 | Automatiser le versioning et la publication npm avec Changesets | done | KLEE-012 | `tickets/KLEE-013-automatiser-le-versioning-et-la-publication-npm-avec-changes.md` |
+| KLEE-014 | Distinguer tokens primitifs et sémantiques dans tokens.json | done | DOC-023, KLEE-015 | `tickets/KLEE-014-distinguer-tokens-primitifs-et-semantiques-dans-tokens-json.md` |
+| KLEE-015 | Exposer le choix de starter de tokens à klee init | done | DOC-024, KLEE-014, KLEE-016, KLEE-017 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
+| KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | done | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
+| KLEE-017 | Changer de starter de tokens sans tout ré-scaffolder | done | DOC-026, KLEE-015 | `tickets/KLEE-017-changer-de-starter-de-tokens-sans-tout-re-scaffolder.md` |
 
 ## Maquettes
 
