@@ -1,10 +1,10 @@
 ---
 id: KLEE-012
 title: Rendre klee publiable sur npm
-status: backlog
+status: in-review
 assignee: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 depends_on: []
 related_mockups: []
 related_docs: []

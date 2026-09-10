@@ -20,9 +20,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
     "klee": "node apps/cli/dist/klee.js"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.2",
     "@eslint/js": "10.0.1",
     "@types/node": "26.5.0",
     "eslint": "10.10.0",
