@@ -1,10 +1,10 @@
 ---
 id: KLEE-011
 title: Améliorer la documentation initiale du scaffolding
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 depends_on: []
 related_mockups: []
 related_docs: []

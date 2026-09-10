@@ -1,10 +1,10 @@
 ---
 id: KLEE-006
 title: Recherche transverse sur tickets, docs et maquettes
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 depends_on: []
 related_mockups: []
 related_docs: []

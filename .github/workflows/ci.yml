@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
 
 concurrency:
@@ -30,3 +30,9 @@ jobs:
       - run: pnpm run typecheck
       - run: pnpm run test
       - run: pnpm run build
+
+      - name: Links check
+        run: pnpm run links:check
+
+      - name: Traceability report is up to date
+        run: pnpm run links:report:check

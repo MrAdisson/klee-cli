@@ -202,6 +202,7 @@ export function createProgram(): Command {
     .command('report')
     .description('Régénère la vue du graphe dans docs/_generated/.')
     .option('--dry-run', 'affiche le contenu sans l’écrire')
+    .option('--check', 'échoue si le fichier généré ne reflète plus le graphe, sans l’écrire')
     .action(async (options: LinksReportOptions) => {
       await runLinksReport(options);
     });

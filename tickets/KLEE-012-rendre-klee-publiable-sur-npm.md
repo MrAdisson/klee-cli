@@ -1,7 +1,7 @@
 ---
 id: KLEE-012
 title: Rendre klee publiable sur npm
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
 updated: 2026-09-10

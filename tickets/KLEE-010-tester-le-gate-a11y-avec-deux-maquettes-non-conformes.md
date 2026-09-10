@@ -1,10 +1,10 @@
 ---
 id: KLEE-010
 title: Tester le gate a11y avec deux maquettes non conformes
-status: in-review
+status: done
 assignee: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 depends_on: []
 related_mockups:
   - MOCK-003

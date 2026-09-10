@@ -15,26 +15,32 @@ Principe fondateur : **everything lives in the codebase.** Aucun artefact struct
 
 ## État d'avancement
 
-| Phase | Contenu                                                               | État           |
-| ----- | --------------------------------------------------------------------- | -------------- |
-| 0     | Squelette monorepo, schéma d'ID, modules/providers, `klee init`       | ✅             |
-| 1     | `design-system/` (tokens DTCG + pipeline), `mockups/` + serveur local | ✅             |
-| 2     | `tickets/` : format, CLI, `klee board`, deux index                    | ✅             |
-| 3     | Liens croisés entre identifiants + docs-as-code (Docusaurus)          | ✅             |
-| 4     | Cockpit `klee studio`, recherche transverse, webhooks internes        | ⬅ **en cours** |
-| 5–7   | Interopérabilité, observabilité, environnements                       |                |
+| Phase | Contenu                                                               | État         |
+| ----- | --------------------------------------------------------------------- | ------------ |
+| 0     | Squelette monorepo, schéma d'ID, modules/providers, `klee init`       | ✅           |
+| 1     | `design-system/` (tokens DTCG + pipeline), `mockups/` + serveur local | ✅           |
+| 2     | `tickets/` : format, CLI, `klee board`, deux index                    | ✅           |
+| 3     | Liens croisés entre identifiants + docs-as-code (Docusaurus)          | ✅           |
+| 4     | Cockpit `klee studio`, recherche transverse, webhooks internes        | ✅ **close** |
+| 5–7   | Interopérabilité, observabilité, environnements                       | pas démarrée |
 
-Détail de la phase 4, pour ne pas la croire finie :
+Détail de la phase 4, close par ADR 0019 :
 
-| Chantier              | Ticket   | État                                              |
-| --------------------- | -------- | ------------------------------------------------- |
-| Cockpit `klee studio` | KLEE-005 | implémenté, en revue — ADR 0014, 0016             |
-| Recherche transverse  | KLEE-006 | à faire — rien n'est écrit                        |
-| Webhooks internes     | KLEE-007 | à faire — `ready-for-dev` en est la cible, à vide |
-| Détection de dérive   | —        | écartée du périmètre — ADR 0015                   |
+| Chantier              | Ticket   | État                                                               |
+| --------------------- | -------- | ------------------------------------------------------------------ |
+| Cockpit `klee studio` | KLEE-005 | done — ADR 0014, 0016                                              |
+| Recherche transverse  | KLEE-006 | in-review, écrite — ADR 0019                                       |
+| Webhooks internes     | KLEE-007 | clos sans implémentation — aucune des 3 règles ne tenait, ADR 0019 |
+| Détection de dérive   | —        | écartée du périmètre — ADR 0015                                    |
+
+Entre la clôture de la phase 4 et le démarrage de la phase 5, des tickets transverses
+(hors numérotation de phase) sont en cours : KLEE-008/009/010 (gate a11y, lecture de ticket
+sur le board), KLEE-011 (doc initiale du scaffolding), et **KLEE-012 — rendre klee publiable
+sur npm** (in-review), qui motive l'ajout récent de Changesets au dépôt. Ce n'est pas une
+anticipation de la phase 5 : c'est un lot séparé, délibérément isolé du reste (cf le ticket).
 
 La roadmap complète est en fin de `TECHNICAL.md`. **Chaque phase se lance après validation
-humaine de la précédente** — n'anticipez pas.
+humaine de la précédente** — n'anticipez pas la phase 5.
 
 ## Documents de cadrage
 
@@ -116,7 +122,7 @@ eval "$(klee completion zsh)"   # complétion : commandes, options, et identifia
 
 ## Décisions déjà prises
 
-Dix-sept ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
+Dix-neuf ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils couvrent :
 
 | ADR  | Sujet                                                                           |
 | ---- | ------------------------------------------------------------------------------- |
@@ -137,6 +143,8 @@ Dix-sept ADR dans `docs/decisions/`. Les lire avant de rouvrir un sujet qu'ils c
 | 0015 | Détection de dérive maquette / composant — hors périmètre                       |
 | 0016 | Le studio encadre les serveurs plutôt que de les proxifier                      |
 | 0017 | Le premier ticket d'un projet est un compte rendu, pas une tâche                |
+| 0018 | L'accessibilité est un gate sur `validated`, avec dérogations motivées          |
+| 0019 | Webhooks internes et régression visuelle hors périmètre — phase 4 close         |
 
 ## Références
 

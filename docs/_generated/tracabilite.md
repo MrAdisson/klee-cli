@@ -18,13 +18,14 @@ sidebar_label: Traçabilité
 | KLEE-003 | Ouvrir une sortie au site de documentation pour les projets légers | done | DOC-013, DOC-015, KLEE-002 | `tickets/KLEE-003-ouvrir-une-sortie-au-site-de-documentation-pour-les-projets.md` |
 | KLEE-004 | Le scaffolding n'écrase plus les fichiers de racine rédigés | done | DOC-016 | `tickets/KLEE-004-le-scaffolding-n-ecrase-plus-les-fichiers-de-racine-rediges.md` |
 | KLEE-005 | Cockpit klee studio : une app unique par-dessus des serveurs indépendants | done | DOC-017, DOC-019 | `tickets/KLEE-005-cockpit-klee-studio-une-app-unique-par-dessus-des-serveurs-i.md` |
-| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | in-review | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
-| KLEE-007 | Webhooks internes : réactions locales aux transitions | in-review | DOC-022, KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
+| KLEE-006 | Recherche transverse sur tickets, docs et maquettes | done | DOC-017 | `tickets/KLEE-006-recherche-transverse-sur-tickets-docs-et-maquettes.md` |
+| KLEE-007 | Webhooks internes : réactions locales aux transitions | done | DOC-022, KLEE-008 | `tickets/KLEE-007-webhooks-internes-reactions-locales-aux-transitions.md` |
 | KLEE-008 | Gate d'accessibilité : axe-core avant qu'une maquette passe validated | done | DOC-021, KLEE-007 | `tickets/KLEE-008-gate-d-accessibilite-axe-core-avant-qu-une-maquette-passe-va.md` |
 | KLEE-009 | Lire un ticket depuis le board, pas seulement le déplacer | done | — | `tickets/KLEE-009-lire-un-ticket-depuis-le-board-pas-seulement-le-deplacer.md` |
-| KLEE-010 | Tester le gate a11y avec deux maquettes non conformes | in-review | MOCK-003, MOCK-004 | `tickets/KLEE-010-tester-le-gate-a11y-avec-deux-maquettes-non-conformes.md` |
-| KLEE-011 | Améliorer la documentation initiale du scaffolding | in-review | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
-| KLEE-012 | Rendre klee publiable sur npm | backlog | — | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
+| KLEE-010 | Tester le gate a11y avec deux maquettes non conformes | done | MOCK-003, MOCK-004 | `tickets/KLEE-010-tester-le-gate-a11y-avec-deux-maquettes-non-conformes.md` |
+| KLEE-011 | Améliorer la documentation initiale du scaffolding | done | — | `tickets/KLEE-011-ameliorer-la-documentation-initiale-du-scaffolding.md` |
+| KLEE-012 | Rendre klee publiable sur npm | done | KLEE-013 | `tickets/KLEE-012-rendre-klee-publiable-sur-npm.md` |
+| KLEE-013 | Automatiser le versioning et la publication npm avec Changesets | in-review | KLEE-012 | `tickets/KLEE-013-automatiser-le-versioning-et-la-publication-npm-avec-changes.md` |
 
 ## Maquettes
 
@@ -67,7 +68,6 @@ sidebar_label: Traçabilité
 
 - KLEE-009 — Lire un ticket depuis le board, pas seulement le déplacer
 - KLEE-011 — Améliorer la documentation initiale du scaffolding
-- KLEE-012 — Rendre klee publiable sur npm
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé
