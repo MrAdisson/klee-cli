@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
+  GRAPH_REPORT_PATH,
   createProjectConfig,
   createTicket,
   moduleSelectionFromPreset,
@@ -55,8 +56,27 @@ describe('board', () => {
     for (const status of ['backlog', 'ready-for-dev', 'in-progress', 'in-review', 'done']) {
       expect(html).toContain(`id="col-${status}"`);
     }
-    // Chaque action est un formulaire : le board reste utilisable JS désactivé.
+    // Le board pointe vers la page de création, il ne l'embarque plus.
+    expect(html).toContain('href="/tickets/new"');
+    expect(html).not.toContain('<form method="post" action="/tickets">');
+  });
+
+  it('sert la création de ticket sur sa propre page, sans JavaScript', async () => {
+    const html = await (await fetch(`${base}/tickets/new`)).text();
     expect(html).toContain('<form method="post" action="/tickets">');
+  });
+
+  it('renvoie vers la page de création avec le motif, quand le titre est vide', async () => {
+    const response = await fetch(`${base}/tickets`, form({ title: '   ' }));
+    expect(response.status).toBe(303);
+    expect(response.headers.get('location')).toBe(
+      '/tickets/new?kind=error&message=Titre%20manquant%20%3A%20ticket%20non%20cr%C3%A9%C3%A9.',
+    );
+
+    const html = await (
+      await fetch(`${base}/tickets/new?kind=error&message=Titre+manquant`)
+    ).text();
+    expect(html).toContain('class="flash flash--error"');
   });
 
   it('crée un ticket depuis le formulaire, sur disque', async () => {
@@ -88,6 +108,19 @@ describe('board', () => {
     expect(response.status).toBe(303);
 
     await expect(readFile(join(root, ticket.path), 'utf8')).resolves.toContain('status: done');
+  });
+
+  it('régénère docs/_generated/tracabilite.md quand un statut change depuis le board', async () => {
+    const ticket = await createTicket({ root, prefix: 'ACME', title: 'À tracer' });
+    // Avant tout déplacement, le report n'existe pas encore (comme un projet qui n'a jamais
+    // lancé `klee links report`) : c'est le cas qui désynchronise le plus souvent en pratique.
+    await expect(readFile(join(root, GRAPH_REPORT_PATH), 'utf8')).rejects.toThrow();
+
+    await fetch(`${base}/tickets/${ticket.id}/move`, form({ status: 'done' }));
+
+    const report = await readFile(join(root, GRAPH_REPORT_PATH), 'utf8');
+    expect(report).toContain(ticket.id);
+    expect(report).toContain('done');
   });
 
   it('ignore un statut inconnu plutôt que de corrompre le ticket', async () => {

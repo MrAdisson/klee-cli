@@ -75,34 +75,12 @@ export function renderBoard(view: BoardViewModel): string {
   <strong>${escapeHtml(view.projectName)}</strong>
   <span class="dim">${String(view.tickets.length)} ticket(s)</span>
   <a class="dim" href="/links">Graphe</a>
-  <a class="dim" href="#nouveau">Nouveau ticket</a>
+  <a class="dim" href="/tickets/new">Nouveau ticket</a>
 </header>
 
 ${view.message === undefined ? '' : `<p class="flash" role="status">${escapeHtml(view.message)}</p>`}
 
 <main class="board">${columns}</main>
-
-<section class="new" id="nouveau">
-  <h2>Nouveau ticket</h2>
-  <form method="post" action="/tickets">
-    <label for="title">Titre</label>
-    <input id="title" name="title" required maxlength="200" autocomplete="off">
-
-    <label for="status">Statut</label>
-    <select id="status" name="status">
-      ${TICKET_STATUSES.map((status) => `<option value="${status}">${STATUS_LABELS[status]}</option>`).join('')}
-    </select>
-
-    <label for="assignee">Assigné (facultatif)</label>
-    <input id="assignee" name="assignee" autocomplete="off">
-
-    <label for="description">Description (facultatif)</label>
-    <textarea id="description" name="description" rows="3"></textarea>
-
-    <button type="submit">Créer le ticket</button>
-  </form>
-  <p class="dim">Le fichier markdown est écrit dans <code>tickets/</code> : c'est lui la source de vérité.</p>
-</section>
 
 <script>
 // Confort seul : sans JS, le bouton « Déplacer » reste visible et fonctionne.
@@ -182,6 +160,51 @@ function renderCard(
       <button type="submit">Déplacer</button>
     </form>
   </article>`;
+}
+
+export interface NewTicketViewModel {
+  readonly projectName: string;
+  readonly message?: string;
+  readonly messageKind?: 'success' | 'error';
+}
+
+/**
+ * Page dédiée à la création d'un ticket. Elle vivait auparavant comme un bloc permanent sous
+ * le board, atteint par une ancre — ce qui poussait tout le kanban vers le bas. Une page à
+ * part reste dans l'esprit « sans JavaScript, chaque action est un formulaire » du board :
+ * c'est une page de plus, pas un renoncement à cette doctrine.
+ */
+export function renderNewTicket(view: NewTicketViewModel): string {
+  const notice =
+    view.message === undefined
+      ? ''
+      : `<p class="flash flash--${view.messageKind ?? 'success'}" role="alert">${escapeHtml(view.message)}</p>`;
+
+  return page(
+    view.projectName,
+    `${notice}<section class="new">
+  <h2>Nouveau ticket</h2>
+  <form method="post" action="/tickets">
+    <label for="title">Titre</label>
+    <input id="title" name="title" required maxlength="200" autocomplete="off">
+
+    <label for="status">Statut</label>
+    <select id="status" name="status">
+      ${TICKET_STATUSES.map((status) => `<option value="${status}">${STATUS_LABELS[status]}</option>`).join('')}
+    </select>
+
+    <label for="assignee">Assigné (facultatif)</label>
+    <input id="assignee" name="assignee" autocomplete="off">
+
+    <label for="description">Description (facultatif)</label>
+    <textarea id="description" name="description" rows="3"></textarea>
+
+    <button type="submit">Créer le ticket</button>
+  </form>
+  <p class="dim">Le fichier markdown est écrit dans <code>tickets/</code> : c'est lui la source de vérité.</p>
+</section>`,
+    'nouveau ticket',
+  );
 }
 
 const KIND_LABELS: Readonly<Record<EntityKind, string>> = {
@@ -586,6 +609,7 @@ function page(projectName: string, body: string, section = 'graphe'): string {
   <strong>${escapeHtml(projectName)}</strong>
   <a class="dim" href="/">Board</a>
   <a class="dim" href="/links">Graphe</a>
+  <a class="dim" href="/tickets/new">Nouveau ticket</a>
 </header>
 ${body}
 <script>

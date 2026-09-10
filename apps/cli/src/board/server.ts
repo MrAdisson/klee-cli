@@ -13,8 +13,9 @@ import {
 } from '@klee/core';
 
 import { openTicketIndex, type Project } from '../project.js';
-import { renderBoard, renderLinks, renderTicket } from './render.js';
+import { renderBoard, renderLinks, renderNewTicket, renderTicket } from './render.js';
 import { checkMockups } from '../commands/mockups-check.js';
+import { refreshGraphReport } from '../commands/links.js';
 
 /**
  * Dashboard local des tickets (TECHNICAL.md §6, DESIGN.md §5).
@@ -110,11 +111,27 @@ async function handle(
     return;
   }
 
+  if (request.method === 'GET' && url.pathname === '/tickets/new') {
+    respond(
+      response,
+      200,
+      'text/html; charset=utf-8',
+      renderNewTicket({
+        projectName: options.project.config.name,
+        ...(url.searchParams.get('message') === null
+          ? {}
+          : { message: url.searchParams.get('message') as string }),
+        ...(url.searchParams.get('kind') === 'error' ? { messageKind: 'error' } : {}),
+      }),
+    );
+    return;
+  }
+
   if (request.method === 'POST' && url.pathname === '/tickets') {
     const form = await readForm(request);
     const title = (form.get('title') ?? '').trim();
     if (title === '') {
-      redirect(response, 'Titre manquant : ticket non créé.');
+      redirectNewTicket(response, 'Titre manquant : ticket non créé.', 'error');
       return;
     }
 
@@ -131,6 +148,7 @@ async function handle(
       ...(description === '' ? {} : { description }),
     });
 
+    await refreshGraphReport(options.project);
     redirect(response, `${ticket.id} créé.`);
     return;
   }
@@ -155,6 +173,7 @@ async function handle(
       assignee: (form.get('assignee') ?? '').trim() || null,
       body: form.get('body') ?? '',
     });
+    await refreshGraphReport(options.project);
     response.writeHead(303, {
       location: `/tickets/${encodeURIComponent(id)}?message=${encodeURIComponent('Fiche mise à jour.')}`,
     });
@@ -173,6 +192,9 @@ async function handle(
 
     const id = decodeURIComponent(move[1]);
     const ticket = await moveTicket(options.project.root, id, status);
+    // Le report généré porte le statut de chaque ticket : c'est justement le changement le
+    // plus fréquent depuis le board, et celui qu'on oublie le plus de régénérer à la main.
+    await refreshGraphReport(options.project);
     redirect(response, `${ticket.id} → ${ticket.status}.`);
     return;
   }
@@ -199,6 +221,7 @@ async function handle(
       return;
     }
     await updateMockupStatus(options.project.root, id, nextStatus);
+    await refreshGraphReport(options.project);
     redirectMockup(response, id, `${id} validée : statut ${nextStatus} enregistré.`, 'success');
     return;
   }
@@ -327,6 +350,17 @@ async function renderGraphPage(
 /** Redirection après POST : évite qu'un rafraîchissement rejoue l'action. */
 function redirect(response: ServerResponse, message: string): void {
   response.writeHead(303, { location: `/?message=${encodeURIComponent(message)}` });
+  response.end();
+}
+
+function redirectNewTicket(
+  response: ServerResponse,
+  message: string,
+  kind: 'success' | 'error',
+): void {
+  response.writeHead(303, {
+    location: `/tickets/new?kind=${kind}&message=${encodeURIComponent(message)}`,
+  });
   response.end();
 }
 

@@ -30,6 +30,8 @@ sidebar_label: Traçabilité
 | KLEE-015 | Exposer le choix de starter de tokens à klee init | done | DOC-024, KLEE-014, KLEE-016, KLEE-017 | `tickets/KLEE-015-exposer-le-choix-de-starter-de-tokens-a-klee-init.md` |
 | KLEE-016 | Élargir les starters à la typographie, l'espacement, les rayons et les ombres | done | DOC-025, KLEE-015 | `tickets/KLEE-016-elargir-les-starters-a-la-typographie-l-espacement-les-rayon.md` |
 | KLEE-017 | Changer de starter de tokens sans tout ré-scaffolder | done | DOC-026, KLEE-015 | `tickets/KLEE-017-changer-de-starter-de-tokens-sans-tout-re-scaffolder.md` |
+| KLEE-018 | Sortir la création de ticket du board vers sa propre page | done | — | `tickets/KLEE-018-sortir-la-creation-de-ticket-du-board-vers-sa-propre-page.md` |
+| KLEE-019 | Régénérer docs/_generated/tracabilite.md depuis le board humain | done | — | `tickets/KLEE-019-regenerer-docs-generated-tracabilite-md-depuis-le-board-huma.md` |
 
 ## Maquettes
 
@@ -76,6 +78,8 @@ sidebar_label: Traçabilité
 
 - KLEE-009 — Lire un ticket depuis le board, pas seulement le déplacer
 - KLEE-011 — Améliorer la documentation initiale du scaffolding
+- KLEE-018 — Sortir la création de ticket du board vers sa propre page
+- KLEE-019 — Régénérer docs/_generated/tracabilite.md depuis le board humain
 - DOC-001 — 0001 — Topologie du dépôt : monorepo unique
 - DOC-002 — 0002 — Deux axes de configuration : modules et providers
 - DOC-003 — 0003 — Schéma d'identifiants partagé

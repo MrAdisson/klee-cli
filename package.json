@@ -24,7 +24,9 @@
     "verify": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run links:check && pnpm run links:report:check",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "klee": "node apps/cli/dist/klee.js"
+    "klee": "node apps/cli/dist/klee.js",
+    "link:local": "pnpm run build && cd apps/cli && npm link",
+    "unlink:local": "npm unlink -g @klee-dev/cli"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.2",
